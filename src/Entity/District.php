@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *
  * @ORM\EntityListeners ({App\Listener\LogListener::class})
  * @ORM\Table (name="district", indexes={@ORM\Index (name="city_id", columns={"city_id"})})
- * @ORM\Entity (repositoryClass="App\Repository\DistrictRepository")
+ * @ORM\Entity (repositoryClass="ControleOnline\Repository\DistrictRepository")
  */
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['district_read']], denormalizationContext: ['groups' => ['district_write']])]
 class District

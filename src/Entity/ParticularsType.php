@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\EntityListeners ({App\Listener\LogListener::class})
  * @ORM\Table (name="particulars_type")
- * @ORM\Entity (repositoryClass="App\Repository\ParticularsTypeRepository")
+ * @ORM\Entity (repositoryClass="ControleOnline\Repository\ParticularsTypeRepository")
  */
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['particularstype_read']], denormalizationContext: ['groups' => ['particularstype_write']])]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact', 'context' => 'partial', 'fieldType' => 'exact'])]

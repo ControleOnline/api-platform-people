@@ -18,7 +18,7 @@ use stdClass;
  * Email
  *
  * @ORM\EntityListeners ({App\Listener\LogListener::class})
- * @ORM\Entity (repositoryClass="App\Repository\EmailRepository")
+ * @ORM\Entity (repositoryClass="ControleOnline\Repository\EmailRepository")
  * @ORM\Table (name="email", uniqueConstraints={@ORM\UniqueConstraint (name="email", columns={"email"})}, indexes={@ORM\Index (columns={"people_id"})})
  */
 #[ApiResource(
