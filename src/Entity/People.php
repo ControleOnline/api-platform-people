@@ -567,7 +567,7 @@ class People extends Person
      * @ORM\Column(type="integer", nullable=false)
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
-     * @Groups({"pruduct_read","school_class:item:get","hardware_read", "people:people_company:subresource", "people_student:collection:get",
+     * @Groups({"category_read","pruduct_read","school_class:item:get","hardware_read", "people:people_company:subresource", "people_student:collection:get",
      *     "people_professional:collection:get", "task_read", "task_interaction_read","coupon_read","logistic_read","notifications_read","people_provider_read"})
      */
     private $id;
@@ -582,7 +582,7 @@ class People extends Person
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "order_read", "document_read", "email_read", "people_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read",
      *     "invoice_read", "client_read", "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", "school_class:item:get",
      *     "people:people_company:subresource", "people_student:collection:get",
@@ -599,7 +599,7 @@ class People extends Person
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
      *     "client_read", "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", "people:people_company:subresource",
      *     "school_professional_weekly_read", "school_team_schedule_read", "school_team_schedule_read",
