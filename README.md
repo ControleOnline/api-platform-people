@@ -1,3 +1,6 @@
+
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/controleonline/api-platform-people/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/controleonline/api-platform-people/?branch=master)
+
 # people
 
 
