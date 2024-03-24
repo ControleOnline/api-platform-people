@@ -26,7 +26,7 @@ class PeopleLink
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="company")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="link")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="company_id", referencedColumnName="id")
      * })

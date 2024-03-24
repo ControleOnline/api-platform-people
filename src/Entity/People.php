@@ -28,10 +28,10 @@ use App\Controller\CreatePeopleCustomerAction;
 use App\Controller\CreateProfessionalAction;
 use App\Controller\DownloadPersonFileAction;
 use App\Controller\GetClientCollectionAction;
-use App\Controller\GetClientCompanyAction;
+use App\Controller\GetClientLinkAction;
 use App\Controller\GetCloseProfessionalsAction;
 use App\Controller\GetCustomerCollectionAction;
-use App\Controller\GetDefaultCompanyAction;
+use App\Controller\GetDefaultLinkAction;
 use App\Controller\GetMyCompaniesAction;
 use App\Controller\GetMySaleCompaniesAction;
 use App\Controller\GetPeopleMeAction;
@@ -42,7 +42,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Controller\SearchClassesPeopleAction;
 use App\Controller\SearchContactAction;
-use App\Controller\SearchContactCompanyAction;
+use App\Controller\SearchContactLinkAction;
 use App\Controller\SearchCustomerSalesmanAction;
 use App\Controller\SearchLessonsPeopleAction;
 use App\Controller\SearchPeopleAction;
@@ -485,8 +485,8 @@ use stdClass;
 
         new GetCollection(
             security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
-            uriTemplate: '/people/company/default',
-            controller: GetDefaultCompanyAction::class
+            uriTemplate: '/people/link/default',
+            controller: GetDefaultLinkAction::class
         ),
 
         new Post(
@@ -532,12 +532,12 @@ use stdClass;
         new GetCollection(
             security: 'is_granted(\'ROLE_CLIENT\')',
             uriTemplate: '/people/contact',
-            controller: SearchContactCompanyAction::class
+            controller: SearchContactLinkAction::class
         ),
         new GetCollection(
             security: 'is_granted(\'ROLE_CLIENT\')',
-            uriTemplate: '/people/client-company',
-            controller: GetClientCompanyAction::class
+            uriTemplate: '/people/client-link',
+            controller: GetClientLinkAction::class
         ),
         new GetCollection(
             security: 'is_granted(\'ROLE_CLIENT\')',
@@ -573,19 +573,19 @@ use stdClass;
             uriTemplate: '/companies/{id}/salesman',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'read\', object)',
-            controller: \App\Controller\AdminCompanySalesmanAction::class
+            controller: \App\Controller\AdminLinkSalesmanAction::class
         ),
         new Put(
             uriTemplate: '/companies/{id}/salesman',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'edit\', object)',
-            controller: \App\Controller\AdminCompanySalesmanAction::class
+            controller: \App\Controller\AdminLinkSalesmanAction::class
         ),
         new Delete(
             uriTemplate: '/companies/{id}/salesman',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'delete\', object)',
-            controller: \App\Controller\AdminCompanySalesmanAction::class
+            controller: \App\Controller\AdminLinkSalesmanAction::class
         ),
         new Get(
             uriTemplate: '/clients/{id}',
@@ -732,7 +732,7 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
      * @ORM\OrderBy({"link" = "ASC"})
      */
-    private $company;
+    private $link;
 
     /**
      * @var Collection
@@ -807,7 +807,7 @@ class People
         $this->registerDate =            new \DateTime('now');
         $this->people =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->config =            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->company =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->link =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->user =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->document =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->address =            new \Doctrine\Common\Collections\ArrayCollection();
@@ -975,32 +975,32 @@ class People
         return $this->people;
     }
     /**
-     * Add company.
+     * Add link.
      *
      * @return People
      */
-    public function addCompany(People $company)
+    public function addLink(People $link)
     {
-        $this->company[] = $company;
+        $this->link[] = $link;
         return $this;
     }
     /**
-     * Remove company.
+     * Remove link.
      *
-     * @param \Core\Entity\Company $company
+     * @param \Core\Entity\Link $link
      */
-    public function removeCompany(People $company)
+    public function removeLink(People $link)
     {
-        $this->company->removeElement($company);
+        $this->link->removeElement($link);
     }
     /**
-     * Get company.
+     * Get link.
      *
      * @return Collection
      */
-    public function getCompany()
+    public function getLink()
     {
-        return $this->company;
+        return $this->link;
     }
     /**
      * Add user.
