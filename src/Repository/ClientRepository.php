@@ -5,7 +5,7 @@ namespace ControleOnline\Repository;
 use ControleOnline\Entity\Client;
 use ControleOnline\Entity\Status;
 use ControleOnline\Entity\People;
-use ControleOnline\Entity\Link\PeopleClient;
+use ControleOnline\Entity\PeopleLinkClient;
 use ControleOnline\Entity\PeopleSalesman;
 use ControleOnline\Entity\SalesOrder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 /**
- * @ORM\Table(name="people_people", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "people_company"})}, indexes={@ORM\Index(name="people_company_id", columns={"people_company"})})
+ * @ORM\Table(name="people_people", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "company"})}, indexes={@ORM\Index(name="company_id", columns={"company"})})
  * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleLinkRepository")
  * @ORM\EntityListeners({App\Listener\LogListener::class}) 
  */
@@ -26,17 +26,17 @@ class PeopleLink
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="peoplePeopleCompany")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="company")
      * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_company_id", referencedColumnName="id")
+     *   @ORM\JoinColumn(name="company_id", referencedColumnName="id")
      * })
      */
-    private $people_company;
+    private $company;
 
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="peoplePeople")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="people")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
@@ -79,16 +79,16 @@ class PeopleLink
         return $this->id;
     }
 
-    public function setPeopleCompany(People $people_company = null)
+    public function setCompany(People $company = null)
     {
-        $this->people_company = $people_company;
+        $this->company = $company;
 
         return $this;
     }
 
-    public function getPeopleCompany()
+    public function getCompany()
     {
-        return $this->people_company;
+        return $this->company;
     }
 
     public function setPeople(People $people = null)

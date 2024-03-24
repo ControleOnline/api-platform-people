@@ -16,7 +16,7 @@ use App\Controller\AdminPersonBillingAction;
 use App\Controller\AdminPersonCompaniesAction;
 use App\Controller\AdminPersonDocumentsAction;
 use App\Controller\AdminPersonEmailsAction;
-use App\Controller\AdminPersonEmployeesAction;
+use App\Controller\AdminPersonLinksAction;
 use App\Controller\AdminPersonFilesAction;
 use App\Controller\AdminPersonPhonesAction;
 use App\Controller\AdminPersonSummaryAction;
@@ -77,7 +77,7 @@ use stdClass;
         new Put(
             security: 'is_granted(\'edit\', object)',
             uriTemplate: '/people/{id}/profile/{component}',
-            requirements: ['component' => '^(phone|address|email|user|document|employee)+$'],
+            requirements: ['component' => '^(phone|address|email|user|document|link)+$'],
             controller: UpdatePeopleProfileAction::class
         ),
 
@@ -110,22 +110,22 @@ use stdClass;
             security: 'is_granted(\'read\', object)'
         ),
         new Get(
-            uriTemplate: '/customers/{id}/employees',
+            uriTemplate: '/customers/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'read\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Put(
-            uriTemplate: '/customers/{id}/employees',
+            uriTemplate: '/customers/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'edit\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Delete(
-            uriTemplate: '/customers/{id}/employees',
+            uriTemplate: '/customers/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'delete\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Get(
             uriTemplate: '/customers/{id}/addresses',
@@ -313,22 +313,22 @@ use stdClass;
             controller: AdminPersonSummaryAction::class
         ),
         new Get(
-            uriTemplate: '/professionals/{id}/employees',
+            uriTemplate: '/professionals/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'read\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Put(
-            uriTemplate: '/professionals/{id}/employees',
+            uriTemplate: '/professionals/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'edit\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Delete(
-            uriTemplate: '/professionals/{id}/employees',
+            uriTemplate: '/professionals/{id}/links',
             requirements: ['id' => '^\\d+$'],
             security: 'is_granted(\'delete\', object)',
-            controller: AdminPersonEmployeesAction::class
+            controller: AdminPersonLinksAction::class
         ),
         new Get(
             uriTemplate: '/professionals/{id}/addresses',
@@ -612,7 +612,7 @@ use stdClass;
     normalizationContext: ['groups' => ['people_read']],
     denormalizationContext: ['groups' => ['people_write']]
 )]
-class People extends Person
+class People
 {
     /**
      * @ORM\Column(type="integer", nullable=false)
@@ -721,37 +721,19 @@ class People extends Person
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Link\PeopleEmployee", mappedBy="company")
-     * @ORM\OrderBy({"employee" = "ASC"})
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
+     * @ORM\OrderBy({"link" = "ASC"})
      */
-    private $peopleEmployee;
-    /**
-     * @var \Collection
-     * @ORM\OneToMany (targetEntity="ControleOnline\Entity\Link\PeopleEmployee", mappedBy="employee")
-     * @ORM\OrderBy ({"company" = "ASC"})
-     */
-    private $peopleCompany;
+    private $people;
+
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleSalesman", mappedBy="company")
-     * @ORM\OrderBy({"salesman" = "ASC"})
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
+     * @ORM\OrderBy({"link" = "ASC"})
      */
-    private $peopleSalesman;
-    /**
-     * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Link\PeopleFranchisee", mappedBy="franchisee")
-     * @ORM\OrderBy({"franchisee" = "ASC"})
-     */
-    private $peopleFranchisee;
-    /**
-     * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Link\PeopleFranchisee", mappedBy="franchisor")
-     * @ORM\OrderBy({"franchisor" = "ASC"})
-     */
-    private $peopleFranchisor;
+    private $company;
+
     /**
      * @var Collection
      *
@@ -763,7 +745,7 @@ class People extends Person
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document\Document", mappedBy="people")
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({"people_read", "task_interaction_read"})
      */
     private $document;
@@ -785,7 +767,7 @@ class People extends Person
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email\Email", mappedBy="people")
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({"people_read", "get_contracts",  "task_interaction_read"})
      */
     private $email;
@@ -815,22 +797,8 @@ class People extends Person
      * @Groups({"people_read", "my_contract_item_read", "mycontractpeople_read"})
      */
     private $paymentTerm;
-    /**
-     * @ORM\OneToOne(targetEntity=PeopleStudent::class, mappedBy="student", cascade={"persist", "remove"})
-     */
-    private $peopleStudent;
-    /**
-     * @ORM\OneToMany(targetEntity=PeopleStudent::class, mappedBy="company")
-     */
-    private $peopleStudents;
-    /**
-     * @ORM\OneToOne(targetEntity=PeopleProfessional::class, mappedBy="professional", cascade={"persist", "remove"})
-     */
-    private $peopleProfessional;
-    /**
-     * @ORM\OneToMany(targetEntity=PeopleTeam::class, mappedBy="people")
-     */
-    private $peopleTeams;
+
+
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
      * @Groups({"people_read", "my_contract_item_read", "mycontractpeople_read"})
@@ -845,36 +813,18 @@ class People extends Person
         $this->enable = 0;
         $this->icms = 1;
         $this->billing = 0;
-        $this->registerDate =
-            new \DateTime('now');
-        $this->peopleEmployee =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->config =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->peopleCompany =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->peopleSalesman =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->peopleFranchisee =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->peopleFranchisor =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->user =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->document =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->address =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->email =
-            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->phone =
-            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->registerDate =            new \DateTime('now');
+        $this->people =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->config =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->company =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->user =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->document =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->address =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->email =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->phone =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->billingDays = 'daily';
         $this->paymentTerm = 1;
-        $this->peopleStudents =
-            new ArrayCollection();
-        $this->peopleTeams =
-            new ArrayCollection();
+
         $this->otherInformations = json_encode(
             new stdClass()
         );
@@ -1002,91 +952,64 @@ class People extends Person
      *
      * @return People
      */
-    public function addDocument(\ControleOnline\Entity\Document\Document $document)
+    public function addDocument(Document $document)
     {
         $this->document[] = $document;
         return $this;
     }
     /**
-     * Add peopleEmployee.
+     * Add people.
      *
      * @return People
      */
-    public function addPeopleEmployee(\ControleOnline\Entity\Link\PeopleEmployee $peopleEmployee)
+    public function addPeople(People $people)
     {
-        $this->peopleEmployee[] = $peopleEmployee;
+        $this->people[] = $people;
         return $this;
     }
     /**
-     * Remove peopleEmployee.
+     * Remove people.
      */
-    public function removePeopleEmployee(\ControleOnline\Entity\Link\PeopleEmployee $peopleEmployee)
+    public function removePeople(People $people)
     {
-        $this->peopleEmployee->removeElement($peopleEmployee);
+        $this->people->removeElement($people);
     }
     /**
-     * Get peopleEmployee.
+     * Get people.
      *
      * @return Collection
      */
-    public function getPeopleEmployee()
+    public function getPeople()
     {
-        return $this->peopleEmployee;
+        return $this->people;
     }
     /**
-     * Add peopleCompany.
+     * Add company.
      *
      * @return People
      */
-    public function addPeopleCompany(\ControleOnline\Entity\Link\PeopleEmployee $peopleCompany)
+    public function addCompany(People $company)
     {
-        $this->peopleCompany[] = $peopleCompany;
+        $this->company[] = $company;
         return $this;
     }
     /**
-     * Remove peopleCompany.
+     * Remove company.
      *
-     * @param \Core\Entity\PeopleCompany $peopleCompany
+     * @param \Core\Entity\Company $company
      */
-    public function removePeopleCompany(\ControleOnline\Entity\Link\PeopleEmployee $peopleCompany)
+    public function removeCompany(People $company)
     {
-        $this->peopleCompany->removeElement($peopleCompany);
+        $this->company->removeElement($company);
     }
     /**
-     * Get peopleCompany.
+     * Get company.
      *
      * @return Collection
      */
-    public function getPeopleCompany()
+    public function getCompany()
     {
-        return $this->peopleCompany;
-    }
-    /**
-     * Get peopleFranchisor.
-     *
-     * @return Collection
-     */
-    public function getPeopleFranchisor()
-    {
-        return $this->peopleFranchisor;
-    }
-    /**
-     * Get peopleFranchisee.
-     *
-     * @return Collection
-     */
-    public function getPeopleFranchisee()
-    {
-        return $this->peopleFranchisee;
-    }
-    /**
-     * Get peopleSalesman.
-     *
-     * @return Collection
-     */
-    public function getPeopleSalesman()
-    {
-        return $this->peopleSalesman;
+        return $this->company;
     }
     /**
      * Add user.
@@ -1206,82 +1129,6 @@ class People extends Person
     public function getPaymentTerm(): int
     {
         return $this->paymentTerm;
-    }
-    public function getPeopleStudent(): ?PeopleStudent
-    {
-        return $this->peopleStudent;
-    }
-    public function setPeopleStudent(PeopleStudent $peopleStudent): self
-    {
-        $this->peopleStudent = $peopleStudent;
-        // set the owning side of the relation if necessary
-        if ($peopleStudent->getStudent() !== $this) {
-            $peopleStudent->setStudent($this);
-        }
-        return $this;
-    }
-    /**
-     * @return Collection|PeopleStudent[]
-     */
-    public function getPeopleStudents(): Collection
-    {
-        return $this->peopleStudents;
-    }
-    public function addPeopleStudent(PeopleStudent $peopleStudent): self
-    {
-        if (!$this->peopleStudents->contains($peopleStudent)) {
-            $this->peopleStudents[] = $peopleStudent;
-            $peopleStudent->setCompany($this);
-        }
-        return $this;
-    }
-    public function removePeopleStudent(PeopleStudent $peopleStudent): self
-    {
-        if ($this->peopleStudents->removeElement($peopleStudent)) {
-            // set the owning side to null (unless already changed)
-            if ($peopleStudent->getCompany() === $this) {
-                $peopleStudent->setCompany(null);
-            }
-        }
-        return $this;
-    }
-    public function getPeopleProfessional(): ?PeopleProfessional
-    {
-        return $this->peopleProfessional;
-    }
-    public function setPeopleProfessional(PeopleProfessional $peopleProfessional): self
-    {
-        $this->peopleProfessional = $peopleProfessional;
-        // set the owning side of the relation if necessary
-        if ($peopleProfessional->getProfessional() !== $this) {
-            $peopleProfessional->setProfessional($this);
-        }
-        return $this;
-    }
-    /**
-     * @return Collection|PeopleTeam[]
-     */
-    public function getPeopleTeams(): Collection
-    {
-        return $this->peopleTeams;
-    }
-    public function addPeopleTeam(PeopleTeam $peopleTeam): self
-    {
-        if (!$this->peopleTeams->contains($peopleTeam)) {
-            $this->peopleTeams[] = $peopleTeam;
-            $peopleTeam->setPeople($this);
-        }
-        return $this;
-    }
-    public function removePeopleTeam(PeopleTeam $peopleTeam): self
-    {
-        if ($this->peopleTeams->removeElement($peopleTeam)) {
-            // set the owning side to null (unless already changed)
-            if ($peopleTeam->getPeople() === $this) {
-                $peopleTeam->setPeople(null);
-            }
-        }
-        return $this;
     }
     public function getFoundationDate(): ?\DateTime
     {
