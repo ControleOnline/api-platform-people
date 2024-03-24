@@ -618,8 +618,8 @@ class People
      * @ORM\Column(type="integer", nullable=false)
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
-     * @Groups({"category_read","pruduct_read","school_class:item:get","display_read", "people:people_company:subresource", "people_student:collection:get",
-     *     "people_professional:collection:get", "task_read", "task_interaction_read","coupon_read","logistic_read","notifications_read","people_provider_read"})
+     * @Groups({"category_read","pruduct_read","display_read",  
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read","notifications_read","people_provider_read"})
      */
     private $id;
     /**
@@ -635,10 +635,10 @@ class People
      * @Groups({
      *     "category_read","order_read", "document_read", "email_read", "people_read",
      *     "invoice_read",  "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", "school_class:item:get",
-     *     "people:people_company:subresource", "people_student:collection:get",
-     *     "people_professional:collection:get", "school_professional_weekly_read", "school_team_schedule_read",
-     *     "school_team_schedule_read", "task_read", "task_interaction_read","coupon_read", "logistic_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      
+     *       
+     *      "task_read", "task_interaction_read","coupon_read", "logistic_read",
      *     "queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
@@ -652,9 +652,9 @@ class People
      * @Groups({
      *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", "people:people_company:subresource",
-     *     "school_professional_weekly_read", "school_team_schedule_read", "school_team_schedule_read",
-     *     "people_professional:collection:get", "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *       
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
@@ -666,9 +666,9 @@ class People
      * @Groups({
      *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", "people:people_company:subresource",
-     *     "school_professional_weekly_read", "school_team_schedule_read", "school_team_schedule_read",
-     *     "people_professional:collection:get", "task_read", "task_interaction_read","coupon_read"
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *       
+     *      "task_read", "task_interaction_read","coupon_read"
      * }) 
      */
     private $otherInformations;
@@ -777,16 +777,7 @@ class People
      * @ORM\OneToMany (targetEntity="ControleOnline\Entity\ContractPeople", mappedBy="people")
      */
     private $contractsPeople;
-    /**
-     * Many Peoples have Many Teams.
-     *
-     * @ORM\ManyToMany(targetEntity="ControleOnline\Entity\Team")
-     * @ORM\JoinTable(name="people_team",
-     *     joinColumns={@ORM\JoinColumn(name="people_id", referencedColumnName="id")},
-     *     inverseJoinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")}
-     * )
-     */
-    private $teams;
+
     /**
      * @ORM\Column(type="string", length=255, nullable=false)
      * @Groups({"people_read"})
@@ -1076,41 +1067,6 @@ class People
     public function getContractsPeople(): Collection
     {
         return $this->contractsPeople;
-    }
-    public function getTeams(): Collection
-    {
-        return $this->teams;
-    }
-    public function getUpcomingClass($date): SchoolClass
-    {
-        foreach ($this->getTeams() as $team) {
-            $schoolClass = $team->getSchoolClass($date);
-            if ('Scheduled' === $schoolClass->getSchoolClassStatus()->getLessonStatus()) {
-                return $schoolClass;
-            }
-        }
-        return
-            new SchoolClass();
-    }
-    public function getClasses(): Collection
-    {
-        $classes =
-            new ArrayCollection();
-        foreach ($this->getTeams() as $team) {
-            $classes->add($team->getSchoolClass());
-        }
-        return $classes;
-    }
-    public function getLessons(): Collection
-    {
-        $lessons =
-            new ArrayCollection();
-        foreach ($this->getClasses() as $class) {
-            foreach ($class->getLessons() as $lesson) {
-                $lessons->add($lesson);
-            }
-        }
-        return $lessons;
     }
     public function setBillingDays(string $billingDays): self
     {
