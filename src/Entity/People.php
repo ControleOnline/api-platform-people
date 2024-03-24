@@ -31,7 +31,7 @@ use App\Controller\GetClientCollectionAction;
 use App\Controller\GetClientLinkAction;
 use App\Controller\GetCloseProfessionalsAction;
 use App\Controller\GetCustomerCollectionAction;
-use App\Controller\GetDefaultLinkAction;
+use App\Controller\GetDefaultCompanyAction;
 use App\Controller\GetMyCompaniesAction;
 use App\Controller\GetMySaleCompaniesAction;
 use App\Controller\GetPeopleMeAction;
@@ -485,8 +485,8 @@ use stdClass;
 
         new GetCollection(
             security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
-            uriTemplate: '/people/link/default',
-            controller: GetDefaultLinkAction::class
+            uriTemplate: '/people/company/default',
+            controller: GetDefaultCompanyAction::class
         ),
 
         new Post(
