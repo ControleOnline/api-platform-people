@@ -2,7 +2,7 @@
 
 namespace ControleOnline\Entity;
 
-use ControleOnline\Entity\Address\State;
+use ControleOnline\Entity\State;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -34,9 +34,9 @@ class PeopleStates
     private $people;
 
     /**
-     * @var \ControleOnline\Entity\Address\State
+     * @var \ControleOnline\Entity\State
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\Address\State")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\State")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="state_id", referencedColumnName="id")
      * })

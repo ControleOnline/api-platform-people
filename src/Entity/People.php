@@ -770,7 +770,7 @@ class People extends Person
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address\Address", mappedBy="people")
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({"people_read", "logistic_read"})
      */
