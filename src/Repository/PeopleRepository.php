@@ -22,15 +22,37 @@ class PeopleRepository extends ServiceEntityRepository
         parent::__construct($registry, People::class);
     }
 
-    public function getPeopleLink(People $people, $linkType, $maxResults = null)
+    public function getPeopleLinks(People $people, $linkType, $maxResults = null)
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
         $queryBuilder->select('pl')
             ->from('ControleOnline\Entity\PeopleLink', 'pl')
-            ->where('pl.people = :peopleId')
+            ->where('pl.people = :people')
             ->andWhere('pl.link_type = :linkType')
-            ->setParameter('peopleId', $people->getId())
+            ->setParameter('people', $people->getId())
             ->setParameter('linkType', $linkType);
+
+        if ($maxResults) {
+            $queryBuilder->setMaxResults($maxResults);
+            return $queryBuilder->getQuery()->getOneOrNullResult();
+        } else {
+            return $queryBuilder->getQuery()->getResult();
+        }
+    }
+
+
+    public function getCompanyPeopleLinks(People $company,  People $people, $linkType = null, $maxResults = null)
+    {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder->select('pl')
+            ->from('ControleOnline\Entity\PeopleLink', 'pl')
+            ->where('pl.people = :people')
+            ->andWhere('pl.company = :company')
+            ->setParameter('company', $company->getId())
+            ->setParameter('people', $people->getId());
+
+        if ($linkType)
+            $queryBuilder->setParameter('linkType', $linkType)->andWhere('pl.link_type = :linkType');
 
         if ($maxResults) {
             $queryBuilder->setMaxResults($maxResults);

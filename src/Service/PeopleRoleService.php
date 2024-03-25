@@ -57,103 +57,33 @@ class PeopleRoleService
     return in_array('salesman', $this->getAllRoles($people));
   }
 
-  public function getAllRoles(People $people = null): array
-  {
 
-    $mainCompany = $this->getMainCompany();
-
-
-    if ($people === null) {
-      $people = $this->security->getUser()->getPeople();
-      if (!($people instanceof People)) {
-        return ['guest'];
-      }
-    } else {
-      $peopleCompany = $people->getLink()->first();
-      if ($peopleCompany === false) {
-        return ['guest'];
-      }
-    }
-
-    $myCompany  = $peopleCompany->getCompany();
-    return $this->getAllRolesByCompany($people, $myCompany);
-  }
-
-  public function getAllRolesByCompany(People $people, People $company): array
+  public function getAllRoles(People $people): array
   {
     $peopleRole = [];
     $mainCompany = $this->getMainCompany();
 
-    if ($company->getId() == $mainCompany->getId()) {
-      $isSuper = $mainCompany->getCompany()
-        ->exists(
-          function ($key, PeopleLink $peopleLink) use ($people) {
-            return $peopleLink->getPeople()->getId() === $people->getId();
-          }
-        );
+    $isSuper = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'employee', 1);
+    if ($isSuper) 
+      $peopleRole[] = 'super';
+    
 
-      if ($isSuper) {
-        $peopleRole[] = 'super';
-      }
-    }
 
-    $peopleFranchisee = $this->manager->getRepository(People::class)->getPeopleLink($mainCompany, 'franchisee');
-
-    $isFranchisee = $mainCompany->getCompany()
-      ->exists(
-        function ($key, PeopleLink $peopleFranchisee) use ($people, $company) {
-          foreach ($peopleFranchisee->getCompany() as $peopleLink) {
-            if ($peopleLink->getCompany()->getId() == $company->getId() &&  $peopleLink->getPeople()->getId() === $people->getId()) {
-              return  true;
-            }
-          }
-        }
-      );
-      $peopleRole[] = 'franchisee';
+    $isFranchisee = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'franchisee', 1);
     if ($isFranchisee) {
       $peopleRole[] = 'franchisee';
       $peopleRole[] = 'admin';
     }
 
-    $isClient = $company->getCompany()
-      ->exists(
-        function ($key, PeopleLink $peopleLink) use ($people) {
-          return $peopleLink->getPeople()->getId() === $people->getId();
-        }
-      );
-
-    if ($isClient) {
+    $isClient = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'client', 1);
+    if ($isClient) 
       $peopleRole[] = 'client';
-    }
+    
 
-
-    $isClient = $people->getLink()
-      ->exists(
-        function ($key, PeopleLink $peopleLink) use ($company) {
-          return $this->manager->getRepository(PeopleClient::class)->findOneBy(
-            [
-              'client' => $peopleLink->getCompany(),
-              'company_id' => $company->getId()
-            ]
-          );
-        }
-      );
-
-    if ($isClient) {
-      $peopleRole[] = 'client';
-    }
-
-
-    $isSalesman = $company->getPeopleSalesman()
-      ->exists(
-        function ($key, PeopleSalesman $peopleSalesman) use ($people) {
-          return $peopleSalesman->getSalesman()->getId() === $people->getId();
-        }
-      );
-    if ($isSalesman) {
+    $isSalesman = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'salesman', 1);
+    if ($isSalesman) 
       $peopleRole[] = 'salesman';
-    }
-
+    
 
     return array_values(array_unique(empty($peopleRole) ? ['guest'] : $peopleRole));
   }
