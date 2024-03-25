@@ -3,9 +3,7 @@
 namespace ControleOnline\Repository;
 
 use ControleOnline\Entity\People;
-use ControleOnline\Entity\Status;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
 
 
