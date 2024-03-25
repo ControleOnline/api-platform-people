@@ -721,16 +721,14 @@ class People
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
-     * @ORM\OrderBy({"link" = "ASC"})
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
      */
     private $people;
 
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
-     * @ORM\OrderBy({"link" = "ASC"})
+     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
      */
     private $link;
 

@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 /**
- * @ORM\Table(name="people_people", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "company"})}, indexes={@ORM\Index(name="company_id", columns={"company"})})
+ * @ORM\Table(name="people_link", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "company"})}, indexes={@ORM\Index(name="company_id", columns={"company"})})
  * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleLinkRepository")
  * @ORM\EntityListeners({App\Listener\LogListener::class}) 
  */
@@ -26,7 +26,7 @@ class PeopleLink
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="link")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="people")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="company_id", referencedColumnName="id")
      * })
@@ -36,7 +36,7 @@ class PeopleLink
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="people")
+     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="link")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
