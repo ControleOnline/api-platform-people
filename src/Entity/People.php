@@ -10,13 +10,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\ApiResource;
 use App\Controller\GetCloseProfessionalsAction;
 use ControleOnline\Controller\GetDefaultCompanyAction;
-use App\Controller\GetMyCompaniesAction;
-use App\Controller\GetPeopleMeAction;
+use ControleOnline\Controller\GetMyCompaniesAction;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use App\Controller\SearchContactAction;
-use App\Controller\VerifyPeopleStatusAction;
 use ControleOnline\Controller\CreateUserAction;
 use stdClass;
 
@@ -34,11 +31,6 @@ use stdClass;
             controller: CreateUserAction::class,
             securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
         ),
-        new Get(
-            security: 'is_granted(\'ROLE_CLIENT\')',
-            uriTemplate: '/people/{id}/status',
-            controller: VerifyPeopleStatusAction::class
-        ),
         new GetCollection(
             securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
         ),
@@ -51,11 +43,7 @@ use stdClass;
             uriTemplate: '/people/companies/my',
             controller: GetMyCompaniesAction::class
         ),
-        new GetCollection(
-            security: 'is_granted(\'ROLE_CLIENT\')',
-            uriTemplate: '/people/me',
-            controller: GetPeopleMeAction::class
-        ),
+
         new GetCollection(
             uriTemplate: '/people/professionals/close/{lat}/{lng}',
             openapiContext: [],
