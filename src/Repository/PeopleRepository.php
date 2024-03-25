@@ -33,7 +33,7 @@ class PeopleRepository extends ServiceEntityRepository
             ->setParameter('linkType', $linkType);
 
         if ($maxResults) {
-            $queryBuilder->setMaxResults(1);
+            $queryBuilder->setMaxResults($maxResults);
             return $queryBuilder->getQuery()->getOneOrNullResult();
         } else {
             return $queryBuilder->getQuery()->getResult();
