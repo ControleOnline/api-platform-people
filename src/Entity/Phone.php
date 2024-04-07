@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 /**
- * @ORM\EntityListeners ({App\Listener\LogListener::class})
+ * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\PhoneRepository")
  * @ORM\Table (name="phone", uniqueConstraints={@ORM\UniqueConstraint (name="phone", columns={"phone","ddd","people_id"})}, indexes={@ORM\Index (columns={"people_id"})})
  */

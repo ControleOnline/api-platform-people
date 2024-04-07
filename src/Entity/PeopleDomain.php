@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Table(name="people_domain")
  * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleDomainRepository")
- * @ORM\EntityListeners({App\Listener\LogListener::class}) 
+ * @ORM\EntityListeners({ControleOnline\Listener\LogListener::class}) 
  */
 class PeopleDomain
 {

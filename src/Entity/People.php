@@ -25,7 +25,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use ControleOnline\Controller\IncomeStatementAction;
 
 /**
- * @ORM\EntityListeners ({App\Listener\LogListener::class})
+ * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\PeopleRepository")
  * @ORM\Table (name="people")
  */
@@ -33,6 +33,13 @@ use ControleOnline\Controller\IncomeStatementAction;
     operations: [
 
         new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Put(
+            security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
+            validationContext: ['groups' => ['people_write']],
+            denormalizationContext: ['groups' => ['people_write']]
+        ),
+        new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(
             uriTemplate: '/people/{id}/add-user',
             controller: CreateUserAction::class,
@@ -69,7 +76,7 @@ class People
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -82,7 +89,7 @@ class People
     /**
      * @ORM\Column(type="boolean",  nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -92,27 +99,15 @@ class People
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['enable' => 'exact'])]
 
     private $enable = 0;
+
     /**
-     * @ORM\Column(type="boolean",  nullable=false)
+     * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
-     * })
-     */
-    #[ApiFilter(filterClass: SearchFilter::class, properties: ['icms' => 'exact'])]
-
-    private $icms = 1;
-    /**
-     * @ORM\Column(type="string", length=50, nullable=false)
-     * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read",
-     *     "invoice_read",  "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
-     *      "task_read", "task_interaction_read","coupon_read", "logistic_read",
-     *     "queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['name' => 'partial'])]
@@ -125,7 +120,7 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -140,31 +135,40 @@ class People
      *
      * @ORM\Column(name="other_informations", type="json",  nullable=true)
      * @Groups({
-     *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *      "my_contract_item_read", "mycontractpeople_read", 
-     *      "task_read", "task_interaction_read","coupon_read"
-     * }) 
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     private $otherInformations;
     /**
      * @ORM\Column(type="string", length=1, nullable=false)
-     * @Groups({"pruduct_read","display_read","people_read", "my_contract_item_read", "mycontractpeople_read", "task_read", "task_interaction_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 
     private $peopleType = 'F';
-    /**
-     * @ORM\Column(type="float", nullable=false)
-     * @Groups({"people_read"})
-     */
-    private $billing = 0;
+
     /**
      * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File", inversedBy="people")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="image_id", referencedColumnName="id")
      * })
-     * @Groups({"people_read","display_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     private $file;
     /**
@@ -215,7 +219,13 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
      * @ORM\OrderBy({"username" = "ASC"})
-     * @Groups({"people_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['user' => 'exact'])]
 
@@ -224,7 +234,13 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
-     * @Groups({"people_read", "task_interaction_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['document' => 'exact'])]
 
@@ -234,7 +250,13 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
-     * @Groups({"people_read", "logistic_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['address' => 'exact'])]
 
@@ -243,7 +265,13 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
-     * @Groups({"people_read",   "task_interaction_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['phone' => 'exact'])]
 
@@ -252,7 +280,13 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
-     * @Groups({"people_read", "get_contracts",  "task_interaction_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['email' => 'exact'])]
 
@@ -267,33 +301,23 @@ class People
     private $contractsPeople;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=false)
-     * @Groups({"people_read"})
-     */
-    private $billingDays;
-    /**
-     * @ORM\Column(type="integer", nullable=false)
-     * @Groups({"people_read", "my_contract_item_read", "mycontractpeople_read"})
-     */
-    private $paymentTerm;
-
-
-    /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
-     * @Groups({"people_read", "my_contract_item_read", "mycontractpeople_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
     private $foundationDate = null;
-    /**
-     * @Groups({"people_read", "my_contract_item_read", "mycontractpeople_read"})
-     */
-    private $averageRating = 4;
+
+
     public function __construct()
     {
         $this->enable = 0;
-        $this->icms = 1;
-        $this->billing = 0;
         $this->registerDate =            new \DateTime('now');
-        $this->people =            new \Doctrine\Common\Collections\ArrayCollection();
+        $this->company =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->config =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->link =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->user =            new \Doctrine\Common\Collections\ArrayCollection();
@@ -301,9 +325,6 @@ class People
         $this->address =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->email =            new \Doctrine\Common\Collections\ArrayCollection();
         $this->phone =            new \Doctrine\Common\Collections\ArrayCollection();
-        $this->billingDays = 'daily';
-        $this->paymentTerm = 1;
-
         $this->otherInformations = json_encode(
             new stdClass()
         );
@@ -312,24 +333,8 @@ class People
     {
         return $this->id;
     }
-    public function getAverageRating()
-    {
-        return $this->averageRating;
-    }
-    public function setAverageRating($averageRating)
-    {
-        $this->averageRating = $averageRating;
-        return $this;
-    }
-    public function getIcms()
-    {
-        return $this->icms;
-    }
-    public function setIcms($icms)
-    {
-        $this->icms = $icms ?: 0;
-        return $this;
-    }
+
+
     public function getEnabled()
     {
         return $this->enable;
@@ -408,15 +413,7 @@ class People
     {
         return $this->language;
     }
-    public function setBilling($billing)
-    {
-        $this->billing = $billing;
-        return $this;
-    }
-    public function getBilling()
-    {
-        return $this->billing;
-    }
+
     public function getRegisterDate(): \DateTimeInterface
     {
         return $this->registerDate;
@@ -555,24 +552,6 @@ class People
     public function getContractsPeople(): Collection
     {
         return $this->contractsPeople;
-    }
-    public function setBillingDays(string $billingDays): self
-    {
-        $this->billingDays = $billingDays;
-        return $this;
-    }
-    public function getBillingDays(): string
-    {
-        return $this->billingDays;
-    }
-    public function setPaymentTerm(int $paymentTerm): self
-    {
-        $this->paymentTerm = $paymentTerm;
-        return $this;
-    }
-    public function getPaymentTerm(): int
-    {
-        return $this->paymentTerm;
     }
     public function getFoundationDate(): ?\DateTime
     {

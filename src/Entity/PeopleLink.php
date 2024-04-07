@@ -11,7 +11,7 @@ use Doctrine\Common\Collections\Collection;
 /**
  * @ORM\Table(name="people_link", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "company"})}, indexes={@ORM\Index(name="company_id", columns={"company"})})
  * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleLinkRepository")
- * @ORM\EntityListeners({App\Listener\LogListener::class}) 
+ * @ORM\EntityListeners({ControleOnline\Listener\LogListener::class}) 
  */
 class PeopleLink
 {
