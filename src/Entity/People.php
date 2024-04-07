@@ -16,6 +16,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ControleOnline\Controller\CreateUserAction;
 use stdClass;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use Symfony\Component\Validator\Constraints as Assert;
+use ControleOnline\Controller\IncomeStatementAction;
 
 /**
  * @ORM\EntityListeners ({App\Listener\LogListener::class})
@@ -61,17 +68,42 @@ class People
      * @ORM\Column(type="integer", nullable=false)
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
-     * @Groups({"category_read","pruduct_read","display_read",  
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read","notifications_read","people_provider_read"})
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact'])]
+
     private $id;
     /**
      * @ORM\Column(type="boolean",  nullable=false)
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['enable' => 'exact'])]
+
     private $enable = 0;
     /**
      * @ORM\Column(type="boolean",  nullable=false)
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['icms' => 'exact'])]
+
     private $icms = 1;
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
@@ -79,12 +111,12 @@ class People
      *     "category_read","order_read", "document_read", "email_read", "people_read",
      *     "invoice_read",  "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
-     *      
-     *       
      *      "task_read", "task_interaction_read","coupon_read", "logistic_read",
      *     "queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['name' => 'partial'])]
+
     private $name;
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
@@ -96,11 +128,12 @@ class People
      *     "category_read","order_read", "document_read", "email_read", "people_read", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
-     *       
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['alias' => 'partial'])]
+
     private $alias;
     /**
      * @var string
@@ -109,8 +142,7 @@ class People
      * @Groups({
      *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
-     *       
+     *      "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read"
      * }) 
      */
@@ -119,6 +151,8 @@ class People
      * @ORM\Column(type="string", length=1, nullable=false)
      * @Groups({"pruduct_read","display_read","people_read", "my_contract_item_read", "mycontractpeople_read", "task_read", "task_interaction_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
+
     private $peopleType = 'F';
     /**
      * @ORM\Column(type="float", nullable=false)
@@ -165,6 +199,12 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
+     * @Groups({
+     *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *      "my_contract_item_read", "mycontractpeople_read", 
+     *      "task_read", "task_interaction_read","coupon_read"
+     * }) 
      */
     private $people;
 
@@ -172,6 +212,7 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
+     * 
      */
     private $link;
 
@@ -182,6 +223,8 @@ class People
      * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({"people_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['user' => 'exact'])]
+
     private $user;
     /**
      * @var Collection
@@ -189,6 +232,8 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({"people_read", "task_interaction_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['document' => 'exact'])]
+
     private $document;
     /**
      * @var Collection
@@ -197,6 +242,8 @@ class People
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({"people_read", "logistic_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['address' => 'exact'])]
+
     private $address;
     /**
      * @var Collection
@@ -204,6 +251,8 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({"people_read",   "task_interaction_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['phone' => 'exact'])]
+
     private $phone;
     /**
      * @var Collection
@@ -211,12 +260,16 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({"people_read", "get_contracts",  "task_interaction_read"})
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['email' => 'exact'])]
+
     private $email;
     /**
      * Many Peoples have Many Contracts.
      *
      * @ORM\OneToMany (targetEntity="ControleOnline\Entity\ContractPeople", mappedBy="people")
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['contractsPeople' => 'exact'])]
+
     private $contractsPeople;
 
     /**
