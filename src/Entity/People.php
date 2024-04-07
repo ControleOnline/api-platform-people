@@ -199,14 +199,8 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
-     * @Groups({
-     *     "order_read", "document_read", "email_read", "people_read", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *      "my_contract_item_read", "mycontractpeople_read", 
-     *      "task_read", "task_interaction_read","coupon_read"
-     * }) 
      */
-    private $people;
+    private $company;
 
     /**
      * @var Collection
@@ -435,7 +429,7 @@ class People
     /**
      * Add document.
      *
-     * @return People
+     * @return Document
      */
     public function addDocument(Document $document)
     {
@@ -443,30 +437,30 @@ class People
         return $this;
     }
     /**
-     * Add people.
+     * Add company.
      *
-     * @return People
+     * @return Company
      */
-    public function addPeople(People $people)
+    public function addCompany(People $company)
     {
-        $this->people[] = $people;
+        $this->company[] = $company;
         return $this;
     }
     /**
-     * Remove people.
+     * Remove company.
      */
-    public function removePeople(People $people)
+    public function removeCompany(People $company)
     {
-        $this->people->removeElement($people);
+        $this->company->removeElement($company);
     }
     /**
-     * Get people.
+     * Get company.
      *
      * @return Collection
      */
-    public function getPeople()
+    public function getCompany()
     {
-        return $this->people;
+        return $this->company;
     }
     /**
      * Add link.
