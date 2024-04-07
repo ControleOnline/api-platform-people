@@ -15,4 +15,6 @@ services:
         resource: '../../src/Command'
         tags: ['console.command']
     ControleOnline\Filter\:
-        resource: '../../src/Filter'            
+        resource: '../../src/Filter'      
+    ControleOnline\Service\:
+        resource: '../../src/Service'                

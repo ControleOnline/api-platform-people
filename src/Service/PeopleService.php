@@ -19,7 +19,9 @@ class PeopleService
 
   public function beforePersist(People $people)
   {
+    echo 'pt-br';
     $language = $this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']);
     $people->setLanguage($language);
+    return $people;
   }
 }
