@@ -220,7 +220,7 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
      * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -235,7 +235,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", 
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -251,7 +251,7 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -266,7 +266,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
@@ -281,7 +281,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
