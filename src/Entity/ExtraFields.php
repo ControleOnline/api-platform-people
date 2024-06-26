@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Table (name="extra_data_type")
+ * @ORM\Table (name="extra_fields")
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\ExtraFieldsRepository")
  */
 #[ApiResource(
