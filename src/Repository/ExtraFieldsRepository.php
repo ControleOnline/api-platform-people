@@ -2,7 +2,7 @@
 
 namespace ControleOnline\Repository;
 
-use ControleOnline\Entity\ExtraFields\ExtraFields;
+use ControleOnline\Entity\ExtraFields;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
