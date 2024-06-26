@@ -43,34 +43,34 @@ class ParticularsType
      *
      * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
      * @ORM\Column(name="type_value", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      */
     private $typeValue;
     /**
      * @ORM\Column(name="field_type", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      */
     private $fieldType;
     /**
      * @ORM\Column(name="context", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      */
     private $context;
     /**
      * @ORM\Column(name="required", type="string", length=255, nullable=true)
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      */
     private $required;
     /**
      * @ORM\Column(name="field_configs", type="string", nullable=true)
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
      */
     private $fieldConfigs;
     /**
