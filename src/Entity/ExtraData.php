@@ -21,15 +21,16 @@ use ApiPlatform\Metadata\Put;
  */
 #[ApiResource(
     operations: [
-        new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
-        new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Get(uriTemplate: '/extra_data/{id}', security: 'is_granted(\'ROLE_CLIENT\')'),
+        new GetCollection(uriTemplate: '/extra_data', security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
+            uriTemplate: '/extra_data/{id}',
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
             validationContext: ['groups' => ['extrafields_write']],
             denormalizationContext: ['groups' => ['extrafields_write']]
         ),
-        new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
-        new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
+        new Delete(uriTemplate: '/extra_data/{id}', security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Post(uriTemplate: '/extra_data', securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' =>
     ['text/csv']],
