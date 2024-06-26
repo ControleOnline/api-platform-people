@@ -1,6 +1,6 @@
 <?php
 
-namespace ControleOnline\Entity\Particulars;
+namespace ControleOnline\Entity;
 
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Table (name="particulars_type")
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\ParticularsTypeRepository")
+ * @ORM\Table (name="extra_data_type")
+ * @ORM\Entity (repositoryClass="ControleOnline\Repository\ExtraFieldsRepository")
  */
 #[ApiResource(
     operations: [
@@ -25,54 +25,54 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['particularstype_write']],
-            denormalizationContext: ['groups' => ['particularstype_write']]
+            validationContext: ['groups' => ['extrafields_write']],
+            denormalizationContext: ['groups' => ['extrafields_write']]
         ),
         new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
-    normalizationContext: ['groups' => ['particularstype_read']],
-    denormalizationContext: ['groups' => ['particularstype_write']]
+    normalizationContext: ['groups' => ['extrafields_read']],
+    denormalizationContext: ['groups' => ['extrafields_write']]
 )]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact', 'context' => 'exact', 'fieldType' => 'exact'])]
-class ParticularsType
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['context' => 'exact', 'field_type' => 'exact'])]
+class ExtraFields
 {
     /**
      * @var integer
      *
      * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @Groups({"particularstype_read", "particulars_read"})
+     * @Groups({"extrafields_read", "extra_data_read"})
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
-     * @ORM\Column(name="type_value", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @ORM\Column(name="field_name", type="string", length=255, nullable=false)
+     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
      */
-    private $typeValue;
+    private $field_name;
     /**
      * @ORM\Column(name="field_type", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
      */
-    private $fieldType;
+    private $field_type;
     /**
      * @ORM\Column(name="context", type="string", length=255, nullable=false)
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
      */
     private $context;
     /**
-     * @ORM\Column(name="required", type="string", length=255, nullable=true)
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @ORM\Column(name="required", type="boolean", length=255, nullable=true)
+     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
      */
     private $required;
     /**
      * @ORM\Column(name="field_configs", type="string", nullable=true)
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
      */
-    private $fieldConfigs;
+    private $field_configs;
     /**
      * Constructor
      */
@@ -88,50 +88,50 @@ class ParticularsType
     {
         return $this->id;
     }
-    
-    public function setTypeValue(string $value): self
+
+    public function setFieldName($value): self
     {
-        $this->typeValue = $value;
+        $this->field_name = $value;
         return $this;
     }
-    public function getTypeValue(): string
+    public function getFieldName()
     {
-        return $this->typeValue;
+        return $this->field_name;
     }
-    public function setFieldType(string $value): self
+    public function setFieldType($value): self
     {
-        $this->fieldType = $value;
+        $this->field_type = $value;
         return $this;
     }
-    public function getFieldType(): string
+    public function getFieldType()
     {
-        return $this->fieldType;
+        return $this->field_type;
     }
-    public function setContext(string $value): self
+    public function setContext($value): self
     {
         $this->context = $value;
         return $this;
     }
-    public function getContext(): string
+    public function getContext()
     {
         return $this->context;
     }
-    public function setRequired(string $value): self
+    public function setRequired($value): self
     {
         $this->required = $value;
         return $this;
     }
-    public function getRequired(): ?string
+    public function getRequired()
     {
         return $this->required;
     }
-    public function setFieldConfigs(string $value): self
+    public function setFieldConfigs($value): self
     {
-        $this->fieldConfigs = $value;
+        $this->field_configs = $value;
         return $this;
     }
-    public function getFieldConfigs(): ?string
+    public function getFieldConfigs()
     {
-        return $this->fieldConfigs;
+        return $this->field_configs;
     }
 }
