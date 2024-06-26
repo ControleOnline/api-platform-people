@@ -43,7 +43,7 @@ class ParticularsType
      *
      * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @Groups({"particularstype_read", "particularstype_write", "particulars_read"})
+     * @Groups({"particularstype_read", "particulars_read"})
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
