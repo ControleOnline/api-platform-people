@@ -26,8 +26,8 @@ use ApiPlatform\Metadata\Put;
         new Put(
             uriTemplate: '/extra_data/{id}',
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['extrafields_write']],
-            denormalizationContext: ['groups' => ['extrafields_write']]
+            validationContext: ['groups' => ['extra_data_write']],
+            denormalizationContext: ['groups' => ['extra_data_write']]
         ),
         new Delete(uriTemplate: '/extra_data/{id}', security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(uriTemplate: '/extra_data', securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
@@ -93,15 +93,7 @@ class ExtraData
     {
         return $this->id;
     }
-    public function setType(ExtraFields $extra_fields)
-    {
-        $this->extra_fields = $extra_fields;
-        return $this;
-    }
-    public function getType()
-    {
-        return $this->extra_fields;
-    }
+
 
     public function setValue($value): self
     {
@@ -145,6 +137,24 @@ class ExtraData
     public function setEntityName($entity_name): self
     {
         $this->entity_name = $entity_name;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of extra_fields
+     */
+    public function getExtraFields()
+    {
+        return $this->extra_fields;
+    }
+
+    /**
+     * Set the value of extra_fields
+     */
+    public function setExtraFields($extra_fields): self
+    {
+        $this->extra_fields = $extra_fields;
 
         return $this;
     }

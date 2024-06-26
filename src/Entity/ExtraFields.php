@@ -25,15 +25,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['extrafields_write']],
-            denormalizationContext: ['groups' => ['extrafields_write']]
+            validationContext: ['groups' => ['extra_fields_write']],
+            denormalizationContext: ['groups' => ['extra_fields_write']]
         ),
         new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
-    normalizationContext: ['groups' => ['extrafields_read']],
-    denormalizationContext: ['groups' => ['extrafields_write']]
+    normalizationContext: ['groups' => ['extra_fields_read']],
+    denormalizationContext: ['groups' => ['extra_fields_write']]
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['context' => 'exact', 'field_type' => 'exact'])]
 class ExtraFields
@@ -43,34 +43,34 @@ class ExtraFields
      *
      * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @Groups({"extrafields_read", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_data_read"})
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
      * @ORM\Column(name="field_name", type="string", length=255, nullable=false)
-     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $field_name;
     /**
      * @ORM\Column(name="field_type", type="string", length=255, nullable=false)
-     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $field_type;
     /**
      * @ORM\Column(name="context", type="string", length=255, nullable=false)
-     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $context;
     /**
      * @ORM\Column(name="required", type="boolean", length=255, nullable=true)
-     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $required;
     /**
      * @ORM\Column(name="field_configs", type="string", nullable=true)
-     * @Groups({"extrafields_read", "extrafields_write", "extra_data_read"})
+     * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $field_configs;
     /**
