@@ -64,7 +64,7 @@ class ExtraFields
      */
     private $context;
     /**
-     * @ORM\Column(name="required", type="boolean", length=255, nullable=true)
+     * @ORM\Column(name="required", type="boolean", nullable=true)
      * @Groups({"extra_fields_read", "extra_fields_write", "extra_data_read"})
      */
     private $required;
