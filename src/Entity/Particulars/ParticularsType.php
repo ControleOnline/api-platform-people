@@ -47,11 +47,7 @@ class ParticularsType
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
-    /**
-     * @ORM\Column(name="people_type", type="string", length=1, nullable=false)
-     * @Groups({"particularstype_read", "particulars_read"})
-     */
-    private $peopleType;
+
     /**
      * @ORM\Column(name="type_value", type="string", length=255, nullable=false)
      * @Groups({"particularstype_read", "particulars_read"})
@@ -92,15 +88,7 @@ class ParticularsType
     {
         return $this->id;
     }
-    public function setPeopleType(string $type): self
-    {
-        $this->peopleType = $type;
-        return $this;
-    }
-    public function getPeopleType(): string
-    {
-        return $this->peopleType;
-    }
+    
     public function setTypeValue(string $value): self
     {
         $this->typeValue = $value;
