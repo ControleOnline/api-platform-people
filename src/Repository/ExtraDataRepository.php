@@ -13,7 +13,7 @@ use Doctrine\ORM\Query\ResultSetMapping;
  * @method ExtraData[]    findAll()
  * @method ExtraData[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ExtraFieldsRepository extends ServiceEntityRepository
+class ExtraDataRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
