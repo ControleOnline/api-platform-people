@@ -35,7 +35,9 @@ class PeopleRoleService
   public function __construct(
     EntityManagerInterface $entityManager,
     Security               $security,
-    PeopleService          $peopleService
+    PeopleService          $peopleService,
+    private DomainService $domainService
+ 
   ) {
     $this->manager  = $entityManager;
     $this->security = $security;
@@ -93,7 +95,7 @@ class PeopleRoleService
    */
   public function getMainCompany(): People
   {
-    $domain  = $_SERVER['HTTP_HOST'];
+    $domain  = $this->domainService->getMainDomain();
     $company = $this->manager->getRepository(PeopleDomain::class)->findOneBy(['domain' => $domain]);
 
     if ($company === null)

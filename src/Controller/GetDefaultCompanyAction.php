@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use ControleOnline\Entity\Config;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
+use ControleOnline\Service\DomainService;
 use ControleOnline\Service\PeopleRoleService;
 
 class GetDefaultCompanyAction
@@ -23,25 +24,26 @@ class GetDefaultCompanyAction
   private $domain;
   private $company;
 
-  public function __construct(Security $security, EntityManagerInterface $entityManager, PeopleRoleService $roles)
-  {
+  public function __construct(
+    Security $security,
+    EntityManagerInterface $entityManager,
+    PeopleRoleService $roles,
+    private DomainService $domainService
+  ) {
     $this->security = $security;
     $this->em = $entityManager;
     $this->roles = $roles;
   }
 
-  public function __invoke(Request $request): JsonResponse
-  {
-    /**
-     * @var string $domain
-     */
-    $domain = $request->get('app-domain', null);
+  public function __invoke(
+    Request $request
+  ): JsonResponse {
 
     try {
 
-      $this->domain = $this->getDomain($domain);
+      $this->domain = $this->domainService->getDomain();
       $this->getCompany();
-      
+
       $defaultCompany = [];
       $configs = [];
       $allConfigs = [];
@@ -68,7 +70,7 @@ class GetDefaultCompanyAction
           'theme'       => $this->getTheme(),
           'logo'       => $this->company->getPeople()->getFile() ? [
             'id'     => $this->company->getPeople()->getFile()->getId(),
-            'domain' => $_SERVER['HTTP_HOST'],
+            'domain' => $this->domainService->getMainDomain(),
             'url'    => '/files/download/' . $this->company->getPeople()->getFile()->getId()
           ] : null,
         ];
@@ -106,14 +108,9 @@ class GetDefaultCompanyAction
       'colors' =>  $this->company->getTheme()->getColors(),
       'background'  =>  $this->company->getTheme()->getBackground() ? [
         'id'     =>  $this->company->getTheme()->getBackground(),
-        'domain' => $_SERVER['HTTP_HOST'],
+        'domain' => $this->domainService->getMainDomain(),
         'url'    => '/files/download/' .  $this->company->getTheme()->getBackground()
       ] : null,
     ];
-  }
-
-  private function getDomain($domain = null): string
-  {
-    return $domain ?: $_SERVER['HTTP_HOST'];
   }
 }

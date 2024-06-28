@@ -10,6 +10,7 @@ use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\PeoplePackage;
 use ControleOnline\Service\PeopleRoleService;
 use ControleOnline\Entity\PackageModules;
+use ControleOnline\Service\DomainService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +25,10 @@ class GetMyCompaniesAction
   private $em = null;
   private $roles;
 
-  public function __construct(Security $security, EntityManagerInterface $entityManager, PeopleRoleService $roles)
+  public function __construct(Security $security, EntityManagerInterface $entityManager, 
+  private DomainService $domainService
+, 
+  PeopleRoleService $roles)
   {
     $this->security = $security;
     $this->em      = $entityManager;
@@ -259,7 +263,7 @@ class GetMyCompaniesAction
     if ($company->getFile() instanceof File)
       return [
         'id'     => $company->getFile()->getId(),
-        'domain' => $_SERVER['HTTP_HOST'],
+        'domain' => $this->domainService->getMainDomain(),
         'url'    => '/files/download/' . $company->getFile()->getId()
       ];
 
