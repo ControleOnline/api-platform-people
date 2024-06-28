@@ -47,7 +47,7 @@ class PeopleLink
      *
      * @ORM\Column(type="boolean",  nullable=false)
      */
-    private $enable = 0;
+    private $enable = 1;
 
 
     /**
@@ -64,7 +64,7 @@ class PeopleLink
      *
      * @ORM\Column(name="comission", type="float", nullable=false)
      */
-    private $comission;
+    private $comission = 0;
 
 
     /**
@@ -72,7 +72,7 @@ class PeopleLink
      *
      * @ORM\Column(name="minimum_comission", type="float", nullable=false)
      */
-    private $minimum_comission;
+    private $minimum_comission = 0;
 
     public function getId()
     {
