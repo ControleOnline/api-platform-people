@@ -8,6 +8,7 @@ use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Service\PeopleService;
+use ControleOnline\Entity\User;
 
 class PeopleRoleService
 {
@@ -37,53 +38,89 @@ class PeopleRoleService
     Security               $security,
     PeopleService          $peopleService,
     private DomainService $domainService
- 
+
   ) {
     $this->manager  = $entityManager;
     $this->security = $security;
     $this->people   = $peopleService;
   }
 
-  public function isFranchisee(People $people): bool
+  public function isFranchisee(User $user)
   {
-    return in_array('franchisee', $this->getAllRoles($people));
+    $mainCompany = $this->getMainCompany();
+    $people = $user->getPeople();
+    $isFranchisee = false;
+
+    $getPeopleCompanies = $this->manager->getRepository(PeopleLink::class)->findBy([
+      'people' => $people,
+      'link_type' => 'employee'
+    ]);
+    /**
+     * @var \ControleOnline\Entity\PeopleLink $peopleCompany
+     */
+    foreach ($getPeopleCompanies as $peopleCompany) {
+      $isFranchisee = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $peopleCompany->getCompany(), 'franchisee', 1);
+      if ($isFranchisee) return true;
+    }
+    return $isFranchisee;
   }
 
-  public function isSuperAdmin(People $people): bool
+  public function isSuperAdmin(User $user): bool
   {
-    return in_array('super', $this->getAllRoles($people));
+    return in_array('super', $this->getAllRoles($user));
   }
 
-  public function isSalesman(People $people): bool
+  public function isSalesman(User $user)
   {
-    return in_array('salesman', $this->getAllRoles($people));
+    $mainCompany = $this->getMainCompany();
+    $people = $user->getPeople();
+    $isSalesman = false;
+
+    $isSalesman = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'salesman', 1);
+    if ($isSalesman) return true;
+
+    $getPeopleCompanies = $this->manager->getRepository(PeopleLink::class)->findBy([
+      'people' => $people,
+      'link_type' => 'employee'
+    ]);
+    /**
+     * @var \ControleOnline\Entity\PeopleLink $peopleCompany
+     */
+    foreach ($getPeopleCompanies as $peopleCompany) {
+      $isSalesman = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $peopleCompany->getCompany(), 'salesman', 1);
+      if ($isSalesman) return true;
+    }
+    return $isSalesman;
   }
 
 
-  public function getAllRoles(People $people): array
+  public function getAllRoles(User $user): array
   {
+    $people = $user->getPeople();
     $peopleRole = [];
     $mainCompany = $this->getMainCompany();
 
     $isSuper = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'employee', 1);
-    if ($isSuper) 
+    if ($isSuper)
       $peopleRole[] = 'super';
 
-    $isFranchisee = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'franchisee', 1);
+
+
+    $isFranchisee = $this->isFranchisee($user);
     if ($isFranchisee) {
       $peopleRole[] = 'franchisee';
       $peopleRole[] = 'admin';
     }
 
     $isClient = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'client', 1);
-    if ($isClient) 
+    if ($isClient)
       $peopleRole[] = 'client';
-    
 
-    $isSalesman = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'salesman', 1);
-    if ($isSalesman) 
+
+    $isSalesman = $this->isSalesman($user);
+    if ($isSalesman)
       $peopleRole[] = 'salesman';
-    
+
 
     return array_values(array_unique(empty($peopleRole) ? ['guest'] : $peopleRole));
   }
