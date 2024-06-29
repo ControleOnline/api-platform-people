@@ -7,42 +7,19 @@ use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
-use App\Service\PeopleService;
 use ControleOnline\Entity\User;
 
 class PeopleRoleService
 {
-  /**
-   * Entity Manager
-   *
-   * @var EntityManagerInterface
-   */
-  private $manager = null;
 
-  /**
-   * Security
-   *
-   * @var Security
-   */
-  private $security = null;
-
-  /**
-   * People Service
-   *
-   * @var PeopleService
-   */
-  private $people  = null;
+  private static $mainCompany;
 
   public function __construct(
-    EntityManagerInterface $entityManager,
-    Security               $security,
-    PeopleService          $peopleService,
+    private   EntityManagerInterface $manager,
+    private  Security               $security,
     private DomainService $domainService
 
   ) {
-    $this->manager  = $entityManager;
-    $this->security = $security;
-    $this->people   = $peopleService;
   }
 
   public function isFranchisee(User $user)
@@ -132,6 +109,9 @@ class PeopleRoleService
    */
   public function getMainCompany(): People
   {
+
+    if (self::$mainCompany) return self::$mainCompany;
+    
     $domain  = $this->domainService->getMainDomain();
     $company = $this->manager->getRepository(PeopleDomain::class)->findOneBy(['domain' => $domain]);
 
@@ -140,6 +120,7 @@ class PeopleRoleService
         sprintf('Main company "%s" not found', $domain)
       );
 
-    return $company->getPeople();
+    self::$mainCompany =  $company->getPeople();
+    return self::$mainCompany;
   }
 }
