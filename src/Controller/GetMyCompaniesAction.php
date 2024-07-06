@@ -73,7 +73,7 @@ class GetMyCompaniesAction
         $packages = $this->getPeoplePackages($people);
 
 
-        $permissions[$people->getId()] = $this->roles->getAllRoles($userPeople);
+        $permissions[$people->getId()] = $this->roles->getAllRoles($currentUser);
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      => $people->getId(),
