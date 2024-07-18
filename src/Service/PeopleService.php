@@ -15,8 +15,7 @@ class PeopleService
   public function __construct(
     private EntityManagerInterface $manager,
     private Security               $security,
-    private RequestStack $requestStack,
-    private PusherService $pusher
+    private RequestStack $requestStack
   ) {
   }
 
@@ -55,8 +54,6 @@ class PeopleService
 
     $this->manager->persist($peopleLink);
     $this->manager->flush();
-    $this->pusher->push(['company' => $company->getId(), 'people' => $people->getId()], 'my_topic');
-
     return  $peopleLink;
   }
 }
