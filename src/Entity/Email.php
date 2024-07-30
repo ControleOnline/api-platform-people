@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -28,7 +29,13 @@ use stdClass;
         new GetCollection(
             uriTemplate: '/email/find',
             controller: \App\Controller\SearchEmailAction::class
-        )
+        ),
+        new Put(
+            security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
+            validationContext: ['groups' => ['email_read']],
+            denormalizationContext: ['groups' => ['email_write']]
+        ),
+
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     normalizationContext: ['groups' => ['email_read']],
@@ -46,7 +53,7 @@ class Email
     /**
      *
      * @ORM\Column(type="string", length=50, nullable=false)
-     * @Groups({"people_read", "email_read",  "get_contracts", "carrier_read"})
+     * @Groups({"people_read", "email_read",  "get_contracts", "carrier_read","email_write"})
      */
     private $email;
     /**
