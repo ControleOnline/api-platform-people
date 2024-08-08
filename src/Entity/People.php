@@ -80,7 +80,7 @@ class People
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact'])]
@@ -93,7 +93,7 @@ class People
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['enable' => 'exact'])]
@@ -107,7 +107,7 @@ class People
      *      "order_detail_status_read", "mycontract_read",
      *     "my_contract_item_read", "mycontractpeople_read", 
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['name' => 'partial'])]
