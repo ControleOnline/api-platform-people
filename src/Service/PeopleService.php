@@ -16,8 +16,7 @@ class PeopleService
     private EntityManagerInterface $manager,
     private Security               $security,
     private RequestStack $requestStack
-  ) {
-  }
+  ) {}
 
   public function beforePersist(People $people)
   {
@@ -29,16 +28,17 @@ class PeopleService
   public function afterPersist(People $people)
   {
     $request = $this->requestStack->getCurrentRequest();
-    $payload   = json_decode($request->getContent(), true);
+    $payload   = json_decode($request->getContent());
     if (isset($payload->link_type)) {
-      $company = $this->manager->getRepository(PeopleLink::class)->find($payload->company);
-      $this->addLink($company, $people, $payload->link_type);
+      $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
+      if ($company)
+        $this->addLink($company, $people, $payload->link_type);
     }
   }
 
   public function addLink(People $company, People $people, $link_type)
   {
-    
+
     $peopleLink = $this->manager->getRepository(PeopleLink::class)->findOneBy([
       'company' => $company,
       'people' => $people,
