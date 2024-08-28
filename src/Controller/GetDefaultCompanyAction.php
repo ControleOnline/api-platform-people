@@ -68,10 +68,10 @@ class GetDefaultCompanyAction
           'domainType' => $this->company->getDomainType(),
           'permissions' => $permissions,
           'theme'       => $this->getTheme(),
-          'logo'       => $this->company->getPeople()->getFile() ? [
-            'id'     => $this->company->getPeople()->getFile()->getId(),
+          'logo'       => $this->company->getPeople()->getImage() ? [
+            'id'     => $this->company->getPeople()->getImage()->getId(),
             'domain' => $this->domainService->getMainDomain(),
-            'url'    => '/files/download/' . $this->company->getPeople()->getFile()->getId()
+            'url'    => '/files/download/' . $this->company->getPeople()->getImage()->getId()
           ] : null,
         ];
       }

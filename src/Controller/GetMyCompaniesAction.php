@@ -260,11 +260,11 @@ class GetMyCompaniesAction
 
   private function getLogo(People $company): ?array
   {
-    if ($company->getFile() instanceof File)
+    if ($company->getImage() instanceof File)
       return [
-        'id'     => $company->getFile()->getId(),
+        'id'     => $company->getImage()->getId(),
         'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/download/' . $company->getFile()->getId()
+        'url'    => '/files/download/' . $company->getImage()->getId()
       ];
 
     return null;

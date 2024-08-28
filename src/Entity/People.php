@@ -170,7 +170,7 @@ class People
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
      */
-    private $file;
+    private $image;
     /**
      * @var Collection
      *
@@ -183,15 +183,29 @@ class People
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="alternative_image", referencedColumnName="id")
      * })
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
-    private $alternativeFile;
+    private $alternative_image;
     /**
      * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="background_image", referencedColumnName="id")
      * })
+     * @Groups({
+     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
+     *      "order_detail_status_read", "mycontract_read",
+     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "task_interaction_read","coupon_read","logistic_read",
+     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     * })
      */
-    private $backgroundFile;
+    private $background;
     /**
      * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\Language", inversedBy="people")
      * @ORM\JoinColumns({
@@ -376,33 +390,6 @@ class People
     public function getAlias()
     {
         return strtoupper($this->alias);
-    }
-    public function setFile(File $file = null)
-    {
-        $this->file = $file;
-        return $this;
-    }
-    public function getFile()
-    {
-        return $this->file;
-    }
-    public function setAlternativeFile(File $alternative_file = null)
-    {
-        $this->alternativeFile = $alternative_file;
-        return $this;
-    }
-    public function getAlternativeFile()
-    {
-        return $this->alternativeFile;
-    }
-    public function getBackgroundFile()
-    {
-        return $this->backgroundFile;
-    }
-    public function setBackgroundFile(File $backgroundFile = null)
-    {
-        $this->backgroundFile = $backgroundFile;
-        return $this;
     }
     public function setLanguage(Language $language = null)
     {
@@ -655,5 +642,59 @@ class People
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Get })
+     */
+    public function getBackground()
+    {
+        return $this->background;
+    }
+
+    /**
+     * Set })
+     */
+    public function setBackground($background): self
+    {
+        $this->background = $background;
+
+        return $this;
+    }
+
+    /**
+     * Get })
+     */
+    public function getImage()
+    {
+        return $this->image;
+    }
+
+    /**
+     * Set })
+     */
+    public function setImage($image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    /**
+     * Get })
+     */
+    public function getAlternativeImage()
+    {
+        return $this->alternative_image;
+    }
+
+    /**
+     * Set })
+     */
+    public function setAlternativeImage($alternative_image): self
+    {
+        $this->alternative_image = $alternative_image;
+
+        return $this;
     }
 }
