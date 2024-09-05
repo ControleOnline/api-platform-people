@@ -27,21 +27,12 @@ use stdClass;
     operations: [
         new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
         new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
-        new GetCollection(
-            uriTemplate: '/email/find',
-            controller: \App\Controller\SearchEmailAction::class
-        ),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
             validationContext: ['groups' => ['email_read']],
             denormalizationContext: ['groups' => ['email_write']]
         ),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
-        new Post(
-            uriTemplate: '/people/{id}/add-user',
-            controller:\App\Controller\SearchEmailAction::class,
-            securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
-        ),        
 
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],

@@ -5,6 +5,7 @@ namespace ControleOnline\Entity;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
@@ -13,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+
 /**
  * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\PhoneRepository")
@@ -20,20 +22,20 @@ use Doctrine\Common\Collections\Collection;
  */
 #[ApiResource(
     operations: [
-    new Get(security: 'is_granted(\'ROLE_CLIENT\')'), 
-    new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'), 
-    new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
-    new Post(
-        uriTemplate: '/phone/find',
-       // controller:\App\Controller\SearchEmailAction::class,  @todo -> Falta confirmar se tem do phone
-        securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
-    ),  
-],
-formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], 
-normalizationContext: ['groups' => ['phone_read']], 
-denormalizationContext: ['groups' => ['phone_write']],
+        new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Put(
+            security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
+            validationContext: ['groups' => ['phone_read']],
+            denormalizationContext: ['groups' => ['phone_write']]
+        ),
+        new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')')
+    ],
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
+    normalizationContext: ['groups' => ['phone_read']],
+    denormalizationContext: ['groups' => ['phone_write']],
 )]
-    #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 class Phone
 {
     /**
@@ -45,13 +47,13 @@ class Phone
     /**
      *
      * @ORM\Column(type="integer", length=10, nullable=false)
-     * @Groups({"people_read", "phone_read",  "carrier_read"})
+     * @Groups({"people_read", "phone_read",  "phone_write"})
      */
     private $phone;
     /**
      *
      * @ORM\Column(type="integer", length=2, nullable=false)
-     * @Groups({"people_read", "phone_read",  "carrier_read"})
+     * @Groups({"people_read", "phone_read",  "phone_write"})
      */
     private $ddd;
     /**
@@ -64,6 +66,7 @@ class Phone
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
+     * @Groups({"people_read", "phone_read",  "phone_write"})
      */
     private $people;
     public function getId()
