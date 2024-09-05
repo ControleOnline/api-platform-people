@@ -2,6 +2,7 @@
 
 namespace ControleOnline\Entity;
 
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\ApiResource;
@@ -17,8 +18,22 @@ use Doctrine\Common\Collections\Collection;
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\PhoneRepository")
  * @ORM\Table (name="phone", uniqueConstraints={@ORM\UniqueConstraint (name="phone", columns={"phone","ddd","people_id"})}, indexes={@ORM\Index (columns={"people_id"})})
  */
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['phone_read']], denormalizationContext: ['groups' => ['phone_write']])]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ApiResource(
+    operations: [
+    new Get(security: 'is_granted(\'ROLE_CLIENT\')'), 
+    new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'), 
+    new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
+    new Post(
+        uriTemplate: '/phone/find',
+       // controller:\App\Controller\SearchEmailAction::class,  @todo -> Falta confirmar se tem do phone
+        securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
+    ),  
+],
+formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], 
+normalizationContext: ['groups' => ['phone_read']], 
+denormalizationContext: ['groups' => ['phone_write']],
+)]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 class Phone
 {
     /**

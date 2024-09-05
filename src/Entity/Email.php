@@ -2,6 +2,7 @@
 
 namespace ControleOnline\Entity;
 
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\ApiResource;
@@ -35,6 +36,12 @@ use stdClass;
             validationContext: ['groups' => ['email_read']],
             denormalizationContext: ['groups' => ['email_write']]
         ),
+        new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
+        new Post(
+            uriTemplate: '/people/{id}/add-user',
+            controller:\App\Controller\SearchEmailAction::class,
+            securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
+        ),        
 
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
