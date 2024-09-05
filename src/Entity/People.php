@@ -78,7 +78,7 @@ class People
      * @Groups({
      *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "my_contract_item_read", "mycontractpeople_read", "user_read",
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
@@ -105,7 +105,7 @@ class People
      * @Groups({
      *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
      *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "my_contract_item_read", "mycontractpeople_read", "user_read",
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
