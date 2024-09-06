@@ -14,7 +14,6 @@ use ControleOnline\Controller\GetMyCompaniesAction;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use ControleOnline\Controller\CreateUserAction;
 use stdClass;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Metadata\ApiProperty;
@@ -40,11 +39,6 @@ use ControleOnline\Controller\IncomeStatementAction;
         ),
         new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
-        new Post(
-            uriTemplate: '/people/{id}/add-user',
-            controller: CreateUserAction::class,
-            securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
-        ),
         new GetCollection(
             securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
         ),
