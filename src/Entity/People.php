@@ -70,10 +70,10 @@ class People
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
      * "model_read","model_detail_read",
-     *     "my_contract_item_read", "mycontractpeople_read", "user_read",
+     *       "user_read",
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
@@ -84,9 +84,9 @@ class People
     /**
      * @ORM\Column(type="boolean",  nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      * "model_read","model_detail_read",
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
@@ -99,10 +99,10 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
      * "model_read","model_detail_read",
-     *     "my_contract_item_read", "mycontractpeople_read", "user_read",
+     *       "user_read",
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
      * })
@@ -117,10 +117,10 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
      * "model_read","model_detail_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *       
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -133,9 +133,9 @@ class People
      *
      * @ORM\Column(name="other_informations", type="json",  nullable=true)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -144,9 +144,9 @@ class People
     /**
      * @ORM\Column(type="string", length=1, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -161,9 +161,9 @@ class People
      *   @ORM\JoinColumn(name="image_id", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -182,9 +182,9 @@ class People
      *   @ORM\JoinColumn(name="alternative_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -196,9 +196,9 @@ class People
      *   @ORM\JoinColumn(name="background_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -232,9 +232,9 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
      * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -247,9 +247,9 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", 
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", 
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -263,9 +263,9 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -278,9 +278,9 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -293,9 +293,9 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
+     *      "order_detail_status_read", 
+     *       
      *     "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
@@ -315,9 +315,9 @@ class People
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read","people_write", "invoice_read",
-     *      "order_detail_status_read", "mycontract_read",
-     *     "my_contract_item_read", "mycontractpeople_read", 
+     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
+     *      "order_detail_status_read", 
+     *       
      *      "task_read", "task_interaction_read","coupon_read","logistic_read",
      *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
      * })
