@@ -25,11 +25,12 @@ class GetMyCompaniesAction
   private $em = null;
   private $roles;
 
-  public function __construct(Security $security, EntityManagerInterface $entityManager, 
-  private DomainService $domainService
-, 
-  PeopleRoleService $roles)
-  {
+  public function __construct(
+    Security $security,
+    EntityManagerInterface $entityManager,
+    private DomainService $domainService,
+    PeopleRoleService $roles
+  ) {
     $this->security = $security;
     $this->em      = $entityManager;
     $this->roles = $roles;
@@ -264,7 +265,7 @@ class GetMyCompaniesAction
       return [
         'id'     => $company->getImage()->getId(),
         'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/download/' . $company->getImage()->getId()
+        'url'    => '/files/' . $company->getImage()->getId() . '/download'
       ];
 
     return null;

@@ -71,7 +71,7 @@ class GetDefaultCompanyAction
           'logo'       => $this->company->getPeople()->getImage() ? [
             'id'     => $this->company->getPeople()->getImage()->getId(),
             'domain' => $this->domainService->getMainDomain(),
-            'url'    => '/files/download/' . $this->company->getPeople()->getImage()->getId()
+            'url'    => '/files/' . $this->company->getPeople()->getImage()->getId() . '/download'
           ] : null,
         ];
       }
@@ -109,7 +109,7 @@ class GetDefaultCompanyAction
       'background'  =>  $this->company->getTheme()->getBackground() ? [
         'id'     =>  $this->company->getTheme()->getBackground(),
         'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/download/' .  $this->company->getTheme()->getBackground()
+        'url'    => '/files/' .  $this->company->getTheme()->getBackground() . '/download'
       ] : null,
     ];
   }
