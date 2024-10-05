@@ -297,14 +297,7 @@ class People
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['email' => 'exact'])]
 
     private $email;
-    /**
-     * Many Peoples have Many Contracts.
-     *
-     * @ORM\OneToMany (targetEntity="ControleOnline\Entity\ContractPeople", mappedBy="people")
-     */
-    #[ApiFilter(filterClass: SearchFilter::class, properties: ['contractsPeople' => 'exact'])]
 
-    private $contractsPeople;
 
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
@@ -528,10 +521,7 @@ class People
     {
         return $this->email;
     }
-    public function getContractsPeople(): Collection
-    {
-        return $this->contractsPeople;
-    }
+
     public function getFoundationDate(): ?\DateTime
     {
         return $this->foundationDate;
