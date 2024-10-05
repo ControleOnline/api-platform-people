@@ -34,8 +34,8 @@ use ControleOnline\Controller\IncomeStatementAction;
         new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['people_write']],
-            denormalizationContext: ['groups' => ['people_write']]
+            validationContext: ['groups' => ['people:write']],
+            denormalizationContext: ['groups' => ['people:write']]
         ),
         new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
@@ -51,17 +51,11 @@ use ControleOnline\Controller\IncomeStatementAction;
             uriTemplate: '/people/companies/my',
             controller: GetMyCompaniesAction::class
         ),
-
-        new GetCollection(
-            uriTemplate: '/people/professionals/close/{lat}/{lng}',
-            openapiContext: [],
-            controller: GetCloseProfessionalsAction::class
-        )
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     security: 'is_granted(\'ROLE_CLIENT\')',
-    normalizationContext: ['groups' => ['people_read']],
-    denormalizationContext: ['groups' => ['people_write']]
+    normalizationContext: ['groups' => ['people:read']],
+    denormalizationContext: ['groups' => ['people:write']]
 )]
 class People
 {
@@ -70,12 +64,12 @@ class People
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     * "model_read","model_detail_read",
-     *       "user_read",
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     * "model:read","model_detail:read",
+     *       "user:read","contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact'])]
@@ -84,12 +78,12 @@ class People
     /**
      * @ORM\Column(type="boolean",  nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
      *       
-     * "model_read","model_detail_read",
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
+     * "model:read","model_detail:read","contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['enable' => 'exact'])]
@@ -99,12 +93,12 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     * "model_read","model_detail_read",
-     *       "user_read",
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read", "productsByDay_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     * "model:read","model_detail:read",
+     *       "user:read","contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['name' => 'partial'])]
@@ -117,12 +111,12 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     * "model_read","model_detail_read",
-     *       
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     * "model:read","model_detail:read",
+     *       "contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['alias' => 'partial'])]
@@ -133,22 +127,22 @@ class People
      *
      * @ORM\Column(name="other_informations", type="json",  nullable=true)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     *       
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     *       "contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     private $otherInformations;
     /**
      * @ORM\Column(type="string", length=1, nullable=false)
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     *       
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     *       "contract_people:read",
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
@@ -161,11 +155,11 @@ class People
      *   @ORM\JoinColumn(name="image_id", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
-     *      "order_detail_status_read", 
-     *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *      "order_detail_status:read", 
+     *       "contract_people:read",
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     private $image;
@@ -182,11 +176,11 @@ class People
      *   @ORM\JoinColumn(name="alternative_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     private $alternative_image;
@@ -196,11 +190,11 @@ class People
      *   @ORM\JoinColumn(name="background_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", "invoice_read",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     private $background;
@@ -232,11 +226,11 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
      * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['user' => 'exact'])]
@@ -247,11 +241,11 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write", 
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write", 
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['document' => 'exact'])]
@@ -263,11 +257,11 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['address' => 'exact'])]
@@ -278,11 +272,11 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['phone' => 'exact'])]
@@ -293,11 +287,11 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "people_write",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "people:write",
+     *      "order_detail_status:read", 
      *       
-     *     "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *     "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['email' => 'exact'])]
@@ -315,11 +309,11 @@ class People
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
      * @Groups({
-     *     "category_read","order_read", "document_read", "email_read", "people_read", "contract_read","people_write", "invoice_read",
-     *      "order_detail_status_read", 
+     *     "category:read","order:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *      "order_detail_status:read", 
      *       
-     *      "task_read", "task_interaction_read","coupon_read","logistic_read",
-     *     "pruduct_read","queue_read","display_read","notifications_read","people_provider_read"
+     *      "task:read", "task_interaction:read","coupon:read","logistic:read",
+     *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     private $foundationDate = null;

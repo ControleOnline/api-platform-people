@@ -26,14 +26,14 @@ use Doctrine\Common\Collections\Collection;
         new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['phone_read']],
-            denormalizationContext: ['groups' => ['phone_write']]
+            validationContext: ['groups' => ['phone:read']],
+            denormalizationContext: ['groups' => ['phone:write']]
         ),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')')
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
-    normalizationContext: ['groups' => ['phone_read']],
-    denormalizationContext: ['groups' => ['phone_write']],
+    normalizationContext: ['groups' => ['phone:read']],
+    denormalizationContext: ['groups' => ['phone:write']],
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 class Phone
@@ -47,13 +47,13 @@ class Phone
     /**
      *
      * @ORM\Column(type="integer", length=10, nullable=false)
-     * @Groups({"people_read", "phone_read",  "phone_write"})
+     * @Groups({"people:read", "phone:read",  "phone:write"})
      */
     private $phone;
     /**
      *
      * @ORM\Column(type="integer", length=2, nullable=false)
-     * @Groups({"people_read", "phone_read",  "phone_write"})
+     * @Groups({"people:read", "phone:read",  "phone:write"})
      */
     private $ddd;
     /**
@@ -66,7 +66,7 @@ class Phone
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
-     * @Groups({"people_read", "phone_read",  "phone_write"})
+     * @Groups({"people:read", "phone:read",  "phone:write"})
      */
     private $people;
     public function getId()

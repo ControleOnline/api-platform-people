@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\Table (name="document", uniqueConstraints={@ORM\UniqueConstraint (name="doc", columns={"document", "document_type_id"})}, indexes={@ORM\Index (name="type_2", columns={"document_type_id"}), @ORM\Index(name="file_id", columns={"file_id"}), @ORM\Index(name="type", columns={"people_id", "document_type_id"})})
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\DocumentRepository")
  */
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document_read']], denormalizationContext: ['groups' => ['document_write']])]
+#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document:read']], denormalizationContext: ['groups' => ['document:write']])]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 class Document
 {
@@ -33,7 +33,7 @@ class Document
      * @var integer
      *
      * @ORM\Column(name="document", type="bigint", nullable=false)
-     * @Groups({"people_read", "document_read",  "carrier_read", "provider_read"})
+     * @Groups({"people:read", "document:read",  "carrier:read", "provider:read"})
      */
     private $document;
     /**
@@ -43,7 +43,7 @@ class Document
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id", nullable=false)
      * })
-     * @Groups({"document_read"})
+     * @Groups({"document:read"})
      */
     private $people;
     /**
@@ -62,7 +62,7 @@ class Document
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="document_type_id", referencedColumnName="id", nullable=false)
      * })
-     * @Groups({"people_read", "document_read", "carrier_read"})
+     * @Groups({"people:read", "document:read", "carrier:read"})
      */
     private $documentType;
     /**

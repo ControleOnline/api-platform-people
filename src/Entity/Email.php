@@ -29,15 +29,15 @@ use stdClass;
         new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
-            validationContext: ['groups' => ['email_read']],
-            denormalizationContext: ['groups' => ['email_write']]
+            validationContext: ['groups' => ['email:read']],
+            denormalizationContext: ['groups' => ['email:write']]
         ),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
 
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
-    normalizationContext: ['groups' => ['email_read']],
-    denormalizationContext: ['groups' => ['email_write']]
+    normalizationContext: ['groups' => ['email:read']],
+    denormalizationContext: ['groups' => ['email:write']]
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 class Email
@@ -51,7 +51,7 @@ class Email
     /**
      *
      * @ORM\Column(type="string", length=50, nullable=false)
-     * @Groups({"people_read", "email_read",  "get_contracts", "carrier_read","email_write"})
+     * @Groups({"people:read", "email:read",  "get_contracts", "carrier:read","email:write"})
      */
     private $email;
     /**
@@ -61,7 +61,7 @@ class Email
     /**
      *
      * @ORM\Column(type="string", length=50, nullable=true)
-     * @Groups({"people_read", "email_read",  "get_contracts", "carrier_read"})
+     * @Groups({"people:read", "email:read",  "get_contracts", "carrier:read"})
      */
     private $types = false;
     /**
@@ -69,7 +69,7 @@ class Email
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
-     * @Groups({"email_read"})
+     * @Groups({"email:read"})
      */
     private $people;
     public function getId()

@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\Table (name="document_type")
  * @ORM\Entity (repositoryClass="ControleOnline\Repository\DocumentTypeRepository")
  */
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document_type_read']], denormalizationContext: ['groups' => ['document_type_write']])]
+#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document_type:read']], denormalizationContext: ['groups' => ['document_type:write']])]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 class DocumentType
 {
@@ -33,14 +33,14 @@ class DocumentType
      * @var string
      *
      * @ORM\Column(name="document_type", type="string", length=50, nullable=false)
-     * @Groups({"people_read", "document_read", "document_type_read", "carrier_read"})
+     * @Groups({"people:read", "document:read", "document_type:read", "carrier:read"})
      */
     private $documentType;
     /**
      * @var string
      *
      * @ORM\Column(name="people_type", type="string", length=1, nullable=false)
-     * @Groups({"people_read", "document_read", "document_type_read"})
+     * @Groups({"people:read", "document:read", "document_type:read"})
      */
     private $peopleType;
     /**
