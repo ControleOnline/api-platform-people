@@ -33,6 +33,11 @@ class PeopleService
       $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
       if ($company)
         $this->addLink($company, $people, $payload->link_type);
+      else {
+        $link = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->link));
+        if ($payload->link_type == 'employee' && $link)
+          $this->addLink($people, $link, $payload->link_type);
+      }
     }
   }
 
