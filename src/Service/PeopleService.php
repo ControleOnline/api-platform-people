@@ -2,6 +2,8 @@
 
 namespace ControleOnline\Service;
 
+use ControleOnline\Entity\Document;
+use ControleOnline\Entity\DocumentType;
 use ControleOnline\Entity\Language;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
@@ -35,8 +37,19 @@ class PeopleService
         $this->addLink($company, $people, $payload->link_type);
       else {
         $link = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->link));
-        if ($payload->link_type == 'employee' && $link)
+        if ($payload->link_type == 'employee' && $link) {
           $this->addLink($people, $link, $payload->link_type);
+          if ($payload->people_document) {
+            $document_type = $this->manager->getRepository(DocumentType::class)->findOneBy(['document_type' => 'cnpj']);
+
+            $document = new Document();
+            $document->setPeople($people);
+            $document->setDocumentType($document_type);
+            $document->setDocument($payload->people_document);
+            $this->manager->persist($document);
+            $this->manager->flush();
+          }
+        }
       }
     }
   }
