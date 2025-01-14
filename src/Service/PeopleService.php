@@ -19,8 +19,7 @@ class PeopleService
   public function __construct(
     private EntityManagerInterface $manager,
     private Security               $security,
-    private RequestStack $requestStack,
-    private PeopleService $PeopleService
+    private RequestStack $requestStack
   ) {
     $this->request  = $requestStack->getCurrentRequest();
   }
