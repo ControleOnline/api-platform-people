@@ -10,15 +10,20 @@ use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
+use Doctrine\ORM\QueryBuilder;
 
 class PeopleService
 {
+  private $request;
 
   public function __construct(
     private EntityManagerInterface $manager,
     private Security               $security,
-    private RequestStack $requestStack
-  ) {}
+    private RequestStack $requestStack,
+    private PeopleService $PeopleService
+  ) {
+    $this->request  = $requestStack->getCurrentRequest();
+  }
 
   public function beforePersist(People $people)
   {
@@ -73,5 +78,58 @@ class PeopleService
     $this->manager->persist($peopleLink);
     $this->manager->flush();
     return  $peopleLink;
+  }
+
+  public function secutiryFilter(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
+  {
+    $this->checkLink($queryBuilder, $resourceClass, $applyTo, $rootAlias);
+  }
+
+  public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
+  {
+
+    $link   = $this->request->query->get('link',   null);
+    $company = $this->request->query->get('company', null);
+    $link_type = $this->request->query->get('link_type', null);
+
+    if ($link_type) {
+      $queryBuilder->join(sprintf('%s.' . ($link ? 'company' : 'link'), $rootAlias), 'PeopleLink');
+      $queryBuilder->andWhere('PeopleLink.link_type IN(:link_type)');
+      $queryBuilder->setParameter('link_type', $link_type);
+    }
+
+    if ($company || $link) {
+      $queryBuilder->andWhere('PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)');
+      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", ($link ?: $company)));
+    }
+  }
+  public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
+  {
+    $companies   = $this->getMyCompanies();
+    $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:companies)', $rootAlias, $rootAlias));
+    $queryBuilder->setParameter('companies', $companies);
+
+    if ($payer = $this->request->query->get('company', null)) {
+      $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:people)', $rootAlias));
+      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", $payer));
+    }
+  }
+
+
+
+  public function getMyCompanies(): array
+  {
+    /**
+     * @var \ControleOnline\Entity\User $currentUser
+     */
+    $currentUser  = $this->security->getUser();
+    $companies    = [];
+
+    if (!$currentUser->getPeople()->getLink()->isEmpty()) {
+      foreach ($currentUser->getPeople()->getLink() as $company) {
+        $companies[] = $company->getCompany();
+      }
+    }
+    return $companies;
   }
 }
