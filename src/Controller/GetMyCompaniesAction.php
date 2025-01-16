@@ -3,7 +3,6 @@
 namespace ControleOnline\Controller;
 
 use ControleOnline\Entity\Config;
-use ControleOnline\Entity\File;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Entity\PeopleLink;
@@ -11,30 +10,22 @@ use ControleOnline\Entity\PeoplePackage;
 use ControleOnline\Service\PeopleRoleService;
 use ControleOnline\Entity\PackageModules;
 use ControleOnline\Service\DomainService;
+use ControleOnline\Service\FileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class GetMyCompaniesAction
 {
-  /*
-   * @var Security
-   */
-  private $security;
 
-  private $em = null;
-  private $roles;
 
   public function __construct(
-    Security $security,
-    EntityManagerInterface $entityManager,
+    private Security $security,
+    private EntityManagerInterface $em,
     private DomainService $domainService,
-    PeopleRoleService $roles
-  ) {
-    $this->security = $security;
-    $this->em      = $entityManager;
-    $this->roles = $roles;
-  }
+    private PeopleRoleService $roles,
+    private FileService $fileService
+  ) {}
 
 
 
@@ -88,7 +79,7 @@ class GetMyCompaniesAction
           'id'            => $people->getId(),
           'enabled'       => $people->getEnabled(),
           'alias'         => $people->getAlias(),
-          'logo'          => $this->getLogo($people),
+          'logo'          => $this->fileService->getFileUrl($people),
           'document'      => $this->getDocument($people),
           'domains'       => $domains,
           'configs'       => $configs,
@@ -146,7 +137,7 @@ class GetMyCompaniesAction
             'id'         => $company->getId(),
             'enabled'    => $company->getEnabled(),
             'alias'      => $company->getAlias(),
-            'logo'       => $this->getLogo($company),
+            'logo'       => $this->fileService->getFileUrl($company),
             'document'   => $this->getDocument($company),
             'commission' => $com['commission'],
             'domains'    => $domains,
@@ -257,17 +248,5 @@ class GetMyCompaniesAction
     });
 
     return $documents->first() !== false ? $documents->first()->getDocument() : null;
-  }
-
-  private function getLogo(People $company): ?array
-  {
-    if ($company->getImage() instanceof File)
-      return [
-        'id'     => $company->getImage()->getId(),
-        'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/' . $company->getImage()->getId() . '/download'
-      ];
-
-    return null;
   }
 }

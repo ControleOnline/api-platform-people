@@ -8,41 +8,30 @@ use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 
 use ControleOnline\Entity\Config;
-use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Service\DomainService;
+use ControleOnline\Service\FileService;
 use ControleOnline\Service\PeopleRoleService;
 
 class GetDefaultCompanyAction
 {
-  /*
-   * @var Security
-   */
-  private $security;
-  private $em = null;
-  private $roles;
-  private $domain;
+
+
   private $company;
 
   public function __construct(
-    Security $security,
-    EntityManagerInterface $entityManager,
-    PeopleRoleService $roles,
-    private DomainService $domainService
-  ) {
-    $this->security = $security;
-    $this->em = $entityManager;
-    $this->roles = $roles;
-  }
+    private Security $security,
+    private EntityManagerInterface $em,
+    private PeopleRoleService $roles,
+    private FileService $fileService,
+    private domainService $domainService
+  ) {}
 
-  public function __invoke(
-    Request $request
-  ): JsonResponse {
+  public function __invoke(): JsonResponse
+  {
 
     try {
 
-      $this->domain = $this->domainService->getDomain();
-      $this->getCompany();
 
       $defaultCompany = [];
       $configs = [];
@@ -68,11 +57,7 @@ class GetDefaultCompanyAction
           'domainType' => $this->company->getDomainType(),
           'permissions' => $permissions,
           'theme'       => $this->getTheme(),
-          'logo'       => $this->company->getPeople()->getImage() ? [
-            'id'     => $this->company->getPeople()->getImage()->getId(),
-            'domain' => $this->domainService->getMainDomain(),
-            'url'    => '/files/' . $this->company->getPeople()->getImage()->getId() . '/download'
-          ] : null,
+          'logo'        => $this->fileService->getFileUrl($this->company->getPeople())
         ];
       }
 
@@ -95,10 +80,6 @@ class GetDefaultCompanyAction
         ],
       ]);
     }
-  }
-  private function getCompany()
-  {
-    $this->company = $this->em->getRepository(PeopleDomain::class)->findOneBy(['domain' => $this->domain]);
   }
 
   private function getTheme()
