@@ -15,12 +15,10 @@ class PeopleRoleService
   private static $mainCompany;
 
   public function __construct(
-    private   EntityManagerInterface $manager,
-    private  Security               $security,
-    private DomainService $domainService
-
-  ) {
-  }
+    private EntityManagerInterface $manager,
+    private Security               $security,
+    private DomainService          $domainService
+  ) {}
 
   public function isFranchisee(User $user)
   {
@@ -111,16 +109,10 @@ class PeopleRoleService
   {
 
     if (self::$mainCompany) return self::$mainCompany;
+
+    $peopleDomain = $this->domainService->getPeopleDomain();
+    self::$mainCompany =  $peopleDomain->getPeople();
     
-    $domain  = $this->domainService->getMainDomain();
-    $company = $this->manager->getRepository(PeopleDomain::class)->findOneBy(['domain' => $domain]);
-
-    if ($company === null)
-      throw new \Exception(
-        sprintf('Main company "%s" not found', $domain)
-      );
-
-    self::$mainCompany =  $company->getPeople();
     return self::$mainCompany;
   }
 }

@@ -4,19 +4,14 @@ namespace ControleOnline\Controller;
 
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
-
 use ControleOnline\Entity\Config;
-use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Service\DomainService;
 use ControleOnline\Service\FileService;
 use ControleOnline\Service\PeopleRoleService;
 
 class GetDefaultCompanyAction
 {
-
-
   private $company;
 
   public function __construct(
@@ -25,7 +20,10 @@ class GetDefaultCompanyAction
     private PeopleRoleService $roles,
     private FileService $fileService,
     private domainService $domainService
-  ) {}
+  ) {
+
+    $this->company = $this->roles->getMainCompany();
+  }
 
   public function __invoke(): JsonResponse
   {
@@ -42,7 +40,7 @@ class GetDefaultCompanyAction
 
       if ($this->company) {
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
-          'people'      =>  $this->company->getPeople()->getId(),
+          'people'      =>  $this->company->getId(),
           'visibility'  => 'public'
         ]);
 
@@ -51,13 +49,13 @@ class GetDefaultCompanyAction
         }
 
         $defaultCompany = [
-          'id'         => $this->company->getPeople()->getId(),
-          'alias'      => $this->company->getPeople()->getAlias(),
+          'id'         => $this->company->getId(),
+          'alias'      => $this->company->getAlias(),
           'configs'    => $configs,
-          'domainType' => $this->company->getDomainType(),
+          'domainType' => $this->domainService->getPeopleDomain()->getDomainType(),
           'permissions' => $permissions,
           'theme'       => $this->getTheme(),
-          'logo'        => $this->fileService->getFileUrl($this->company->getPeople())
+          'logo'        => $this->fileService->getFileUrl($this->company)
         ];
       }
 
@@ -85,12 +83,12 @@ class GetDefaultCompanyAction
   private function getTheme()
   {
     return [
-      'theme' =>  $this->company->getTheme()->getTheme(),
-      'colors' =>  $this->company->getTheme()->getColors(),
-      'background'  =>  $this->company->getTheme()->getBackground() ? [
-        'id'     =>  $this->company->getTheme()->getBackground(),
+      'theme' =>  $this->domainService->getPeopleDomain()->getTheme()->getTheme(),
+      'colors' =>  $this->domainService->getPeopleDomain()->getTheme()->getColors(),
+      'background'  =>  $this->domainService->getPeopleDomain()->getTheme()->getBackground() ? [
+        'id'     =>  $this->domainService->getPeopleDomain()->getTheme()->getBackground(),
         'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/' .  $this->company->getTheme()->getBackground() . '/download'
+        'url'    => '/files/' .  $this->domainService->getPeopleDomain()->getTheme()->getBackground() . '/download'
       ] : null,
     ];
   }
