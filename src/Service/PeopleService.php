@@ -123,6 +123,8 @@ class PeopleService
      */
     $currentUser  = $this->security->getUser();
     $companies    = [];
+    if (!$currentUser)
+      return [];
 
     if (!$currentUser->getPeople()->getLink()->isEmpty()) {
       foreach ($currentUser->getPeople()->getLink() as $company) {
