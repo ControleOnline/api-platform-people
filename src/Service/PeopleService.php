@@ -31,6 +31,40 @@ class PeopleService
     return $people;
   }
 
+  public function addClient() {}
+
+
+  public function discoveryPeopleByDocument($document_number, $document_type, $name = null): ?People
+  {
+
+    $document = $this->manager->getRepository(Document::class)->findOneBy(['document' => $document_number]);
+    if ($document)
+      return $document->getPeople();
+
+
+    if ($name) {
+
+      $people = new People();
+      $people->setName($name);
+      $people->setLanguage($this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']));
+      $people->setPeopleType($document_type == 'cpf' ? 'F' : 'J');
+
+      $document = new Document();
+      $document->setDocument($document_number);
+      $document->setDocumentType($this->manager->getRepository(DocumentType::class)->findOneBy(['document_type' => $document_type]));
+      $document->setPeople($people);
+
+      $this->manager->persist($people);
+      $this->manager->persist($document);
+
+      
+      $this->manager->flush();
+
+      return $people;
+    }
+  }
+
+
   public function afterPersist(People $people)
   {
     $request = $this->requestStack->getCurrentRequest();
