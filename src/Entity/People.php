@@ -20,6 +20,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ControleOnline\Controller\AsaasWebhookController;
 use Symfony\Component\Validator\Constraints as Assert;
 use ControleOnline\Controller\IncomeStatementAction;
 
@@ -38,6 +39,12 @@ use ControleOnline\Controller\IncomeStatementAction;
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: ['groups' => ['people:write']]
+        ),
+
+        new Post(
+            security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
+            uriTemplate: '/webhook/asaas/return/{id}',
+            controller: AsaasWebhookController::class
         ),
         new Delete(security: 'is_granted(\'ROLE_CLIENT\')'),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
