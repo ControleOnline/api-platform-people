@@ -73,7 +73,7 @@ class People
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      * "model:read","model_detail:read",
      *       "user:read","contract_people:read",
@@ -87,7 +87,7 @@ class People
     /**
      * @ORM\Column(type="boolean",  nullable=false)
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       
      * "model:read","model_detail:read","contract_people:read",
@@ -102,7 +102,7 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      * "model:read","model_detail:read",
      *       "user:read","contract_people:read",
@@ -120,7 +120,7 @@ class People
     /**
      * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      * "model:read","model_detail:read",
      *       "contract_people:read",
@@ -136,7 +136,7 @@ class People
      *
      * @ORM\Column(name="other_informations", type="json",  nullable=true)
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
@@ -147,7 +147,7 @@ class People
     /**
      * @ORM\Column(type="string", length=1, nullable=false)
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
@@ -164,7 +164,7 @@ class People
      *   @ORM\JoinColumn(name="image_id", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       "contract_people:read",
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -185,7 +185,7 @@ class People
      *   @ORM\JoinColumn(name="alternative_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -199,7 +199,7 @@ class People
      *   @ORM\JoinColumn(name="background_image", referencedColumnName="id")
      * })
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -235,7 +235,7 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
      * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -250,7 +250,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write", 
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", 
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -266,7 +266,7 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
      * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -281,7 +281,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -296,7 +296,7 @@ class People
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "people:write",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
      *       
      *     "task_interaction:read","coupon:read","logistic:read",
@@ -311,7 +311,7 @@ class People
     /**
      * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
      * @Groups({
-     *     "category:read","order:read","order_details:read", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read",
      *      "order_detail_status:read", 
      *       
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
