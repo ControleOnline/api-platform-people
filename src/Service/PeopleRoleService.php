@@ -20,10 +20,9 @@ class PeopleRoleService
     private DomainService          $domainService
   ) {}
 
-  public function isFranchisee(User $user)
+  public function isFranchisee(People $people)
   {
     $mainCompany = $this->getMainCompany();
-    $people = $user->getPeople();
     $isFranchisee = false;
 
     $getPeopleCompanies = $this->manager->getRepository(PeopleLink::class)->findBy([
@@ -40,15 +39,10 @@ class PeopleRoleService
     return $isFranchisee;
   }
 
-  public function isSuperAdmin(User $user): bool
-  {
-    return in_array('super', $this->getAllRoles($user));
-  }
 
-  public function isSalesman(User $user)
+  public function isSalesman(People $people)
   {
     $mainCompany = $this->getMainCompany();
-    $people = $user->getPeople();
     $isSalesman = false;
 
     $isSalesman = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'salesman', 1);
@@ -69,9 +63,8 @@ class PeopleRoleService
   }
 
 
-  public function getAllRoles(User $user): array
+  public function getAllRoles(People $people): array
   {
-    $people = $user->getPeople();
     $peopleRole = [];
     $mainCompany = $this->getMainCompany();
 
@@ -81,7 +74,7 @@ class PeopleRoleService
 
 
 
-    $isFranchisee = $this->isFranchisee($user);
+    $isFranchisee = $this->isFranchisee($people);
     if ($isFranchisee) {
       $peopleRole[] = 'franchisee';
       $peopleRole[] = 'admin';
@@ -92,7 +85,7 @@ class PeopleRoleService
       $peopleRole[] = 'client';
 
 
-    $isSalesman = $this->isSalesman($user);
+    $isSalesman = $this->isSalesman($people);
     if ($isSalesman)
       $peopleRole[] = 'salesman';
 
