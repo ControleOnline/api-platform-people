@@ -23,20 +23,8 @@ class PeopleRoleService
   public function isFranchisee(People $people)
   {
     $mainCompany = $this->getMainCompany();
-    $isFranchisee = false;
 
-    $getPeopleCompanies = $this->manager->getRepository(PeopleLink::class)->findBy([
-      'people' => $people,
-      'link_type' => 'employee'
-    ]);
-    /**
-     * @var \ControleOnline\Entity\PeopleLink $peopleCompany
-     */
-    foreach ($getPeopleCompanies as $peopleCompany) {
-      $isFranchisee = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $peopleCompany->getCompany(), 'franchisee', 1);
-      if ($isFranchisee) return true;
-    }
-    return $isFranchisee;
+    return $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'franchisee', 1);
   }
 
 
@@ -105,7 +93,7 @@ class PeopleRoleService
 
     $peopleDomain = $this->domainService->getPeopleDomain();
     self::$mainCompany =  $peopleDomain->getPeople();
-    
+
     return self::$mainCompany;
   }
 }
