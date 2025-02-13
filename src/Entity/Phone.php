@@ -47,13 +47,13 @@ class Phone
     /**
      *
      * @ORM\Column(type="integer", length=10, nullable=false)
-     * @Groups({"people:read", "phone:read",  "phone:write"})
+     * @Groups({"order_details:read","people:read", "phone:read",  "phone:write"})
      */
     private $phone;
     /**
      *
      * @ORM\Column(type="integer", length=2, nullable=false)
-     * @Groups({"people:read", "phone:read",  "phone:write"})
+     * @Groups({"order_details:read","people:read", "phone:read",  "phone:write"})
      */
     private $ddd;
     /**
@@ -66,7 +66,7 @@ class Phone
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
      * })
-     * @Groups({"people:read", "phone:read",  "phone:write"})
+     * @Groups({"order_details:read","people:read", "phone:read",  "phone:write"})
      */
     private $people;
     public function getId()
