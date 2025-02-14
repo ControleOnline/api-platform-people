@@ -51,7 +51,7 @@ class Email
     /**
      *
      * @ORM\Column(type="string", length=50, nullable=false)
-     * @Groups({"order_details:read","people:read", "email:read",  "get_contracts", "carrier:read","email:write"})
+     * @Groups({"invoice_details:read","order_details:read","people:read", "email:read",  "get_contracts", "carrier:read","email:write"})
      */
     private $email;
     /**
@@ -61,7 +61,7 @@ class Email
     /**
      *
      * @ORM\Column(type="string", length=50, nullable=true)
-     * @Groups({"order_details:read","people:read", "email:read",  "get_contracts", "carrier:read"})
+     * @Groups({"invoice_details:read","order_details:read","people:read", "email:read",  "get_contracts", "carrier:read"})
      */
     private $types = false;
     /**
