@@ -283,7 +283,7 @@ class People
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
-     *       
+     *       "invoice_details:read",
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
@@ -298,7 +298,7 @@ class People
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
      *      "order_detail_status:read", 
-     *       
+     *       "invoice_details:read",
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
