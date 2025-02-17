@@ -75,7 +75,7 @@ class People
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
      *      "order_detail_status:read", 
-     * "model:read","model_detail:read",
+     *      "order_product_queue:read","model:read","model_detail:read",
      *       "user:read","contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
@@ -104,7 +104,7 @@ class People
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
      *      "order_detail_status:read", 
-     * "model:read","model_detail:read",
+     *      "order_product_queue:read","model:read","model_detail:read",
      *       "user:read","contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
@@ -122,7 +122,7 @@ class People
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
      *      "order_detail_status:read", 
-     * "model:read","model_detail:read",
+     *      "order_product_queue:read","model:read","model_detail:read",
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
