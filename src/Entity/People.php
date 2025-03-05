@@ -23,6 +23,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ControleOnline\Controller\AsaasWebhookController;
 use Symfony\Component\Validator\Constraints as Assert;
 use ControleOnline\Controller\IncomeStatementAction;
+use ControleOnline\Filter\CustomOrFilter;
 
 /**
  * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
@@ -66,6 +67,8 @@ use ControleOnline\Controller\IncomeStatementAction;
     normalizationContext: ['groups' => ['people:read']],
     denormalizationContext: ['groups' => ['people:write']]
 )]
+#[ApiFilter(CustomOrFilter::class, properties: ['name', 'id', 'alias'])]
+
 class People
 {
     /**
