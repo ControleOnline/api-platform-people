@@ -230,6 +230,10 @@ class People
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
      * 
      */
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.link_type' => 'exact'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.company' => 'exact'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.people' => 'exact'])]
+
     private $link;
 
     /**
