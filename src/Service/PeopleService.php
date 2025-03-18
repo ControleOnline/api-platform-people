@@ -24,7 +24,7 @@ class PeopleService
     $this->request  = $requestStack->getCurrentRequest();
   }
 
-  public function beforePersist(People $people)
+  public function prePersist(People $people)
   {
     $language = $this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']);
     $people->setLanguage($language);
@@ -65,7 +65,7 @@ class PeopleService
   }
 
 
-  public function afterPersist(People $people)
+  public function postPersist(People $people)
   {
     $request = $this->requestStack->getCurrentRequest();
     $payload   = json_decode($request->getContent());
