@@ -179,7 +179,7 @@ class People
      * @var Collection
      *
      * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Config", mappedBy="people")
-     * @ORM\OrderBy({"config_key" = "ASC"})
+     * @ORM\OrderBy({"configKey" = "ASC"})
      */
     private $config;
     /**
