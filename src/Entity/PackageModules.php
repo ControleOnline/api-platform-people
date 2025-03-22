@@ -54,21 +54,21 @@ class PackageModules
     /**
      * Get the value of id
      */
-    public function getId() : int
+    public function getId() 
     {
         return $this->id;
     }
     /**
      * Get the value of users
      */
-    public function getUsers() : int
+    public function getUsers() 
     {
         return $this->users;
     }
     /**
      * Set the value of users
      */
-    public function setUsers(int $users) : self
+    public function setUsers($users) : self
     {
         $this->users = $users;
         return $this;
