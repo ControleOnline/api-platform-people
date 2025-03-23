@@ -14,6 +14,7 @@ use ControleOnline\Service\FileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class GetMyCompaniesAction
 {
@@ -30,10 +31,10 @@ class GetMyCompaniesAction
 
 
 
-  public function __invoke(): JsonResponse
+  public function __invoke(Request $request): JsonResponse
   {
     try {
-
+      $device = $request->query->get('device');
       $myCompanies = [];
 
       /**
@@ -73,6 +74,15 @@ class GetMyCompaniesAction
         ]);
         foreach ($allConfigs as $config) {
           $configs[$config->getConfigKey()] = $config->getConfigValue();
+        }
+        if ($device) {
+          $deviceConfigs = $this->em->getRepository(Config::class)->findBy([
+            'people'      => $people->getId(),
+            'configKey' => 'pdv-' . $device
+          ]);
+          foreach ($deviceConfigs as $config) {
+            $configs[$config->getConfigKey()] = $config->getConfigValue();
+          }
         }
 
         $myCompanies[$people->getId()] = [
