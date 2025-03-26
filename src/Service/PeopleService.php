@@ -113,7 +113,7 @@ class PeopleService
     return  $peopleLink;
   }
 
-  public function secutiryFilter(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
+  public function securityFilter(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
     $this->checkLink($queryBuilder, $resourceClass, $applyTo, $rootAlias);
   }
