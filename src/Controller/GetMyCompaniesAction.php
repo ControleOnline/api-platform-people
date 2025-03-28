@@ -78,7 +78,7 @@ class GetMyCompaniesAction
         if ($device) {
           $deviceConfigs = $this->em->getRepository(Config::class)->findBy([
             'people'      => $people->getId(),
-            'configKey' => 'pdv-' . $device
+            'configKey' => 'pos-' . $device
           ]);
           foreach ($deviceConfigs as $config) {
             $configs[$config->getConfigKey()] = $config->getConfigValue();
