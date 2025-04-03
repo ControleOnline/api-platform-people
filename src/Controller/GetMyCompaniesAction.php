@@ -34,8 +34,6 @@ class GetMyCompaniesAction
   public function __invoke(Request $request): JsonResponse
   {
     try {
-      $device = $request->query->get('device');
-      $device = $this->em->getRepository(People::class)->find($request->query->get('device'));
       $myCompanies = [];
 
       /**
@@ -76,12 +74,7 @@ class GetMyCompaniesAction
         foreach ($allConfigs as $config) {
           $configs[$config->getConfigKey()] = $config->getConfigValue();
         }
-        if ($device) {
-          $deviceConfigs = $device->getConfigs(true);
-          foreach ($deviceConfigs as $config) {
-            $configs[$config->getConfigKey()] = $config->getConfigValue();
-          }
-        }
+     
 
         $myCompanies[$people->getId()] = [
           'id'            => $people->getId(),
