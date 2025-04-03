@@ -35,6 +35,7 @@ class GetMyCompaniesAction
   {
     try {
       $device = $request->query->get('device');
+      $device = $this->em->getRepository(People::class)->find($request->query->get('device'));
       $myCompanies = [];
 
       /**
@@ -76,10 +77,7 @@ class GetMyCompaniesAction
           $configs[$config->getConfigKey()] = $config->getConfigValue();
         }
         if ($device) {
-          $deviceConfigs = $this->em->getRepository(Config::class)->findBy([
-            'people'      => $people->getId(),
-            'configKey' => 'pos-' . $device
-          ]);
+          $deviceConfigs = $device->getConfigs(true);
           foreach ($deviceConfigs as $config) {
             $configs[$config->getConfigKey()] = $config->getConfigValue();
           }
