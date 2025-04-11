@@ -2,7 +2,8 @@
 
 namespace ControleOnline\Controller;
 
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
+ AS Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use ControleOnline\Entity\Config;
@@ -34,7 +35,7 @@ class GetDefaultCompanyAction
       $defaultCompany = [];
       $configs = [];
       $allConfigs = [];
-      $user = $this->security->getUser();
+      $user = $this->security->getToken()->getUser();
 
       $permissions = $user ? $this->roles->getAllRoles($this->company) : ['guest'];
 

@@ -9,7 +9,8 @@ use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
+ AS Security;
 use Doctrine\ORM\QueryBuilder;
 
 class PeopleService
@@ -155,7 +156,7 @@ class PeopleService
     /**
      * @var \ControleOnline\Entity\User $currentUser
      */
-    $currentUser  = $this->security->getUser();
+    $currentUser  = $this->security->getToken()->getUser();
     $companies    = [];
     if (!$currentUser)
       return [];

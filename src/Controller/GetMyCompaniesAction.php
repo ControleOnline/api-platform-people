@@ -12,7 +12,8 @@ use ControleOnline\Entity\PackageModules;
 use ControleOnline\Service\DomainService;
 use ControleOnline\Service\FileService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
+ AS Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -39,7 +40,7 @@ class GetMyCompaniesAction
       /**
        * @var \ControleOnline\Entity\User
        */
-      $currentUser = $this->security->getUser();
+      $currentUser = $this->security->getToken()->getUser();
 
       /**
        * @var \ControleOnline\Entity\People

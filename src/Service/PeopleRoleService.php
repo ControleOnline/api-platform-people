@@ -6,7 +6,8 @@ use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
+ AS Security;
 use ControleOnline\Entity\User;
 
 class PeopleRoleService

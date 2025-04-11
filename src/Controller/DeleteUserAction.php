@@ -5,7 +5,8 @@ namespace ControleOnline\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
+as Security;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use ControleOnline\Entity\People;
@@ -28,33 +29,11 @@ class DeleteUserAction
      */
     private $request  = null;
 
-    /**
-     * Security
-     *
-     * @var Security
-     */
-    private $security = null;
 
-    /**
-     * Current user
-     *
-     * @var \ControleOnline\Entity\User
-     */
-    private $currentUser = null;
 
-    /**
-     * Password encoder
-     *
-     * @var UserPasswordEncoderInterface
-     */
-    private $encoder = null;
-
-    public function __construct(EntityManagerInterface $manager, Security $security, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(EntityManagerInterface $manager)
     {
         $this->manager     = $manager;
-        $this->security    = $security;
-        $this->currentUser = $security->getUser();
-        $this->encoder     = $passwordEncoder;
     }
 
     public function __invoke(People $data, Request $request): JsonResponse
