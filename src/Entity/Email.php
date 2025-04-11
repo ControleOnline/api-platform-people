@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
@@ -18,10 +19,6 @@ use stdClass;
 
 /**
  * Email
- *
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\EmailRepository")
- * @ORM\Table (name="email", uniqueConstraints={@ORM\UniqueConstraint (name="email", columns={"email"})}, indexes={@ORM\Index (columns={"people_id"})})
  */
 #[ApiResource(
     operations: [
@@ -40,37 +37,36 @@ use stdClass;
     denormalizationContext: ['groups' => ['email:write']]
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ORM\Table(name: 'email')]
+#[ORM\Index(columns: ['people_id'])]
+#[ORM\UniqueConstraint(name: 'email', columns: ['email'])]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\EmailRepository::class)]
 class Email
 {
-    /**
-     * @ORM\Column(type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
-     */
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
     /**
      *
-     * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({"invoice_details:read","order_details:read","people:read", "email:read",  "get_contracts", "carrier:read","email:write"})
      */
+    #[ORM\Column(type: 'string', length: 50, nullable: false)]
     private $email;
-    /**
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $confirmed = false;
     /**
      *
-     * @ORM\Column(type="string", length=50, nullable=true)
      * @Groups({"invoice_details:read","order_details:read","people:read", "email:read",  "get_contracts", "carrier:read"})
      */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     private $types = false;
     /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="email")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
      * @Groups({"email:read"})
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'email')]
     private $people;
     public function getId()
     {
@@ -78,7 +74,7 @@ class Email
     }
     public function setEmail($email)
     {
-        $this->email = trim($email);
+        $this->email = trim((string) $email);
         return $this;
     }
     public function getEmail()
@@ -92,7 +88,7 @@ class Email
      */
     public function getTypes()
     {
-        return count((array) $this->types) > 0 ? json_decode($this->types) : new stdClass();
+        return count((array) $this->types) > 0 ? json_decode((string) $this->types) : new stdClass();
     }
     /**
      * Set comments

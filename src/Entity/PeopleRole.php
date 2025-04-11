@@ -1,55 +1,49 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * PeopleRole
- *
- * @ORM\Table(name="people_role", uniqueConstraints={@ORM\UniqueConstraint(name="company_id", columns={"company_id", "people_id", "role_id"})}, indexes={@ORM\Index(name="people_id", columns={"people_id"}), @ORM\Index(name="role_id", columns={"role_id"}), @ORM\Index(name="IDX_55A046DA979B1AD6", columns={"company_id"})})
- * @ORM\Entity
- *  @ORM\EntityListeners({ControleOnline\Listener\LogListener::class})
  */
+#[ORM\Table(name: 'people_role')]
+#[ORM\Index(name: 'people_id', columns: ['people_id'])]
+#[ORM\Index(name: 'role_id', columns: ['role_id'])]
+#[ORM\Index(name: 'IDX_55A046DA979B1AD6', columns: ['company_id'])]
+#[ORM\UniqueConstraint(name: 'company_id', columns: ['company_id', 'people_id', 'role_id'])]
+#[ORM\Entity]
+#[ORM\EntityListeners([LogListener::class])]
 class PeopleRole
 {
     /**
      * @var int
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
 
     /**
      * @var \People
-     *
-     * @ORM\ManyToOne(targetEntity="People")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="company_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \People::class)]
     private $company;
 
     /**
      * @var \People
-     *
-     * @ORM\ManyToOne(targetEntity="People")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \People::class)]
     private $people;
 
     /**
      * @var \Role
-     *
-     * @ORM\ManyToOne(targetEntity="Role")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="role_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \Role::class)]
     private $role;
 
 

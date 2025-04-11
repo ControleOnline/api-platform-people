@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
@@ -25,11 +26,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use ControleOnline\Controller\IncomeStatementAction;
 use ControleOnline\Filter\CustomOrFilter;
 
-/**
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\PeopleRepository")
- * @ORM\Table (name="people")
- */
 #[ApiResource(
     operations: [
 
@@ -68,16 +64,16 @@ use ControleOnline\Filter\CustomOrFilter;
     denormalizationContext: ['groups' => ['people:write']]
 )]
 #[ApiFilter(CustomOrFilter::class, properties: ['name', 'id', 'alias'])]
+#[ORM\Table(name: 'people')]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeopleRepository::class)]
 
 class People
 {
     /**
-     * @ORM\Column(type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *      "order_product_queue:read","model:read","model_detail:read",
      *       "user:read","contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
@@ -85,28 +81,30 @@ class People
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact'])]
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
 
     private $id;
     /**
-     * @ORM\Column(type="boolean",  nullable=false)
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      * "model:read","model_detail:read","contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read", "productsByDay:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['enable' => 'exact'])]
+    #[ORM\Column(type: 'boolean', nullable: false)]
 
     private $enable = 0;
 
     /**
-     * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *      "order_product_queue:read","model:read","model_detail:read",
      *       "user:read","contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
@@ -114,17 +112,15 @@ class People
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['name' => 'partial'])]
+    #[ORM\Column(type: 'string', length: 50, nullable: false)]
 
     private $name;
-    /**
-     * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
-     */
+    #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
     private $registerDate;
     /**
-     * @ORM\Column(type="string", length=50, nullable=false)
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *      "order_product_queue:read","model:read","model_detail:read",
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
@@ -132,199 +128,188 @@ class People
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['alias' => 'partial'])]
+    #[ORM\Column(type: 'string', length: 50, nullable: false)]
 
     private $alias;
     /**
      * @var string
      *
-     * @ORM\Column(name="other_informations", type="json",  nullable=true)
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
+    #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
     private $otherInformations;
     /**
-     * @ORM\Column(type="string", length=1, nullable=false)
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *       "contract_people:read",
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
+    #[ORM\Column(type: 'string', length: 1, nullable: false)]
 
     private $peopleType = 'F';
 
     /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File", inversedBy="people")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="image_id", referencedColumnName="id")
-     * })
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *       "contract_people:read",
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
+    #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\File::class, inversedBy: 'people')]
     private $image;
     /**
      * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Config", mappedBy="people")
-     * @ORM\OrderBy({"configKey" = "ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\Config::class, mappedBy: 'people')]
+    #[ORM\OrderBy(['configKey' => 'ASC'])]
     private $config;
     /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="alternative_image", referencedColumnName="id")
-     * })
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
+    #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\File::class)]
     private $alternative_image;
     /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="background_image", referencedColumnName="id")
-     * })
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
+    #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\File::class)]
     private $background;
-    /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\Language", inversedBy="people")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="language_id", referencedColumnName="id")
-     * })
-     */
+    #[ORM\JoinColumn(name: 'language_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\Language::class, inversedBy: 'people')]
     private $language;
     /**
      * @var Collection
-     *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="company")
      */
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\PeopleLink::class, mappedBy: 'company')]
     private $company;
 
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\PeopleLink", mappedBy="people")
-     * 
+     *
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.link_type' => 'exact'])]
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.company' => 'exact'])]
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['link.people' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\PeopleLink::class, mappedBy: 'people')]
 
     private $link;
 
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\User", mappedBy="people")
-     * @ORM\OrderBy({"username" = "ASC"})
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['user' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\User::class, mappedBy: 'people')]
+    #[ORM\OrderBy(['username' => 'ASC'])]
 
     private $user;
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Document", mappedBy="people")
      * @Groups({
-     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write", 
-     *      "order_detail_status:read", 
-     *       
+     *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
+     *      "order_detail_status:read",
+     *      
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['document' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\Document::class, mappedBy: 'people')]
 
     private $document;
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Address", mappedBy="people")
-     * @ORM\OrderBy({"nickname" = "ASC"})
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['address' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\Address::class, mappedBy: 'people')]
+    #[ORM\OrderBy(['nickname' => 'ASC'])]
 
     private $address;
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Phone", mappedBy="people")
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *       "invoice_details:read",
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['phone' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\Phone::class, mappedBy: 'people')]
 
     private $phone;
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="ControleOnline\Entity\Email", mappedBy="people")
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "people:write",
-     *      "order_detail_status:read", 
+     *      "order_detail_status:read",
      *       "invoice_details:read",
      *     "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['email' => 'exact'])]
+    #[ORM\OneToMany(targetEntity: \ControleOnline\Entity\Email::class, mappedBy: 'people')]
 
     private $email;
 
 
     /**
-     * @ORM\Column(type="datetime", nullable=false, columnDefinition="DATETIME")
      * @Groups({
      *     "category:read","order:read","order_details:read","order:write", "document:read", "email:read", "people:read", "contract:read","people:write", "invoice:read","invoice_details:read",
-     *      "order_detail_status:read", 
-     *       
+     *      "order_detail_status:read",
+     *      
      *      "task:read", "task_interaction:read","coupon:read","logistic:read",
      *     "pruduct:read","queue:read","display:read","notifications:read","people_provider:read"
      * })
      */
+    #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
     private $foundationDate = null;
 
 
@@ -381,7 +366,7 @@ class People
      */
     public function getName(): string
     {
-        return strtoupper($this->name);
+        return strtoupper((string) $this->name);
     }
     public function setAlias($alias)
     {
@@ -390,7 +375,7 @@ class People
     }
     public function getAlias()
     {
-        return strtoupper($this->alias);
+        return strtoupper((string) $this->alias);
     }
     public function setLanguage(Language $language = null)
     {
@@ -550,9 +535,9 @@ class People
     public function getFullName(): string
     {
         if ($this->getPeopleType() == 'F') {
-            return trim(preg_replace('/[^A-Za-z\s]/', '', sprintf('%s %s', $this->getName(), $this->getAlias())));
+            return trim((string) preg_replace('/[^A-Za-z\s]/', '', sprintf('%s %s', $this->getName(), $this->getAlias())));
         }
-        return trim(preg_replace('/[^A-Za-z\s]/', '', $this->getName()));
+        return trim((string) preg_replace('/[^A-Za-z\s]/', '', $this->getName()));
     }
     public function isPerson(): bool
     {

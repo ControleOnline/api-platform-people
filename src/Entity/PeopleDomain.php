@@ -1,62 +1,53 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * PeopleDomain
- *
- * @ORM\Table(name="people_domain")
- * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleDomainRepository")
- * @ORM\EntityListeners({ControleOnline\Listener\LogListener::class}) 
  */
+#[ORM\Table(name: 'people_domain')]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeopleDomainRepository::class)]
+#[ORM\EntityListeners([LogListener::class])]
 class PeopleDomain
 {
 
     /**
      * @var integer
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
 
     /**
      * @var \ControleOnline\Entity\People
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class)]
     private $people;
 
 
 
     /**
      * @var \ControleOnline\Entity\Theme
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\Theme")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="theme_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'theme_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\Theme::class)]
     private $theme;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="domain", type="string", length=255, nullable=false)
      */
+    #[ORM\Column(name: 'domain', type: 'string', length: 255, nullable: false)]
     private $domain;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="domain_type", type="string", length=255, nullable=false)
      */
+    #[ORM\Column(name: 'domain_type', type: 'string', length: 255, nullable: false)]
     private $domain_type;
 
     public function __construct()

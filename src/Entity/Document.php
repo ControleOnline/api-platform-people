@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
@@ -12,58 +13,53 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Document
- *
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Table (name="document", uniqueConstraints={@ORM\UniqueConstraint (name="doc", columns={"document", "document_type_id"})}, indexes={@ORM\Index (name="type_2", columns={"document_type_id"}), @ORM\Index(name="file_id", columns={"file_id"}), @ORM\Index(name="type", columns={"people_id", "document_type_id"})})
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\DocumentRepository")
  */
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document:read']], denormalizationContext: ['groups' => ['document:write']])]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ORM\Table(name: 'document')]
+#[ORM\Index(name: 'type_2', columns: ['document_type_id'])]
+#[ORM\Index(name: 'file_id', columns: ['file_id'])]
+#[ORM\Index(name: 'type', columns: ['people_id', 'document_type_id'])]
+#[ORM\UniqueConstraint(name: 'doc', columns: ['document', 'document_type_id'])]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\DocumentRepository::class)]
 class Document
 {
     /**
      * @var integer
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
     /**
      * @var integer
      *
-     * @ORM\Column(name="document", type="bigint", nullable=false)
      * @Groups({"people:read", "document:read",  "carrier:read", "provider:read"})
      */
+    #[ORM\Column(name: 'document', type: 'bigint', nullable: false)]
     private $document;
     /**
      * @var \ControleOnline\Entity\People
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="document")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id", nullable=false)
-     * })
      * @Groups({"document:read"})
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'document')]
     private $people;
     /**
      * @var \ControleOnline\Entity\File
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\File")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="file_id", referencedColumnName="id", nullable=true)
-     * })
      */
+    #[ORM\JoinColumn(name: 'file_id', referencedColumnName: 'id', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\File::class)]
     private $file;
     /**
      * @var \ControleOnline\Entity\DocumentType
      *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\DocumentType")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="document_type_id", referencedColumnName="id", nullable=false)
-     * })
      * @Groups({"people:read", "document:read", "carrier:read"})
      */
+    #[ORM\JoinColumn(name: 'document_type_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\DocumentType::class)]
     private $documentType;
     /**
      * Get id

@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
@@ -11,45 +12,37 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
-/**
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Table (name="people_package", indexes={@ORM\Index (name="people_id", columns={"people_id"}), @ORM\Index(name="package_id", columns={"package_id"})})
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\PeoplePackageRepository")
- */
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['people_package:read']], denormalizationContext: ['groups' => ['people_package:write']])]
+#[ORM\Table(name: 'people_package')]
+#[ORM\Index(name: 'people_id', columns: ['people_id'])]
+#[ORM\Index(name: 'package_id', columns: ['package_id'])]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeoplePackageRepository::class)]
 class PeoplePackage
 {
     /**
      * @var int
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
     /**
      * @var bool
-     *
-     * @ORM\Column(name="active", type="boolean", nullable=false, options={"default"="1"})
      */
+    #[ORM\Column(name: 'active', type: 'boolean', nullable: false, options: ['default' => '1'])]
     private $active = true;
     /**
      * @var Package
-     *
-     * @ORM\ManyToOne(targetEntity="Package")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="package_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'package_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \Package::class)]
     private $package;
     /**
      * @var People
-     *
-     * @ORM\ManyToOne(targetEntity="People")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \People::class)]
     private $people;
     /**
      * Get the value of id

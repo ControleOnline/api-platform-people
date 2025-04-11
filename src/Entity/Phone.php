@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
@@ -15,11 +16,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-/**
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\PhoneRepository")
- * @ORM\Table (name="phone", uniqueConstraints={@ORM\UniqueConstraint (name="phone", columns={"phone","ddd","people_id"})}, indexes={@ORM\Index (columns={"people_id"})})
- */
 #[ApiResource(
     operations: [
         new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
@@ -36,38 +32,36 @@ use Doctrine\Common\Collections\Collection;
     denormalizationContext: ['groups' => ['phone:write']],
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ORM\Table(name: 'phone')]
+#[ORM\Index(columns: ['people_id'])]
+#[ORM\UniqueConstraint(name: 'phone', columns: ['phone', 'ddd', 'people_id'])]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PhoneRepository::class)]
 class Phone
 {
-    /**
-     * @ORM\Column(type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
-     */
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
     /**
      *
-     * @ORM\Column(type="integer", length=10, nullable=false)
      * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
      */
+    #[ORM\Column(type: 'integer', length: 10, nullable: false)]
     private $phone;
     /**
      *
-     * @ORM\Column(type="integer", length=2, nullable=false)
      * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
      */
+    #[ORM\Column(type: 'integer', length: 2, nullable: false)]
     private $ddd;
-    /**
-     *
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $confirmed = false;
     /**
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="phone")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
      * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'phone')]
     private $people;
     public function getId()
     {

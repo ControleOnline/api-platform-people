@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity;
+namespace ControleOnline\Entity; 
+use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
@@ -12,36 +13,34 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * DocumentType
- *
- * @ORM\EntityListeners ({ControleOnline\Listener\LogListener::class})
- * @ORM\Table (name="document_type")
- * @ORM\Entity (repositoryClass="ControleOnline\Repository\DocumentTypeRepository")
  */
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document_type:read']], denormalizationContext: ['groups' => ['document_type:write']])]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
+#[ORM\Table(name: 'document_type')]
+#[ORM\EntityListeners([LogListener::class])]
+#[ORM\Entity(repositoryClass: \ControleOnline\Repository\DocumentTypeRepository::class)]
 class DocumentType
 {
     /**
      * @var integer
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
     /**
      * @var string
      *
-     * @ORM\Column(name="document_type", type="string", length=50, nullable=false)
      * @Groups({"people:read", "document:read", "document_type:read", "carrier:read"})
      */
+    #[ORM\Column(name: 'document_type', type: 'string', length: 50, nullable: false)]
     private $documentType;
     /**
      * @var string
      *
-     * @ORM\Column(name="people_type", type="string", length=1, nullable=false)
      * @Groups({"people:read", "document:read", "document_type:read"})
      */
+    #[ORM\Column(name: 'people_type', type: 'string', length: 1, nullable: false)]
     private $peopleType;
     /**
      * Get id
