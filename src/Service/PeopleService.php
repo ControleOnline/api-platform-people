@@ -10,7 +10,7 @@ use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
- AS Security;
+as Security;
 use Doctrine\ORM\QueryBuilder;
 
 class PeopleService
@@ -58,7 +58,7 @@ class PeopleService
       $this->manager->persist($people);
       $this->manager->persist($document);
 
-      
+
       $this->manager->flush();
 
       return $people;
@@ -156,10 +156,11 @@ class PeopleService
     /**
      * @var \ControleOnline\Entity\User $currentUser
      */
-    $currentUser  = $this->security->getToken()->getUser();
+    $token = $this->security->getToken();
+    if (!$token)      return [];
+    $currentUser  =  $token->getUser();
     $companies    = [];
-    if (!$currentUser)
-      return [];
+    if (!$currentUser)      return [];
 
     if (!$currentUser->getPeople()->getLink()->isEmpty()) {
       foreach ($currentUser->getPeople()->getLink() as $company) {
