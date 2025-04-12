@@ -157,10 +157,10 @@ class PeopleService
      * @var \ControleOnline\Entity\User $currentUser
      */
     $token = $this->security->getToken();
-    if (!$token)      return [];
+    if (!$token) return [];
     $currentUser  =  $token->getUser();
     $companies    = [];
-    if (!$currentUser)      return [];
+    if (!$currentUser) return [];
 
     if (!$currentUser->getPeople()->getLink()->isEmpty()) {
       foreach ($currentUser->getPeople()->getLink() as $company) {
