@@ -1,6 +1,7 @@
 <?php
 
-namespace ControleOnline\Entity; 
+namespace ControleOnline\Entity;
+
 use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\Post;
@@ -30,7 +31,7 @@ use ControleOnline\Filter\CustomOrFilter;
     operations: [
 
         new Get(
-            security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
         ),
         new Put(
             security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
@@ -39,7 +40,7 @@ use ControleOnline\Filter\CustomOrFilter;
         ),
 
         new Post(
-            security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
             uriTemplate: '/webhook/asaas/return/{id}',
             controller: AsaasWebhookController::class
         ),
@@ -49,17 +50,18 @@ use ControleOnline\Filter\CustomOrFilter;
             securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')',
         ),
         new GetCollection(
-            security: 'is_granted(\'IS_AUTHENTICATED_ANONYMOUSLY\')',
             uriTemplate: '/people/company/default',
-            controller: GetDefaultCompanyAction::class
+            controller: GetDefaultCompanyAction::class,
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
         ),
         new GetCollection(
+            security: 'is_granted(\'ROLE_CLIENT\')',
             uriTemplate: '/people/companies/my',
             controller: GetMyCompaniesAction::class
         ),
     ],
-    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     security: 'is_granted(\'ROLE_CLIENT\')',
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     normalizationContext: ['groups' => ['people:read']],
     denormalizationContext: ['groups' => ['people:write']]
 )]
