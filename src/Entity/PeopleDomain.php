@@ -1,6 +1,8 @@
 <?php
 
-namespace ControleOnline\Entity; 
+namespace ControleOnline\Entity;
+
+use Symfony\Component\Serializer\Attribute\Groups; 
 use ControleOnline\Repository\PeopleDomainRepository;
 use ControleOnline\Listener\LogListener;
 

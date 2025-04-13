@@ -1,6 +1,8 @@
 <?php
 
-namespace ControleOnline\Entity; 
+namespace ControleOnline\Entity;
+
+use Symfony\Component\Serializer\Attribute\Groups; 
 use ControleOnline\Repository\PackageModulesRepository;
 use ControleOnline\Listener\LogListener;
 
@@ -12,7 +14,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['package_modules:read']], denormalizationContext: ['groups' => ['package_modules:write']])]
 #[ORM\Table(name: 'package_modules')]
 #[ORM\Index(name: 'module_id', columns: ['module_id'])]
@@ -38,13 +39,13 @@ class PackageModules
      * @var Module
      */
     #[ORM\JoinColumn(name: 'module_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \Module::class)]
+    #[ORM\ManyToOne(targetEntity: Module::class)]
     private $module;
     /**
      * @var Package
      */
     #[ORM\JoinColumn(name: 'package_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \Package::class)]
+    #[ORM\ManyToOne(targetEntity: Package::class)]
     private $package;
     /**
      * Get the value of id

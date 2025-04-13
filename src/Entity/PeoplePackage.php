@@ -1,6 +1,8 @@
 <?php
 
-namespace ControleOnline\Entity; 
+namespace ControleOnline\Entity;
+
+use Symfony\Component\Serializer\Attribute\Groups; 
 use ControleOnline\Repository\PeoplePackageRepository;
 use ControleOnline\Listener\LogListener;
 
@@ -12,7 +14,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['people_package:read']], denormalizationContext: ['groups' => ['people_package:write']])]
 #[ORM\Table(name: 'people_package')]
 #[ORM\Index(name: 'people_id', columns: ['people_id'])]
@@ -37,13 +38,13 @@ class PeoplePackage
      * @var Package
      */
     #[ORM\JoinColumn(name: 'package_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \Package::class)]
+    #[ORM\ManyToOne(targetEntity: Package::class)]
     private $package;
     /**
      * @var People
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \People::class)]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $people;
     /**
      * Get the value of id
