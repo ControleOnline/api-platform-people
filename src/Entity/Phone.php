@@ -1,20 +1,18 @@
 <?php
 
-namespace ControleOnline\Entity; 
-use ControleOnline\Listener\LogListener;
+namespace ControleOnline\Entity;
 
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ControleOnline\Listener\LogListener;
+use ControleOnline\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ApiResource(
     operations: [
@@ -36,70 +34,75 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Index(columns: ['people_id'])]
 #[ORM\UniqueConstraint(name: 'phone', columns: ['phone', 'ddd', 'people_id'])]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PhoneRepository::class)]
+#[ORM\Entity(repositoryClass: PhoneRepository::class)]
 class Phone
 {
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private $id;
-    /**
-     *
-     * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
-     */
+    private int $id;
+
     #[ORM\Column(type: 'integer', length: 10, nullable: false)]
-    private $phone;
-    /**
-     *
-     * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
-     */
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]
+    private int $phone;
+
     #[ORM\Column(type: 'integer', length: 2, nullable: false)]
-    private $ddd;
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]
+    private int $ddd;
+
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private $confirmed = false;
-    /**
-     * @Groups({"invoice_details:read","order_details:read","people:read", "phone:read",  "phone:write"})
-     */
+    private bool $confirmed = false;
+
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'phone')]
-    private $people;
-    public function getId()
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'phone')]
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]
+    private ?People $people = null;
+
+    public function getId(): int
     {
         return $this->id;
     }
-    public function setDdd($ddd)
+
+    public function setDdd(int $ddd): self
     {
         $this->ddd = $ddd;
         return $this;
     }
-    public function getDdd()
+
+    public function getDdd(): int
     {
         return $this->ddd;
     }
-    public function setPhone($phone)
+
+    public function setPhone(int $phone): self
     {
         $this->phone = $phone;
         return $this;
     }
-    public function getPhone()
+
+    public function getPhone(): int
     {
         return $this->phone;
     }
-    public function setConfirmed($confirmed)
+
+    public function setConfirmed(bool $confirmed): self
     {
         $this->confirmed = $confirmed;
         return $this;
     }
-    public function getConfirmed()
+
+    public function getConfirmed(): bool
     {
         return $this->confirmed;
     }
-    public function setPeople(People $people = null)
+
+    public function setPeople(?People $people): self
     {
         $this->people = $people;
         return $this;
     }
-    public function getPeople()
+
+    public function getPeople(): ?People
     {
         return $this->people;
     }

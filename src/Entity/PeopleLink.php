@@ -1,9 +1,10 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use ControleOnline\Repository\PeopleLinkRepository;
 use ControleOnline\Listener\LogListener;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,7 +13,7 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Table(name: 'people_link')]
 #[ORM\Index(name: 'company_id', columns: ['company'])]
 #[ORM\UniqueConstraint(name: 'people_id', columns: ['people_id', 'company'])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeopleLinkRepository::class)]
+#[ORM\Entity(repositoryClass: PeopleLinkRepository::class)]
 #[ORM\EntityListeners([LogListener::class])]
 class PeopleLink
 {
@@ -22,17 +23,17 @@ class PeopleLink
     private $id;
 
     /**
-     * @var \ControleOnline\Entity\People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'company')]
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'company')]
     private $company;
 
     /**
-     * @var \ControleOnline\Entity\People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'link')]
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'link')]
     private $people;
 
     #[ORM\Column(type: 'boolean', nullable: false)]

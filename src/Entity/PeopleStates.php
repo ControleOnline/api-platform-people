@@ -25,17 +25,17 @@ class PeopleStates
     private $id;
 
     /**
-     * @var \ControleOnline\Entity\People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class)]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $people;
 
     /**
-     * @var \ControleOnline\Entity\State
+     * @var State
      */
     #[ORM\JoinColumn(name: 'state_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\State::class)]
+    #[ORM\ManyToOne(targetEntity: State::class)]
     private $state;
 
     /**

@@ -1,93 +1,68 @@
 <?php
 
-namespace ControleOnline\Entity; 
-use ControleOnline\Listener\LogListener;
+namespace ControleOnline\Entity;
 
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ControleOnline\Listener\LogListener;
+use ControleOnline\Repository\DocumentTypeRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
-/**
- * DocumentType
- */
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document_type:read']], denormalizationContext: ['groups' => ['document_type:write']])]
+use Symfony\Component\Serializer\Attribute\Groups;
+
+#[ApiResource(
+    operations: [
+        new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')
+    ],
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
+    normalizationContext: ['groups' => ['document_type:read']],
+    denormalizationContext: ['groups' => ['document_type:write']]
+)]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 #[ORM\Table(name: 'document_type')]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\DocumentTypeRepository::class)]
+#[ORM\Entity(repositoryClass: DocumentTypeRepository::class)]
 class DocumentType
 {
-    /**
-     * @var integer
-     */
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private $id;
-    /**
-     * @var string
-     *
-     * @Groups({"people:read", "document:read", "document_type:read", "carrier:read"})
-     */
+    private int $id;
+
     #[ORM\Column(name: 'document_type', type: 'string', length: 50, nullable: false)]
-    private $documentType;
-    /**
-     * @var string
-     *
-     * @Groups({"people:read", "document:read", "document_type:read"})
-     */
+    #[Groups(['people:read', 'document:read', 'document_type:read', 'carrier:read'])]
+    private string $documentType;
+
     #[ORM\Column(name: 'people_type', type: 'string', length: 1, nullable: false)]
-    private $peopleType;
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
+    #[Groups(['people:read', 'document:read', 'document_type:read'])]
+    private string $peopleType;
+
+    public function getId(): int
     {
         return $this->id;
     }
-    /**
-     * Set documentType
-     *
-     * @param string $documentType
-     * @return DocumentType
-     */
-    public function setDocumentType($documentType)
+
+    public function setDocumentType(string $documentType): self
     {
         $this->documentType = $documentType;
         return $this;
     }
-    /**
-     * Get documentType
-     *
-     * @return string
-     */
-    public function getDocumentType()
+
+    public function getDocumentType(): string
     {
         return $this->documentType;
     }
-    /**
-     * Set peopleType
-     *
-     * @param string $peopleType
-     * @return DocumentType
-     */
-    public function setPeopleType($peopleType)
+
+    public function setPeopleType(string $peopleType): self
     {
         $this->peopleType = $peopleType;
         return $this;
     }
-    /**
-     * Get peopleType
-     *
-     * @return string
-     */
-    public function getPeopleType()
+
+    public function getPeopleType(): string
     {
         return $this->peopleType;
     }

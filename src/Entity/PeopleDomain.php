@@ -1,6 +1,7 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use ControleOnline\Repository\PeopleDomainRepository;
 use ControleOnline\Listener\LogListener;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -9,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  * PeopleDomain
  */
 #[ORM\Table(name: 'people_domain')]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeopleDomainRepository::class)]
+#[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
 #[ORM\EntityListeners([LogListener::class])]
 class PeopleDomain
 {
@@ -23,19 +24,19 @@ class PeopleDomain
     private $id;
 
     /**
-     * @var \ControleOnline\Entity\People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class)]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $people;
 
 
 
     /**
-     * @var \ControleOnline\Entity\Theme
+     * @var Theme
      */
     #[ORM\JoinColumn(name: 'theme_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\Theme::class)]
+    #[ORM\ManyToOne(targetEntity: Theme::class)]
     private $theme;
 
     /**
@@ -68,10 +69,10 @@ class PeopleDomain
     /**
      * Set people
      *
-     * @param \ControleOnline\Entity\People $people
+     * @param People $people
      * @return PeopleDomain
      */
-    public function setPeople(\ControleOnline\Entity\People $people = null)
+    public function setPeople(People $people = null)
     {
         $this->people = $people;
 
@@ -81,7 +82,7 @@ class PeopleDomain
     /**
      * Get people
      *
-     * @return \ControleOnline\Entity\People
+     * @return People
      */
     public function getPeople()
     {

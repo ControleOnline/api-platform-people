@@ -1,6 +1,7 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use ControleOnline\Repository\PackageRepository;
 use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
@@ -15,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['package:read']], denormalizationContext: ['groups' => ['package:write']])]
 #[ORM\Table(name: 'package')]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PackageRepository::class)]
+#[ORM\Entity(repositoryClass: PackageRepository::class)]
 class Package
 {
     /**

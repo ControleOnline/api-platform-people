@@ -1,6 +1,8 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use People;
+use Role;
 use ControleOnline\Listener\LogListener;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -26,24 +28,24 @@ class PeopleRole
     private $id;
 
     /**
-     * @var \People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \People::class)]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $company;
 
     /**
-     * @var \People
+     * @var People
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \People::class)]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $people;
 
     /**
-     * @var \Role
+     * @var Role
      */
     #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \Role::class)]
+    #[ORM\ManyToOne(targetEntity: Role::class)]
     private $role;
 
 

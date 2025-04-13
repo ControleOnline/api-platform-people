@@ -1,6 +1,7 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use ControleOnline\Repository\PackageModulesRepository;
 use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
@@ -18,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Index(name: 'IDX_A1EC265BF44CABFF', columns: ['package_id'])]
 #[ORM\UniqueConstraint(name: 'package_id', columns: ['package_id', 'module_id'])]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PackageModulesRepository::class)]
+#[ORM\Entity(repositoryClass: PackageModulesRepository::class)]
 class PackageModules
 {
     /**

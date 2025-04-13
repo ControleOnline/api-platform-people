@@ -1,6 +1,7 @@
 <?php
 
 namespace ControleOnline\Entity; 
+use ControleOnline\Repository\PeoplePackageRepository;
 use ControleOnline\Listener\LogListener;
 
 use ApiPlatform\Metadata\GetCollection;
@@ -17,7 +18,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Index(name: 'people_id', columns: ['people_id'])]
 #[ORM\Index(name: 'package_id', columns: ['package_id'])]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\PeoplePackageRepository::class)]
+#[ORM\Entity(repositoryClass: PeoplePackageRepository::class)]
 class PeoplePackage
 {
     /**

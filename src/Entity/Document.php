@@ -1,20 +1,26 @@
 <?php
 
-namespace ControleOnline\Entity; 
-use ControleOnline\Listener\LogListener;
+namespace ControleOnline\Entity;
 
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ControleOnline\Listener\LogListener;
+use ControleOnline\Repository\DocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
-/**
- * Document
- */
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['document:read']], denormalizationContext: ['groups' => ['document:write']])]
+use Symfony\Component\Serializer\Attribute\Groups;
+
+#[ApiResource(
+    operations: [
+        new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')
+    ],
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
+    normalizationContext: ['groups' => ['document:read']],
+    denormalizationContext: ['groups' => ['document:write']]
+)]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 #[ORM\Table(name: 'document')]
 #[ORM\Index(name: 'type_2', columns: ['document_type_id'])]
@@ -22,137 +28,84 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Index(name: 'type', columns: ['people_id', 'document_type_id'])]
 #[ORM\UniqueConstraint(name: 'doc', columns: ['document', 'document_type_id'])]
 #[ORM\EntityListeners([LogListener::class])]
-#[ORM\Entity(repositoryClass: \ControleOnline\Repository\DocumentRepository::class)]
+#[ORM\Entity(repositoryClass: DocumentRepository::class)]
 class Document
 {
-    /**
-     * @var integer
-     */
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private $id;
-    /**
-     * @var integer
-     *
-     * @Groups({"people:read", "document:read",  "carrier:read", "provider:read"})
-     */
+    private int $id;
+
     #[ORM\Column(name: 'document', type: 'bigint', nullable: false)]
-    private $document;
-    /**
-     * @var \ControleOnline\Entity\People
-     *
-     * @Groups({"document:read"})
-     */
+    #[Groups(['people:read', 'document:read', 'carrier:read', 'provider:read'])]
+    private int $document;
+
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\People::class, inversedBy: 'document')]
-    private $people;
-    /**
-     * @var \ControleOnline\Entity\File
-     */
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'document')]
+    #[Groups(['document:read'])]
+    private People $people;
+
     #[ORM\JoinColumn(name: 'file_id', referencedColumnName: 'id', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\File::class)]
-    private $file;
-    /**
-     * @var \ControleOnline\Entity\DocumentType
-     *
-     * @Groups({"people:read", "document:read", "carrier:read"})
-     */
+    #[ORM\ManyToOne(targetEntity: File::class)]
+    private ?File $file = null;
+
     #[ORM\JoinColumn(name: 'document_type_id', referencedColumnName: 'id', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \ControleOnline\Entity\DocumentType::class)]
-    private $documentType;
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
+    #[ORM\ManyToOne(targetEntity: DocumentType::class)]
+    #[Groups(['people:read', 'document:read', 'carrier:read'])]
+    private DocumentType $documentType;
+
+    public function getId(): int
     {
         return $this->id;
     }
-    /**
-     * Set document
-     *
-     * @param integer $document
-     * @return Document
-     */
-    public function setDocument($document)
+
+    public function setDocument(int $document): self
     {
         $this->document = $document;
         return $this;
     }
-    /**
-     * Get document
-     *
-     * @return integer
-     */
-    public function getDocument()
+
+    public function getDocument(): string
     {
         $document = (string) $this->document;
-        // CPF
-        if ($this->getDocumentType()->getDocumentType() == 'CPF') {
+        if ($this->getDocumentType()->getDocumentType() === 'CPF') {
             return str_pad($document, 11, '0', STR_PAD_LEFT);
         }
-        // CNPJ
-        if ($this->getDocumentType()->getDocumentType() == 'CNPJ') {
+        if ($this->getDocumentType()->getDocumentType() === 'CNPJ') {
             return str_pad($document, 14, '0', STR_PAD_LEFT);
         }
-        return $this->document;
+        return $document;
     }
-    /**
-     * Set file
-     *
-     * @param \ControleOnline\Entity\File $file
-     * @return People
-     */
-    public function setFile(\ControleOnline\Entity\File $file = null)
+
+    public function setFile(?File $file): self
     {
         $this->file = $file;
         return $this;
     }
-    /**
-     * Get file
-     *
-     * @return \ControleOnline\Entity\File
-     */
-    public function getFile()
+
+    public function getFile(): ?File
     {
         return $this->file;
     }
-    /**
-     * Set people
-     *     
-     * @return Document
-     */
-    public function setPeople($people)
+
+    public function setPeople(People $people): self
     {
         $this->people = $people;
         return $this;
     }
-    /**
-     * Get people          
-     */
-    public function getPeople()
+
+    public function getPeople(): People
     {
         return $this->people;
     }
-    /**
-     * Set documentType
-     *
-     * @param \ControleOnline\Entity\DocumentType $documentType
-     * @return Document
-     */
-    public function setDocumentType(\ControleOnline\Entity\DocumentType $documentType = null)
+
+    public function setDocumentType(DocumentType $documentType): self
     {
         $this->documentType = $documentType;
         return $this;
     }
-    /**
-     * Get documentType
-     *
-     * @return \ControleOnline\Entity\DocumentType
-     */
-    public function getDocumentType()
+
+    public function getDocumentType(): DocumentType
     {
         return $this->documentType;
     }

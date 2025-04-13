@@ -63,6 +63,7 @@ class PeopleService
 
       return $people;
     }
+    return null;
   }
 
 
