@@ -56,7 +56,7 @@ class Phone
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'phone')]
-    #[Groups(['invoice_details:read', 'order_details:read', 'phone:read', 'phone:write'])]
+    #[Groups(['phone:read', 'phone:write'])]
     private ?People $people = null;
 
     public function getId(): int
