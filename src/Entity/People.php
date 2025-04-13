@@ -279,9 +279,6 @@ class People
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
     #[Groups([
         'category:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
         'document:read',
         'email:read',
         'people:read',
@@ -309,9 +306,6 @@ class People
     #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
     #[Groups([
         'category:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
         'document:read',
         'email:read',
         'people:read',
@@ -334,9 +328,6 @@ class People
     #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
     #[Groups([
         'category:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
         'document:read',
         'email:read',
         'people:read',
@@ -369,9 +360,6 @@ class People
     #[ORM\OrderBy(['username' => 'ASC'])]
     #[Groups([
         'category:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
         'document:read',
         'email:read',
         'people:read',
@@ -414,9 +402,6 @@ class People
     #[ORM\OrderBy(['nickname' => 'ASC'])]
     #[Groups([
         'category:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
         'document:read',
         'email:read',
         'people:read',
@@ -436,7 +421,6 @@ class People
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
     #[Groups([
         'category:read',
-        'order:read',
         'order_details:read',
         'order:write',
         'document:read',
@@ -459,7 +443,6 @@ class People
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
     #[Groups([
         'category:read',
-        'order:read',
         'order_details:read',
         'order:write',
         'document:read',
