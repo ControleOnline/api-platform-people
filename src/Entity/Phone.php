@@ -41,7 +41,7 @@ class Phone
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private int $id;
+    private int $id = 0;
 
     #[ORM\Column(type: 'integer', length: 10, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]

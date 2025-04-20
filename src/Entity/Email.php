@@ -41,7 +41,7 @@ class Email
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private int $id;
+    private int $id = 0;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'email:read', 'get_contracts', 'carrier:read', 'email:write'])]

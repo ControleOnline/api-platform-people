@@ -35,7 +35,7 @@ class Document
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    private int $id;
+    private int $id = 0;
 
     #[ORM\Column(name: 'document', type: 'bigint', nullable: false)]
     #[Groups(['people:read', 'document:read', 'carrier:read', 'provider:read'])]
