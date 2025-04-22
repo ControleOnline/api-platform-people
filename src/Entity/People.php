@@ -30,7 +30,6 @@ use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Listener\LogListener;
 use ControleOnline\Controller\GetDefaultCompanyAction;
 use ControleOnline\Controller\GetMyCompaniesAction;
-use ControleOnline\Controller\AsaasWebhookController;
 use ControleOnline\Filter\CustomOrFilter;
 use DateTime;
 use DateTimeInterface;
@@ -59,11 +58,6 @@ use stdClass;
             security: "is_granted('ROLE_CLIENT')"
         ),
         new Get(security: "is_granted('PUBLIC_ACCESS')"),
-        new Post(
-            uriTemplate: '/webhook/asaas/return/{id}',
-            controller: AsaasWebhookController::class,
-            security: "is_granted('PUBLIC_ACCESS')"
-        ),
         new Post(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
         new Put(
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_CLIENT')",
