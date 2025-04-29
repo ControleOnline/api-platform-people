@@ -4,6 +4,8 @@ namespace ControleOnline\Service;
 
 use ControleOnline\Entity\Document;
 use ControleOnline\Entity\DocumentType;
+use ControleOnline\Entity\ExtraData;
+use ControleOnline\Entity\ExtraFields;
 use ControleOnline\Entity\Language;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
@@ -20,7 +22,7 @@ class PeopleService
   public function __construct(
     private EntityManagerInterface $manager,
     private Security               $security,
-    private RequestStack $requestStack
+    private RequestStack $requestStack,
   ) {
     $this->request  = $requestStack->getCurrentRequest();
   }
@@ -33,7 +35,6 @@ class PeopleService
   }
 
   public function addClient() {}
-
 
   public function discoveryPeopleByDocument($document_number, $document_type, $name = null): ?People
   {
@@ -149,8 +150,6 @@ class PeopleService
       $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", $payer));
     }
   }
-
-
 
   public function getMyCompanies(): array
   {
