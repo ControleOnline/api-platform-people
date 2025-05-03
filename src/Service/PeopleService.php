@@ -100,7 +100,7 @@ class PeopleService
     } else {
       $document = new Document();
       $document->setDocument((int)$document_number);
-      $document->setDocumentType($this->discoveryDocumentType($document_type));
+      $document->setDocumentType($this->discoveryDocumentType($document_type)?:$this->getDocumentTypeByDocumentLen($document_number));
       $document->setPeople($people);
       $this->manager->persist($document);
       $this->manager->flush();
