@@ -82,8 +82,8 @@ class PeopleService
         throw new Exception("Phone is in use by people " . $people->getId(), 1);
     } else {
       $phone = new Phone();
-      $phone->setDdd($phone_number['ddd']);
-      $phone->setPhone($phone_number['phone']);
+      $phone->setDdd((int) $phone_number['ddd']);
+      $phone->setPhone((int) $phone_number['phone']);
       $phone->setPeople($people);
       $this->manager->persist($phone);
       $this->manager->flush();
