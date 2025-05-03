@@ -98,9 +98,10 @@ class PeopleService
       if ($document->getPeople()->getId() != $people->getId())
         throw new Exception("Document is in use by people " . $people->getId(), 1);
     } else {
+      $document_type = $document_type ? $this->discoveryDocumentType($document_type) : $this->getDocumentTypeByDocumentLen($document_number);
       $document = new Document();
       $document->setDocument((int)$document_number);
-      $document->setDocumentType($document_type ? $this->discoveryDocumentType($document_type) : $this->getDocumentTypeByDocumentLen($document_number));
+      $document->setDocumentType($document_type);
       $document->setPeople($people);
       $this->manager->persist($document);
       $this->manager->flush();
