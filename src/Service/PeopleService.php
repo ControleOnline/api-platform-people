@@ -91,7 +91,7 @@ class PeopleService
 
     return  $phone;
   }
-  public function addDocument(People $people, string $document_number, ?string $document_type = null): Document
+  public function addDocument(People $people, string|int $document_number, ?string $document_type = null): Document
   {
     $document = $this->getDocument($document_number, $document_type);
     if ($document) {
@@ -99,7 +99,7 @@ class PeopleService
         throw new Exception("Document is in use by people " . $people->getId(), 1);
     } else {
       $document = new Document();
-      $document->setDocument($document_number);
+      $document->setDocument((int)$document_number);
       $document->setDocumentType($this->discoveryDocumentType($document_type));
       $document->setPeople($people);
       $this->manager->persist($document);
