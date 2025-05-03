@@ -175,6 +175,7 @@ class PeopleService
   public function postPersist(People $people)
   {
     $request = $this->requestStack->getCurrentRequest();
+    if (!$request) return;
     $payload   = json_decode($request->getContent());
     if (isset($payload->link_type)) {
       $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
