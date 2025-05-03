@@ -138,7 +138,7 @@ class PeopleService
 
   public function discoveryDocumentType(string $document_type): DocumentType
   {
-    $documentType =  $this->manager->getRepository(DocumentType::class)->findOneBy(['document_type' => $document_type]);
+    $documentType =  $this->manager->getRepository(DocumentType::class)->findOneBy(['documentType' => $document_type]);
 
     if (!$documentType) {
       $documentType = new DocumentType();
