@@ -45,12 +45,13 @@ class PeopleService
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
 
-    $people = $this->getDocument($document)?->getPeople();
+    if (!empty($document))
+      $people = $this->getDocument($document)?->getPeople();
 
-    if (!$people)
+    if (!$people && !empty($email))
       $people = $this->getEmail($email)?->getPeople();
 
-    if (!$people)
+    if (!$people && !empty($phone))
       $people = $this->getPhone($phone['ddd'], $phone['phone'])?->getPeople();
 
     if (!$people) {
