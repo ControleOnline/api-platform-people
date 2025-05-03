@@ -1,4 +1,5 @@
 <?php
+
 namespace ControleOnline\Entity;
 
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -181,7 +182,7 @@ class People
         'people_provider:read',
         'productsByDay:read'
     ])]
-    private $name;
+    private $name = '';
 
     #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
     private $registerDate;
@@ -214,7 +215,7 @@ class People
         'notifications:read',
         'people_provider:read'
     ])]
-    private $alias;
+    private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
     #[Groups([
