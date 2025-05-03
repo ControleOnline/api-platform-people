@@ -58,7 +58,7 @@ class PeopleService
       $people = new People();
       $people->setName($name ?? 'Name not given');
       $people->setLanguage($this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']));
-      $people->setPeopleType($peopleType);
+      $people->setPeopleType($peopleType ?: $this->getPeopleTypeByDocumentLen($document));
       $this->manager->persist($people);
       $this->manager->flush();
     }
@@ -162,7 +162,12 @@ class PeopleService
     ]);
   }
 
-  public function getDocumentTypeByDocumentLen($document_number)
+  public function getPeopleTypeByDocumentLen(?string $document_number = null)
+  {
+    return strlen($document_number) > 11 ? 'J' : 'F';
+  }
+
+  public function getDocumentTypeByDocumentLen(?string $document_number = null)
   {
     return strlen($document_number) > 11 ? 'CNPJ' : 'CPF';
   }
