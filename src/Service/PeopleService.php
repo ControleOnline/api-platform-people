@@ -40,7 +40,24 @@ class PeopleService
   public function addClient() {}
 
 
-  public function discoveryClient(People $provider, People $client) {}
+  public function discoveryClient(People $provider, People $client)
+  {
+    return $this->discoveryLink($provider, $client, 'client');
+  }
+
+  public function discoveryLink(People $company, People $people, $linkType): PeopleLink
+  {
+    $peopleLink =   $this->manager->getRepository(PeopleLink::class)->findOneBy([
+      'company' => $company,
+      'people' => $people,
+      'link_type' => $linkType
+    ]);
+
+    if (!$peopleLink)
+      $peopleLink = $this->addLink($company, $people, $linkType);
+
+    return $peopleLink;
+  }
 
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
@@ -181,11 +198,11 @@ class PeopleService
     if (isset($payload->link_type)) {
       $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
       if ($company)
-        $this->addLink($company, $people, $payload->link_type);
+        $this->discoveryLink($company, $people, $payload->link_type);
       else {
         $link = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->link));
         if ($payload->link_type == 'employee' && $link) {
-          $this->addLink($people, $link, $payload->link_type);
+          $this->discoveryLink($people, $link, $payload->link_type);
           if ($payload->people_document)
             $this->addDocument($people, $payload->people_document);
         }
@@ -193,7 +210,7 @@ class PeopleService
     }
   }
 
-  public function addLink(People $company, People $people, $link_type)
+  public function addLink(People $company, People $people, $link_type): PeopleLink
   {
 
     $peopleLink = $this->manager->getRepository(PeopleLink::class)->findOneBy([
