@@ -91,6 +91,7 @@ class People
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -123,6 +124,7 @@ class People
     #[ORM\Column(type: 'boolean', nullable: false)]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -155,6 +157,7 @@ class People
     #[ORM\Column(type: 'string', length: 50, nullable: false)]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -190,6 +193,7 @@ class People
     #[ORM\Column(type: 'string', length: 50, nullable: false)]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -220,6 +224,7 @@ class People
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -246,6 +251,7 @@ class People
     #[ORM\Column(type: 'string', length: 1, nullable: false)]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -374,6 +380,7 @@ class People
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',
@@ -460,6 +467,7 @@ class People
     #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
     #[Groups([
         'category:read',
+        'connections:read',
         'order:read',
         'order_details:read',
         'order:write',

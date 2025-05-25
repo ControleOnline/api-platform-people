@@ -41,14 +41,15 @@ class Phone
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[Groups(['connections:read', 'phone:read', 'phone:write'])]
     private int $id = 0;
 
     #[ORM\Column(type: 'integer', length: 10, nullable: false)]
-    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
     private int $phone;
 
     #[ORM\Column(type: 'integer', length: 2, nullable: false)]
-    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'phone:read', 'phone:write'])]
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
     private int $ddd;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
@@ -56,7 +57,7 @@ class Phone
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'phone')]
-    #[Groups(['phone:read', 'phone:write'])]
+    #[Groups(['connections:read', 'phone:read', 'phone:write'])]
     private ?People $people = null;
 
     public function getId(): int
