@@ -50,6 +50,11 @@ class Phone
 
     #[ORM\Column(type: 'integer', length: 2, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
+    private int $ddi;
+
+
+    #[ORM\Column(type: 'integer', length: 2, nullable: false)]
+    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
     private int $ddd;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
@@ -107,5 +112,17 @@ class Phone
     public function getPeople(): ?People
     {
         return $this->people;
+    }
+
+    public function getDdi(): int
+    {
+        return $this->ddi;
+    }
+
+    public function setDdi(int $ddi): self
+    {
+        $this->ddi = $ddi;
+
+        return $this;
     }
 }

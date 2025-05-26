@@ -69,7 +69,7 @@ class PeopleService
       $people = $this->getEmail($email)?->getPeople();
 
     if (!$people && !empty($phone))
-      $people = $this->getPhone($phone['ddd'], $phone['phone'])?->getPeople();
+      $people = $this->getPhone($phone['ddi'], $phone['ddd'], $phone['phone'])?->getPeople();
 
     if (!$people) {
       $people = new People();
@@ -93,12 +93,13 @@ class PeopleService
 
   public function addPhone(People $people, array $phone_number): Phone
   {
-    $phone = $this->getPhone($phone_number['ddd'], $phone_number['phone']);
+    $phone = $this->getPhone($phone_number['ddi'], $phone_number['ddd'], $phone_number['phone']);
     if ($phone && $phone->getPeople()) {
       if ($phone->getPeople()->getId() != $people->getId())
         throw new Exception("Phone is in use by people " . $people->getId(), 1);
     } else {
       $phone = new Phone();
+      $phone->setDdi((int) $phone_number['ddi']);
       $phone->setDdd((int) $phone_number['ddd']);
       $phone->setPhone((int) $phone_number['phone']);
       $phone->setPeople($people);
@@ -149,9 +150,13 @@ class PeopleService
     return $this->manager->getRepository(Email::class)->findOneBy(['email' => $email]);
   }
 
-  public function getPhone(string $ddd, string $phone): ?Phone
+  public function getPhone(int $ddi, int $ddd, string $phone): ?Phone
   {
-    return $this->manager->getRepository(Phone::class)->findOneBy(['ddd' => $ddd, 'ddd' => $phone]);
+    return $this->manager->getRepository(Phone::class)->findOneBy([
+      'ddi' => $ddi,
+      'ddd' => $ddd,
+      'phone' => $phone
+    ]);
   }
 
 
