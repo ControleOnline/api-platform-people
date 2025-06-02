@@ -44,14 +44,14 @@ class Email
     private int $id = 0;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false)]
-    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'email:read', 'get_contracts', 'carrier:read', 'email:write'])]
+    #[Groups(['invoice_details:read', 'order_details:read', 'order:write', 'people:read', 'email:read', 'get_contracts', 'carrier:read', 'email:write'])]
     private string $email;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $confirmed = false;
 
     #[ORM\Column(type: 'string', length: 50, nullable: true)]
-    #[Groups(['invoice_details:read', 'order_details:read', 'people:read', 'email:read', 'get_contracts', 'carrier:read'])]
+    #[Groups(['invoice_details:read', 'order_details:read', 'order:write', 'people:read', 'email:read', 'get_contracts', 'carrier:read'])]
     private ?string $types = null;
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
