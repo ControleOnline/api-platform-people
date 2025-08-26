@@ -47,21 +47,22 @@ class Document
     private int $id = 0;
 
     #[ORM\Column(name: 'document', type: 'bigint', nullable: false)]
-    #[Groups(['people:read', 'document:read', 'carrier:read', 'provider:read'])]
+    #[Groups(['people:read', 'document:read', 'carrier:read', 'provider:read', 'document:write'])]
     private int $document;
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: false)]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'document')]
-    #[Groups(['document:read'])]
+    #[Groups(['document:read', 'document:write'])]
     private People $people;
 
     #[ORM\JoinColumn(name: 'file_id', referencedColumnName: 'id', nullable: true)]
     #[ORM\ManyToOne(targetEntity: File::class)]
+    #[Groups(['document:read', 'document:write'])]
     private ?File $file = null;
 
     #[ORM\JoinColumn(name: 'document_type_id', referencedColumnName: 'id', nullable: false)]
     #[ORM\ManyToOne(targetEntity: DocumentType::class)]
-    #[Groups(['people:read', 'document:read', 'carrier:read'])]
+    #[Groups(['people:read', 'document:read', 'carrier:read', 'document:write'])]
     private DocumentType $documentType;
 
     public function getId(): int
