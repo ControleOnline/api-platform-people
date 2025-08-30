@@ -61,7 +61,9 @@ class PeopleRoleService
     if ($isSuper)
       $peopleRole[] = 'super';
 
-
+    $family = $this->manager->getRepository(People::class)->getCompanyPeopleLinks($mainCompany, $people, 'family', 1);
+    if ($family)
+      $peopleRole[] = 'family';    
 
     $isFranchisee = $this->isFranchisee($people);
     if ($isFranchisee) {
