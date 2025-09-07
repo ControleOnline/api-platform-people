@@ -26,7 +26,7 @@ class PeopleLinkRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('pl')
             ->where('pl.company = :people')->setParameter('people', $people->getId())
-            ->andWhere('pl.people IN (:user)')->setParameter('user', $user->getPeople()->getId())
+            ->andWhere('pl.people = :user')->setParameter('user', $user->getPeople()->getId())
             ->andWhere('pl.linkType IN (:types)')->setParameter('types', ['employee', 'family']);
 
         return $qb->getQuery()->getOneOrNullResult() !== null;
