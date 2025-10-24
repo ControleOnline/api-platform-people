@@ -18,14 +18,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource(
     operations: [
-        new Get(security: 'is_granted(\'ROLE_CLIENT\')'),
-        new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')'),
+        new Get(security: "is_granted('ROLE_CLIENT')"),
+        new GetCollection(security: "is_granted('ROLE_CLIENT')"),
         new Put(
-            security: 'is_granted(\'ROLE_ADMIN\') or (is_granted(\'ROLE_CLIENT\'))',
+            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT'))",
             validationContext: ['groups' => ['document:read']],
             denormalizationContext: ['groups' => ['document:write']]
         ),
-        new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
+        new Post(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
         new Delete(security: "is_granted('ROLE_CLIENT')")
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
