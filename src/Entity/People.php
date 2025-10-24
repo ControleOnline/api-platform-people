@@ -382,6 +382,7 @@ class People
         'category:read',
         'connections:read',
         'order:read',
+        // 'document:read',
         'order_details:read', 'order:write',
         'order:write',
         'email:read',
