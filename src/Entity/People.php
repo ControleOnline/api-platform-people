@@ -384,7 +384,7 @@ class People
         'order:read',
         'order_details:read', 'order:write',
         'order:write',
-        // 'document:read',
+        // 'document:read', 
         'email:read',
         'people:read',
         'people:write',
