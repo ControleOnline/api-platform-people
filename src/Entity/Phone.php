@@ -25,7 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
             denormalizationContext: ['groups' => ['phone:write']]
         ),
         new Post(securityPostDenormalize: 'is_granted(\'ROLE_CLIENT\')'),
-        new Delete(security: "is_granted('ROLE_CLIENT')")
+        new Delete(security: "is_granted(\'ROLE_CLIENT\')")
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     normalizationContext: ['groups' => ['phone:read']],
