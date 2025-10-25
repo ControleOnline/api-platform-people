@@ -21,7 +21,7 @@ use Doctrine\ORM\Mapping as ORM;
         new Get(security: "is_granted('ROLE_CLIENT')"),
         new GetCollection(security: "is_granted('ROLE_CLIENT')"),
         new Put(
-            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT'))",
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_CLIENT')",
             validationContext: ['groups' => ['email:read']],
             denormalizationContext: ['groups' => ['email:write']]
         ),
@@ -32,6 +32,7 @@ use Doctrine\ORM\Mapping as ORM;
     normalizationContext: ['groups' => ['email:read']],
     denormalizationContext: ['groups' => ['email:write']]
 )]
+
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 #[ORM\Table(name: 'email')]
 #[ORM\Index(columns: ['people_id'])]
@@ -58,7 +59,7 @@ class Email
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'email')]
-    #[Groups(['email:read'])]
+    #[Groups(['connections:read', 'email:read', 'email:write'])]
     private ?People $people = null;
 
     public function getId(): int
