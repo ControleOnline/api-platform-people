@@ -5,7 +5,7 @@ namespace ControleOnline\Entity;
 use Symfony\Component\Serializer\Attribute\Groups; 
 use People;
 use Role;
-use ControleOnline\Listener\LogListener;
+
 
 use Doctrine\ORM\Mapping as ORM;
 

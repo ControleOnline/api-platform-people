@@ -12,7 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
-use ControleOnline\Listener\LogListener;
+
 use ControleOnline\Repository\DocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 

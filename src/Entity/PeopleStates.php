@@ -3,7 +3,7 @@
 namespace ControleOnline\Entity;
 
 use Symfony\Component\Serializer\Attribute\Groups; 
-use ControleOnline\Listener\LogListener;
+
 
 use ControleOnline\Entity\State;
 use Doctrine\ORM\Mapping as ORM;

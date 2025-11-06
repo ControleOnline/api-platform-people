@@ -28,7 +28,7 @@ use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\Phone;
 use ControleOnline\Entity\User;
 use ControleOnline\Repository\PeopleRepository;
-use ControleOnline\Listener\LogListener;
+
 use ControleOnline\Controller\GetDefaultCompanyAction;
 use ControleOnline\Controller\GetMyCompaniesAction;
 use ControleOnline\Filter\CustomOrFilter;

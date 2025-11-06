@@ -4,7 +4,7 @@ namespace ControleOnline\Entity;
 
 use Symfony\Component\Serializer\Attribute\Groups; 
 use ControleOnline\Repository\PeopleLinkRepository;
-use ControleOnline\Listener\LogListener;
+
 
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
