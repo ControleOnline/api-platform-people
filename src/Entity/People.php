@@ -37,7 +37,7 @@ use DateTimeInterface;
 use stdClass;
 
 #[ORM\Table(name: 'people')]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: PeopleRepository::class)]
 #[ApiResource(
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv'],

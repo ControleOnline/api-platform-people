@@ -39,7 +39,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'file_id', columns: ['file_id'])]
 #[ORM\Index(name: 'type', columns: ['people_id', 'document_type_id'])]
 #[ORM\UniqueConstraint(name: 'doc', columns: ['document', 'document_type_id'])]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 class Document
 {

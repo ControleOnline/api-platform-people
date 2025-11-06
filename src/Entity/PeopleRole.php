@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'IDX_55A046DA979B1AD6', columns: ['company_id'])]
 #[ORM\UniqueConstraint(name: 'company_id', columns: ['company_id', 'people_id', 'role_id'])]
 #[ORM\Entity]
-#[ORM\EntityListeners([LogListener::class])]
+
 class PeopleRole
 {
     /**

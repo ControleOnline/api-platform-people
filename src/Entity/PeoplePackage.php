@@ -18,7 +18,7 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Table(name: 'people_package')]
 #[ORM\Index(name: 'people_id', columns: ['people_id'])]
 #[ORM\Index(name: 'package_id', columns: ['package_id'])]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: PeoplePackageRepository::class)]
 class PeoplePackage
 {

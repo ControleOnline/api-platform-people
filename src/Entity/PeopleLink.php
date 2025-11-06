@@ -15,7 +15,7 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Index(name: 'company_id', columns: ['company'])]
 #[ORM\UniqueConstraint(name: 'people_id', columns: ['people_id', 'company'])]
 #[ORM\Entity(repositoryClass: PeopleLinkRepository::class)]
-#[ORM\EntityListeners([LogListener::class])]
+
 class PeopleLink
 {
     #[ORM\Column(type: 'integer', nullable: false)]

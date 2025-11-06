@@ -19,7 +19,7 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Index(name: 'module_id', columns: ['module_id'])]
 #[ORM\Index(name: 'IDX_A1EC265BF44CABFF', columns: ['package_id'])]
 #[ORM\UniqueConstraint(name: 'package_id', columns: ['package_id', 'module_id'])]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: PackageModulesRepository::class)]
 class PackageModules
 {

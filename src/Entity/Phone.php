@@ -36,7 +36,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'phone')]
 #[ORM\Index(columns: ['people_id'])]
 #[ORM\UniqueConstraint(name: 'phone', columns: ['phone', 'ddd', 'people_id'])]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: PhoneRepository::class)]
 class Phone
 {

@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Table(name: 'people_domain')]
 #[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
-#[ORM\EntityListeners([LogListener::class])]
+
 class PeopleDomain
 {
 

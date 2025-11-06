@@ -24,7 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 #[ORM\Table(name: 'document_type')]
-#[ORM\EntityListeners([LogListener::class])]
+
 #[ORM\Entity(repositoryClass: DocumentTypeRepository::class)]
 class DocumentType
 {
