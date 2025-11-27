@@ -3,7 +3,6 @@
 namespace ControleOnline\Entity;
 
 use Symfony\Component\Serializer\Attribute\Groups;
-
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Get;
@@ -12,10 +11,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ControleOnline\Filter\CustomOrFilter;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use ControleOnline\Entity\Address;
@@ -28,16 +25,12 @@ use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\Phone;
 use ControleOnline\Entity\User;
 use ControleOnline\Repository\PeopleRepository;
-
-use ControleOnline\Controller\GetDefaultCompanyAction;
-use ControleOnline\Controller\GetMyCompaniesAction;
-use ControleOnline\Filter\CustomOrFilter;
+use ControleOnline\Entity\CompanyDocument;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
 
 #[ORM\Table(name: 'people')]
-
 #[ORM\Entity(repositoryClass: PeopleRepository::class)]
 #[ApiResource(
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv'],
@@ -45,17 +38,15 @@ use stdClass;
     denormalizationContext: ['groups' => ['people:write']],
     security: "is_granted('ROLE_CLIENT')",
     operations: [
-        new GetCollection(
-            securityPostDenormalize: "is_granted('ROLE_CLIENT')"
-        ),
+        new GetCollection(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
         new GetCollection(
             uriTemplate: '/people/company/default',
-            controller: GetDefaultCompanyAction::class,
+            controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new GetCollection(
             uriTemplate: '/people/companies/my',
-            controller: GetMyCompaniesAction::class,
+            controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
             security: "is_granted('ROLE_CLIENT')"
         ),
         new Get(security: "is_granted('PUBLIC_ACCESS')"),
@@ -86,271 +77,51 @@ use stdClass;
 ])]
 class People
 {
-    #[ORM\Column(type: 'integer', nullable: false)]
+    #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'order_product_queue:read',
-        'model:read',
-        'model_detail:read',
-        'user:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read',
-        'productsByDay:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $id;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'order_product_queue:read',
-        'model:read',
-        'model_detail:read',
-        'user:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read',
-        'productsByDay:read'
-    ])]
+    #[ORM\Column(type: 'boolean')]
+    #[Groups(['people:read', 'people:write'])]
     private $enable = 0;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false)]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'order_product_queue:read',
-        'model:read',
-        'model_detail:read',
-        'user:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read',
-        'productsByDay:read'
-    ])]
+    #[ORM\Column(type: 'string', length: 50)]
+    #[Groups(['people:read', 'people:write'])]
     private $name = '';
 
-    #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
+    #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false)]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'order_product_queue:read',
-        'model:read',
-        'model_detail:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[ORM\Column(type: 'string', length: 50)]
+    #[Groups(['people:read', 'people:write'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $otherInformations;
 
-    #[ORM\Column(type: 'string', length: 1, nullable: false)]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'contract_people:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[ORM\Column(type: 'string', length: 1)]
+    #[Groups(['people:read', 'people:write'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups([
-        'category:read',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'contract_people:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
-    #[ORM\OrderBy(['configKey' => 'ASC'])]
     private $config;
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups([
-        'category:read',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $alternative_image;
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups([
-        'category:read',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
@@ -364,166 +135,31 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[ORM\OrderBy(['username' => 'ASC'])]
-    #[Groups([
-        'category:read',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        // 'document:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $document;
 
-
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        // 'document:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
-    #[ORM\OrderBy(['nickname' => 'ASC'])]
-    #[Groups([
-        'category:read',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $address;
 
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
-    #[Groups([
-        'category:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'invoice_details:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $phone;
 
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
-    #[Groups([
-        'category:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'people:write',
-        'order_detail_status:read',
-        'invoice_details:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[Groups(['people:read', 'people:write'])]
     private $email;
 
-    #[ORM\Column(type: 'datetime', nullable: false, columnDefinition: 'DATETIME')]
-    #[Groups([
-        'category:read',
-        'connections:read',
-        'order:read',
-        'order_details:read',
-        'order:write',
-        'order:write',
-        'document:read',
-        'email:read',
-        'people:read',
-        'contract:read',
-        'people:write',
-        'invoice:read',
-        'invoice_details:read',
-        'order_detail_status:read',
-        'task:read',
-        'task_interaction:read',
-        'coupon:read',
-        'logistic:read',
-        'pruduct:read',
-        'queue:read',
-        'display:read',
-        'notifications:read',
-        'people_provider:read'
-    ])]
+    #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
+    #[Groups(['people:read', 'people:write'])]
     private $foundationDate = null;
 
     public function __construct()
@@ -545,12 +181,10 @@ class People
     {
         return $this->id;
     }
-
     public function getEnabled()
     {
         return $this->enable;
     }
-
     public function setEnabled($enable)
     {
         $this->enable = $enable ?: 0;
@@ -562,7 +196,6 @@ class People
         $this->peopleType = $people_type;
         return $this;
     }
-
     public function getPeopleType()
     {
         return $this->peopleType;
@@ -573,7 +206,6 @@ class People
         $this->name = $name;
         return $this;
     }
-
     public function getName(): string
     {
         return strtoupper((string) $this->name);
@@ -584,7 +216,6 @@ class People
         $this->alias = $alias;
         return $this;
     }
-
     public function getAlias()
     {
         return strtoupper((string) $this->alias);
@@ -595,7 +226,6 @@ class People
         $this->language = $language;
         return $this;
     }
-
     public function getLanguage()
     {
         return $this->language;
@@ -605,7 +235,6 @@ class People
     {
         return $this->registerDate;
     }
-
     public function setRegisterDate(DateTimeInterface $registerDate): self
     {
         $this->registerDate = $registerDate;
@@ -617,18 +246,20 @@ class People
         $this->document[] = $document;
         return $this;
     }
+    public function getDocument()
+    {
+        return $this->document;
+    }
 
     public function addCompany(People $company)
     {
         $this->company[] = $company;
         return $this;
     }
-
     public function removeCompany(People $company)
     {
         $this->company->removeElement($company);
     }
-
     public function getCompany()
     {
         return $this->company;
@@ -639,12 +270,10 @@ class People
         $this->link[] = $link;
         return $this;
     }
-
     public function removeLink(People $link)
     {
         $this->link->removeElement($link);
     }
-
     public function getLink()
     {
         return $this->link;
@@ -655,32 +284,23 @@ class People
         $this->user[] = $user;
         return $this;
     }
-
     public function removeUser(User $user)
     {
         $this->user->removeElement($user);
     }
-
     public function getUser()
     {
         return $this->user;
-    }
-
-    public function getDocument()
-    {
-        return $this->document;
     }
 
     public function getAddress()
     {
         return $this->address;
     }
-
     public function getPhone()
     {
         return $this->phone;
     }
-
     public function getEmail()
     {
         return $this->email;
@@ -690,7 +310,6 @@ class People
     {
         return $this->foundationDate;
     }
-
     public function setFoundationDate(DateTimeInterface $date): self
     {
         $this->foundationDate = $date;
@@ -739,7 +358,9 @@ class People
 
     public function getOtherInformations($decode = false)
     {
-        return $decode ? (object) json_decode(is_array($this->otherInformations) ? json_encode($this->otherInformations) : $this->otherInformations) : $this->otherInformations;
+        return $decode
+            ? (object) json_decode(is_array($this->otherInformations) ? json_encode($this->otherInformations) : $this->otherInformations)
+            : $this->otherInformations;
     }
 
     public function addOtherInformations($key, $value)
@@ -761,12 +382,10 @@ class People
         $this->config[] = $config;
         return $this;
     }
-
     public function removeConfig(Config $config)
     {
         $this->config->removeElement($config);
     }
-
     public function getConfig()
     {
         return $this->config;
@@ -776,7 +395,6 @@ class People
     {
         return $this->background;
     }
-
     public function setBackground($background): self
     {
         $this->background = $background;
@@ -787,7 +405,6 @@ class People
     {
         return $this->image;
     }
-
     public function setImage($image): self
     {
         $this->image = $image;
@@ -798,28 +415,26 @@ class People
     {
         return $this->alternative_image;
     }
-
     public function setAlternativeImage($alternative_image): self
     {
         $this->alternative_image = $alternative_image;
         return $this;
     }
 
-    /**
-     * Get the value of company_document
-     */
     public function getCompanyDocument()
     {
         return $this->company_document;
     }
 
-    /**
-     * Set the value of company_document
-     */
-    public function setCompanyDocument($company_document): self
+    public function addCompanyDocument(CompanyDocument $doc)
     {
-        $this->company_document = $company_document;
+        $this->company_document[] = $doc;
+        return $this;
+    }
 
+    public function removeCompanyDocument(CompanyDocument $doc)
+    {
+        $this->company_document->removeElement($doc);
         return $this;
     }
 }
