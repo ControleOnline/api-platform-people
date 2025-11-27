@@ -20,7 +20,6 @@ use Doctrine\ORM\Mapping as ORM;
     normalizationContext: ['groups' => ['document_type:read']],
     denormalizationContext: ['groups' => ['document_type:write']]
 )]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 #[ORM\Table(name: 'document_type')]
 #[ORM\Entity(repositoryClass: DocumentTypeRepository::class)]
 class DocumentType
@@ -34,12 +33,14 @@ class DocumentType
     #[Groups(['people:read', 'document:read', 'document_type:read', 'carrier:read'])]
     private string $documentType;
 
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
+
     #[ORM\Column(name: 'people_type', type: 'string', length: 1, nullable: false)]
     #[Groups(['people:read', 'document:read', 'document_type:read'])]
     private string $peopleType;
 
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['company_document.people' => 'exact'])]
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'document_type')]
-    #[Groups(['document_type:read'])]
     private $company_document;
 
     public function getId(): int
