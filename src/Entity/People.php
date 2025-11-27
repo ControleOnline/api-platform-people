@@ -93,7 +93,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -126,7 +127,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -159,7 +161,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -195,7 +198,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -226,7 +230,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -253,7 +258,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -383,7 +389,8 @@ class People
         'connections:read',
         'order:read',
         // 'document:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'email:read',
         'people:read',
@@ -399,6 +406,31 @@ class People
         'people_provider:read'
     ])]
     private $document;
+
+
+    #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
+    #[Groups([
+        'category:read',
+        'connections:read',
+        'order:read',
+        // 'document:read',
+        'order_details:read',
+        'order:write',
+        'order:write',
+        'email:read',
+        'people:read',
+        'people:write',
+        'order_detail_status:read',
+        'task_interaction:read',
+        'coupon:read',
+        'logistic:read',
+        'pruduct:read',
+        'queue:read',
+        'display:read',
+        'notifications:read',
+        'people_provider:read'
+    ])]
+    private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
     #[ORM\OrderBy(['nickname' => 'ASC'])]
@@ -423,7 +455,8 @@ class People
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
     #[Groups([
         'category:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -445,7 +478,8 @@ class People
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
     #[Groups([
         'category:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -469,7 +503,8 @@ class People
         'category:read',
         'connections:read',
         'order:read',
-        'order_details:read', 'order:write',
+        'order_details:read',
+        'order:write',
         'order:write',
         'document:read',
         'email:read',
@@ -767,6 +802,24 @@ class People
     public function setAlternativeImage($alternative_image): self
     {
         $this->alternative_image = $alternative_image;
+        return $this;
+    }
+
+    /**
+     * Get the value of company_document
+     */
+    public function getCompanyDocument()
+    {
+        return $this->company_document;
+    }
+
+    /**
+     * Set the value of company_document
+     */
+    public function setCompanyDocument($company_document): self
+    {
+        $this->company_document = $company_document;
+
         return $this;
     }
 }

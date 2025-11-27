@@ -41,6 +41,10 @@ class DocumentType
     #[Groups(['people:read', 'document:read', 'document_type:read'])]
     private string $peopleType;
 
+    #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
+    #[Groups(['people:read', 'document:read', 'document_type:read'])]
+    private $company_document;
+
     public function getId(): int
     {
         return $this->id;
@@ -66,5 +70,23 @@ class DocumentType
     public function getPeopleType(): string
     {
         return $this->peopleType;
+    }
+
+    /**
+     * Get the value of company_document
+     */
+    public function getCompanyDocument()
+    {
+        return $this->company_document;
+    }
+
+    /**
+     * Set the value of company_document
+     */
+    public function setCompanyDocument($company_document): self
+    {
+        $this->company_document = $company_document;
+
+        return $this;
     }
 }
