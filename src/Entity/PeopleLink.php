@@ -2,25 +2,41 @@
 
 namespace ControleOnline\Entity;
 
-use Symfony\Component\Serializer\Attribute\Groups; 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Component\Serializer\Attribute\Groups;
 use ControleOnline\Repository\PeopleLinkRepository;
-
-
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 
 #[ORM\Table(name: 'people_link')]
 #[ORM\Index(name: 'company_id', columns: ['company'])]
 #[ORM\UniqueConstraint(name: 'people_id', columns: ['people_id', 'company'])]
 #[ORM\Entity(repositoryClass: PeopleLinkRepository::class)]
 
+#[ApiResource(
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv'],
+    normalizationContext: ['groups' => ['people_link:read']],
+    denormalizationContext: ['groups' => ['people_link:write']],
+    security: "is_granted('ROLE_CLIENT')",
+    operations: [
+        new GetCollection(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
+    ]
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'id' => 'exact',
+    'company' => 'exact',
+    'people' => 'exact',
+    'link_type' => 'exact',
+    'enable' => 'exact',
+])]
 class PeopleLink
 {
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[Groups(['people_link:read', 'people_link:write'])]
     private $id;
 
     /**
@@ -28,6 +44,7 @@ class PeopleLink
      */
     #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'company')]
+    #[Groups(['people_link:read', 'people_link:write'])]
     private $company;
 
     /**
@@ -35,9 +52,13 @@ class PeopleLink
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'link')]
+    #[Groups(['people_link:read', 'people_link:write'])]
+
     private $people;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
+    #[Groups(['people_link:read', 'people_link:write'])]
+
     private $enable = 1;
 
 
@@ -46,6 +67,8 @@ class PeopleLink
      *
      */
     #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','client','provider','franchisee')", nullable: false)]
+    #[Groups(['people_link:read', 'people_link:write'])]
+
     private $link_type;
 
 
@@ -53,6 +76,8 @@ class PeopleLink
      * @var float
      */
     #[ORM\Column(name: 'comission', type: 'float', nullable: false)]
+    #[Groups(['people_link:read', 'people_link:write'])]
+
     private $comission = 0;
 
 
@@ -60,6 +85,8 @@ class PeopleLink
      * @var float
      */
     #[ORM\Column(name: 'minimum_comission', type: 'float', nullable: false)]
+    #[Groups(['people_link:read', 'people_link:write'])]
+
     private $minimum_comission = 0;
 
     public function getId()
