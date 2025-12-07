@@ -108,7 +108,7 @@ class People
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
@@ -116,12 +116,12 @@ class People
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $alternative_image;
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
@@ -135,15 +135,15 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read',  'people:write'])]
     private $document;
 
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read',  'people:write'])]
     private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
