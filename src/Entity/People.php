@@ -371,7 +371,7 @@ class People
         return $this;
     }
 
-    public function setOtherInformations($otherInformations)
+    public function setOtherInformations(stdClass|array $otherInformations)
     {
         $this->otherInformations = json_encode($otherInformations);
         return $this;
