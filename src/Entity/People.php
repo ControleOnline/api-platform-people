@@ -80,35 +80,35 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
@@ -116,12 +116,12 @@ class People
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $alternative_image;
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
@@ -135,31 +135,31 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $document;
 
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $address;
 
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $phone;
 
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $email;
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $foundationDate = null;
 
     public function __construct()
