@@ -32,7 +32,6 @@ use Doctrine\ORM\Mapping as ORM;
     normalizationContext: ['groups' => ['phone:read']],
     denormalizationContext: ['groups' => ['phone:write']],
 )]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
 #[ORM\Table(name: 'phone')]
 #[ORM\Index(columns: ['people_id'])]
 #[ORM\UniqueConstraint(name: 'phone', columns: ['phone', 'ddd', 'people_id'])]
@@ -48,23 +47,31 @@ class Phone
 
     #[ORM\Column(type: 'integer', length: 10, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'order:write', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['phone' => 'exact'])]
     private int $phone;
 
     #[ORM\Column(type: 'integer', length: 2, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'order:write', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['ddi' => 'exact'])]
+
     private int $ddi;
 
 
     #[ORM\Column(type: 'integer', length: 2, nullable: false)]
     #[Groups(['invoice_details:read', 'order_details:read', 'order:write', 'people:read', 'connections:read', 'phone:read', 'phone:write'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['ddd' => 'exact'])]
     private int $ddd;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['confirmed' => 'exact'])]
+
     private bool $confirmed = false;
 
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'phone')]
     #[Groups(['connections:read', 'phone:read', 'phone:write'])]
+    #[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+
     private ?People $people = null;
 
     public function getId(): int
