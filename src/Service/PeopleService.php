@@ -284,7 +284,8 @@ class PeopleService
 
     if (!$currentUser->getPeople()->getLink()->isEmpty()) {
       foreach ($currentUser->getPeople()->getLink() as $company) {
-        $companies[] = $company->getCompany();
+        if ($company->getLinkType() == 'employee')
+          $companies[] = $company->getCompany();
       }
     }
     return $companies;
