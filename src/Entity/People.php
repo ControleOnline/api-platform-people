@@ -107,8 +107,8 @@ class People
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
-    #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id', 'order_details:read')]
-    #[Groups(['people:read', 'people:write'])]
+    #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
+    #[Groups(['people:read', 'people:write', 'order_details:read'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
