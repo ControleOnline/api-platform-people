@@ -62,14 +62,27 @@ class PeopleService
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
 
+    // Tenta encontrar por documento
     if (!empty($document))
       $people = $this->getDocument($document)?->getPeople();
 
+    // Se não encontrar por documento, tenta encontrar por email
     if (!$people && !empty($email))
       $people = $this->getEmail($email)?->getPeople();
 
-    if (!$people && !empty($phone))
-      $people = $this->getPhone($phone['ddi'], $phone['ddd'], $phone['phone'])?->getPeople();
+    // Se não encontrar por documento ou email, tenta encontrar por telefone
+    if (!$people && !empty($phone)) {
+      
+      // se tem os campos ddi, ddd e phone, tenta encontrar por telefone
+      if (!empty($phone['ddi']) && !empty($phone['ddd']) && !empty($phone['phone'])) {
+      // converte para inteiro para mandar par getPhone, que tem os campos como int
+        $phone['ddi'] = (int)$phone['ddi'];
+        $phone['ddd'] = (int)$phone['ddd'];
+        $phone['phone'] = (int)$phone['phone'];
+        $people = $this->getPhone($phone['ddi'], $phone['ddd'], $phone['phone'])?->getPeople();
+      }
+
+    }
 
     if (!$people) {
       $people = new People();
@@ -93,6 +106,13 @@ class PeopleService
 
   public function addPhone(People $people, array $phone_number): Phone
   {
+
+    if (!$phone_number['ddi']) $phone_number['ddi'] = 55;
+
+    $phone_number['ddi'] = (int)$phone_number['ddi'];
+    $phone_number['ddd'] = (int)$phone_number['ddd'];
+    $phone_number['phone'] = (int)$phone_number['phone'];
+
     $phone = $this->getPhone($phone_number['ddi'], $phone_number['ddd'], $phone_number['phone']);
     if ($phone && $phone->getPeople()) {
       if ($phone->getPeople()->getId() != $people->getId())
