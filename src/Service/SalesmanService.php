@@ -27,7 +27,7 @@ class SalesmanService
 
     $salesman = $this->manager->getRepository(PeopleLink::class)
       ->createQueryBuilder('pl')
-      ->andWhere('pl.people = :company')
+      ->andWhere('pl.company = :company')
       ->andWhere('pl.people = :people')
       ->andWhere('pl.link_type = :type')
       ->setParameter('company', $company)
@@ -43,7 +43,7 @@ class SalesmanService
 
     $salesman = $this->manager->getRepository(PeopleLink::class)
       ->createQueryBuilder('pl')
-      ->andWhere('pl.people = :company')
+      ->andWhere('pl.company = :company')
       ->andWhere('pl.link_type = :type')
       ->setParameter('company', $company)
       ->setParameter('type', 'salesman')
