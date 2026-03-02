@@ -5,17 +5,12 @@ namespace ControleOnline\Service;
 use ControleOnline\Entity\Document;
 use ControleOnline\Entity\DocumentType;
 use ControleOnline\Entity\Email;
-use ControleOnline\Entity\ExtraData;
-use ControleOnline\Entity\ExtraFields;
 use ControleOnline\Entity\Language;
 use ControleOnline\Entity\People;
-use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\Phone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
-as Security;
-use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as Security;
 use Exception;
 
 class PeopleService
@@ -24,10 +19,11 @@ class PeopleService
 
   public function __construct(
     private EntityManagerInterface $manager,
-    private Security               $security,
+    private Security $security,
     private RequestStack $requestStack,
+    private PeopleLinkService $peopleLinkService,
   ) {
-    $this->request  = $requestStack->getCurrentRequest();
+    $this->request = $requestStack->getCurrentRequest();
   }
 
   public function prePersist(People $people)
@@ -39,49 +35,26 @@ class PeopleService
 
   public function addClient() {}
 
-
   public function discoveryClient(People $provider, People $client)
   {
-    return $this->discoveryLink($provider, $client, 'client');
+    return $this->peopleLinkService->discoveryLink($provider, $client, 'client');
   }
 
-  public function discoveryLink(People $company, People $people, $linkType): PeopleLink
+  public function discoveryPeople(?string $document = null, ?string $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
-    $peopleLink =   $this->manager->getRepository(PeopleLink::class)->findOneBy([
-      'company' => $company,
-      'people' => $people,
-      'link_type' => $linkType
-    ]);
-
-    if (!$peopleLink)
-      $peopleLink = $this->addLink($company, $people, $linkType);
-
-    return $peopleLink;
-  }
-
-  public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
-  {
-
-    // Tenta encontrar por documento
     if (!empty($document))
       $people = $this->getDocument($document)?->getPeople();
 
-    // Se não encontrar por documento, tenta encontrar por email
     if (!$people && !empty($email))
       $people = $this->getEmail($email)?->getPeople();
 
-    // Se não encontrar por documento ou email, tenta encontrar por telefone
     if (!$people && !empty($phone)) {
-      
-      // se tem os campos ddi, ddd e phone, tenta encontrar por telefone
       if (!empty($phone['ddi']) && !empty($phone['ddd']) && !empty($phone['phone'])) {
-      // converte para inteiro para mandar par getPhone, que tem os campos como int
         $phone['ddi'] = (int)$phone['ddi'];
         $phone['ddd'] = (int)$phone['ddd'];
         $phone['phone'] = (int)$phone['phone'];
         $people = $this->getPhone($phone['ddi'], $phone['ddd'], $phone['phone'])?->getPeople();
       }
-
     }
 
     if (!$people) {
@@ -100,13 +73,11 @@ class PeopleService
     if ($phone)
       $this->addPhone($people, $phone);
 
-
     return $people;
   }
 
   public function addPhone(People $people, array $phone_number): Phone
   {
-
     if (!$phone_number['ddi']) $phone_number['ddi'] = 55;
 
     $phone_number['ddi'] = (int)$phone_number['ddi'];
@@ -114,29 +85,35 @@ class PeopleService
     $phone_number['phone'] = (int)$phone_number['phone'];
 
     $phone = $this->getPhone($phone_number['ddi'], $phone_number['ddd'], $phone_number['phone']);
+
     if ($phone && $phone->getPeople()) {
       if ($phone->getPeople()->getId() != $people->getId())
         throw new Exception("Phone is in use by people " . $people->getId(), 1);
     } else {
       $phone = new Phone();
-      $phone->setDdi((int) $phone_number['ddi']);
-      $phone->setDdd((int) $phone_number['ddd']);
-      $phone->setPhone((int) $phone_number['phone']);
+      $phone->setDdi($phone_number['ddi']);
+      $phone->setDdd($phone_number['ddd']);
+      $phone->setPhone($phone_number['phone']);
       $phone->setPeople($people);
       $this->manager->persist($phone);
       $this->manager->flush();
     }
 
-    return  $phone;
+    return $phone;
   }
+
   public function addDocument(People $people, string|int $document_number, ?string $document_type = null): Document
   {
     $document = $this->getDocument($document_number, $document_type);
+
     if ($document) {
       if ($document->getPeople()->getId() != $people->getId())
         throw new Exception("Document is in use by people " . $people->getId(), 1);
     } else {
-      $document_type = $document_type ? $this->discoveryDocumentType($document_type) : $this->discoveryDocumentType($this->getDocumentTypeByDocumentLen($document_number));
+      $document_type = $document_type
+        ? $this->discoveryDocumentType($document_type)
+        : $this->discoveryDocumentType($this->getDocumentTypeByDocumentLen($document_number));
+
       $document = new Document();
       $document->setDocument((int)$document_number);
       $document->setDocumentType($document_type);
@@ -145,12 +122,13 @@ class PeopleService
       $this->manager->flush();
     }
 
-    return  $document;
+    return $document;
   }
 
   public function addEmail(People $people, string $email_str): Email
   {
     $email = $this->getEmail($email_str);
+
     if ($email && $email->getPeople()) {
       if ($email->getPeople()->getId() != $people->getId())
         throw new Exception("Email is in use by people " . $people->getId(), 1);
@@ -162,7 +140,7 @@ class PeopleService
       $this->manager->flush();
     }
 
-    return  $email;
+    return $email;
   }
 
   public function getEmail(string $email): ?Email
@@ -179,10 +157,9 @@ class PeopleService
     ]);
   }
 
-
   public function discoveryDocumentType(string $document_type): DocumentType
   {
-    $documentType =  $this->manager->getRepository(DocumentType::class)->findOneBy(['documentType' => $document_type]);
+    $documentType = $this->manager->getRepository(DocumentType::class)->findOneBy(['documentType' => $document_type]);
 
     if (!$documentType) {
       $documentType = new DocumentType();
@@ -198,10 +175,10 @@ class PeopleService
   {
     if (!$document_type)
       $document_type = $this->getDocumentTypeByDocumentLen($document_number);
+
     return $this->manager->getRepository(Document::class)->findOneBy([
       'document' => $document_number,
-      'documentType' =>
-      $this->discoveryDocumentType($document_type)
+      'documentType' => $this->discoveryDocumentType($document_type)
     ]);
   }
 
@@ -219,95 +196,23 @@ class PeopleService
   {
     $request = $this->requestStack->getCurrentRequest();
     if (!$request) return;
-    $payload   = json_decode($request->getContent());
+
+    $payload = json_decode($request->getContent());
+
     if (isset($payload->link_type)) {
       $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
+
       if ($company)
-        $this->discoveryLink($company, $people, $payload->link_type);
+        $this->peopleLinkService->discoveryLink($company, $people, $payload->link_type);
       else {
         $link = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->link));
+
         if ($payload->link_type == 'employee' && $link) {
-          $this->discoveryLink($people, $link, $payload->link_type);
+          $this->peopleLinkService->discoveryLink($people, $link, $payload->link_type);
           if ($payload->people_document)
             $this->addDocument($people, $payload->people_document);
         }
       }
     }
-  }
-
-  public function addLink(People $company, People $people, $link_type): PeopleLink
-  {
-
-    $peopleLink = $this->manager->getRepository(PeopleLink::class)->findOneBy([
-      'company' => $company,
-      'people' => $people,
-      'link_type' => $link_type
-    ]);
-
-    if (!$peopleLink)
-      $peopleLink = new PeopleLink();
-
-    $peopleLink->setCompany($company);
-    $peopleLink->setPeople($people);
-    $peopleLink->setLinkType($link_type);
-
-    $this->manager->persist($peopleLink);
-    $this->manager->flush();
-    return  $peopleLink;
-  }
-
-  public function securityFilter(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
-  {
-    $this->checkLink($queryBuilder, $resourceClass, $applyTo, $rootAlias);
-  }
-
-  public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
-  {
-
-    $link   = $this->request->query->get('link',   null);
-    $company = $this->request->query->get('company', null);
-    $link_type = $this->request->query->get('link_type', null);
-
-    if ($link_type) {
-      $queryBuilder->join(sprintf('%s.' . ($link ? 'company' : 'link'), $rootAlias), 'PeopleLink');
-      $queryBuilder->andWhere('PeopleLink.link_type IN(:link_type)');
-      $queryBuilder->setParameter('link_type', $link_type);
-    }
-
-    if ($company || $link) {
-      $queryBuilder->andWhere('PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)');
-      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", ($link ?: $company)));
-    }
-  }
-  public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
-  {
-    $companies   = $this->getMyCompanies();
-    $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:companies)', $rootAlias, $rootAlias));
-    $queryBuilder->setParameter('companies', $companies);
-
-    if ($payer = $this->request->query->get('company', null)) {
-      $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:people)', $rootAlias));
-      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", $payer));
-    }
-  }
-
-  public function getMyCompanies(): array
-  {
-    /**
-     * @var \ControleOnline\Entity\User $currentUser
-     */
-    $token = $this->security->getToken();
-    if (!$token) return [];
-    $currentUser  =  $token->getUser();
-    $companies    = [];
-    if (!$currentUser) return [];
-
-    if (!$currentUser->getPeople()->getLink()->isEmpty()) {
-      foreach ($currentUser->getPeople()->getLink() as $company) {
-        if ($company->getLinkType() == 'employee')
-          $companies[] = $company->getCompany();
-      }
-    }
-    return $companies;
   }
 }
