@@ -185,10 +185,18 @@ class People
     {
         return $this->enable;
     }
+    public function getEnable()
+    {
+        return $this->getEnabled();
+    }
     public function setEnabled($enable)
     {
         $this->enable = $enable ?: 0;
         return $this;
+    }
+    public function setEnable($enable)
+    {
+        return $this->setEnabled($enable);
     }
 
     public function setPeopleType($people_type)
