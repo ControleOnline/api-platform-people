@@ -29,13 +29,20 @@ use ControleOnline\Entity\CompanyDocument;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 #[ORM\Table(name: 'people')]
 #[ORM\Entity(repositoryClass: PeopleRepository::class)]
 #[ApiResource(
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv'],
     normalizationContext: ['groups' => ['people:read']],
-    denormalizationContext: ['groups' => ['people:write']],
+    denormalizationContext: [
+        'groups' => ['people:write'],
+        // ALEMAC // 02/02/2026
+        // adaptação para clientes enviando ainda no formato antigo
+        // @todo // remover no futuro
+        AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
+    ],
     security: "is_granted('ROLE_CLIENT')",
     operations: [
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
@@ -54,7 +61,13 @@ use stdClass;
         new Put(
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_CLIENT')",
             validationContext: ['groups' => ['people:write']],
-            denormalizationContext: ['groups' => ['people:write']]
+            denormalizationContext: [
+                'groups' => ['people:write'],
+                // ALEMAC // 02/02/2026
+                // adaptação para clientes enviando ainda no formato antigo
+                // @todo // remover no futuro
+                AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
+            ]
         ),
         new Delete(security: "is_granted('ROLE_CLIENT')")
     ]
@@ -191,6 +204,12 @@ class People
     }
     public function setEnabled($enable)
     {
+        // ALEMAC // 02/02/2026
+        // adaptação para clientes enviando ainda no formato antigo
+        // @todo // remover no futuro
+        if (is_numeric($enable)) {
+            $enable = ((int) $enable) === 1;
+        }
         $this->enable = $enable ?: 0;
         return $this;
     }
