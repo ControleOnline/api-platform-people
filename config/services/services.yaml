@@ -16,8 +16,4 @@ services:
         resource: '../../src/Command'
         tags: ['console.command']
     ControleOnline\Filter\:
-        resource: '../../src/Filter'
-    ControleOnline\Service\:
-        resource: '../../src/Service/**/*'
-        autowire: true
-        autoconfigure: true                     
+        resource: '../../src/Filter'                     
