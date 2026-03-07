@@ -280,11 +280,16 @@ class PeopleService
       )
     );
 
-    $queryBuilder->setParameter('people', array_filter([
-      preg_replace("/[^0-9]/", "", ($link ?: $company)),
-      $this->getMyPeople()
-    ]));
-    
+    $queryBuilder->setParameter('people', array_filter(
+      array_merge(
+        !$company ? $this->getMyCompanies() : [],
+        [
+          $link ? preg_replace("/[^0-9]/", "", $link) : null,
+          $company ? preg_replace("/[^0-9]/", "", $company) : null,
+          $this->getMyPeople()
+        ]
+      )
+    ));
   }
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
