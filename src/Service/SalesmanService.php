@@ -29,12 +29,12 @@ class SalesmanService implements EventSubscriberInterface
     $entity = $event->getEntity();
 
     if (!$entity instanceof PeopleLink) {
-      return;
+      //return;
     }
 
     // reagir apenas quando empresa vira cliente
     if ($entity->getLinkType() !== 'client') {
-      return;
+      //return;
     }
 
     $company = $entity->getCompany();
