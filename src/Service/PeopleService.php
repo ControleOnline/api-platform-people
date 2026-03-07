@@ -291,6 +291,7 @@ class PeopleService
       )
     ));
   }
+  
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
     $companies   = $this->getMyCompanies();

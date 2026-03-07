@@ -7,9 +7,10 @@ use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as Security;
+use ControleOnline\Event\EntityChangedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-
-class SalesmanService
+class SalesmanService implements EventSubscriberInterface
 {
   private $request;
 
@@ -20,6 +21,63 @@ class SalesmanService
 
   ) {
     $this->request = $requestStack->getCurrentRequest();
+  }
+
+  public static function getSubscribedEvents(): array
+  {
+    return [
+      EntityChangedEvent::class => 'onEntityChanged',
+    ];
+  }
+
+  public function onEntityChanged(EntityChangedEvent $event)
+  {
+    $oldEntity = $event->getOldEntity();
+    $entity = $event->getEntity();
+
+    if (!$entity instanceof People || !$oldEntity instanceof People)
+      return;
+
+    $entity->getLink()->map(function (PeopleLink $link) {
+      if ($link->getLinkType() === 'client') {
+        $this->discoverSalesmanForClient($link->getCompany(), $link->getPeople());
+      }
+    });
+  }
+
+  public function discoverSalesmanForClient(People $company, People $client): ?People
+  {
+
+    $client->getLink()->map(function (PeopleLink $link) {
+      if ($link->getLinkType() === 'salesman') {
+        return $link->getCompany();
+      }
+    });
+
+    $salesman = $this->getSalesmanFromCompany($company, $this->getMyPeople());
+    if (!$salesman) return null;
+
+    $peopleLink = new PeopleLink();
+    $peopleLink->setCompany($salesman);
+    $peopleLink->setPeople($client);
+    $peopleLink->setLinkType('salesman');
+
+    $this->manager->persist($peopleLink);
+    $this->manager->flush();
+
+    return $salesman;
+  }
+
+  public function getMyPeople(): ?People
+  {
+    $token = $this->security->getToken();
+    if (!$token) return null;
+    /**
+     * @var \ControleOnline\Entity\User $currentUser
+     */
+    $currentUser  =  $token->getUser();
+    if (!$currentUser) return null;
+    return $currentUser->getPeople();
   }
 
   public function getSalesmanFromCompany(People $company, People $people): ?People
