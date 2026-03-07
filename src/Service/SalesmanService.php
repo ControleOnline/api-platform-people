@@ -4,17 +4,23 @@ namespace ControleOnline\Service;
 
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
+use ControleOnline\Entity\Task;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as Security;
 use ControleOnline\Event\EntityChangedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use ControleOnline\WhatsApp\Messages\WhatsAppMessage;
+use ControleOnline\WhatsApp\Messages\WhatsAppContent;
 
 class SalesmanService implements EventSubscriberInterface
 {
 
   public function __construct(
     private EntityManagerInterface $manager,
-    private Security $security
+    private Security $security,
+    private TaskService $taskService,
+    private TaskInterationService $taskInterationService,
+    private SalesmanDistributionService $salesmanDistributionService
   ) {}
 
   public static function getSubscribedEvents(): array
@@ -65,14 +71,53 @@ class SalesmanService implements EventSubscriberInterface
       return null;
     }
 
-    $link = new PeopleLink();
-    $link->setCompany($salesman);
-    $link->setPeople($client);
-    $link->setLinkType('client');
+    $salesmanLink = new PeopleLink();
+    $salesmanLink->setCompany($salesman);
+    $salesmanLink->setPeople($client);
+    $salesmanLink->setLinkType('client');
 
-    $this->manager->persist($link);
+    $this->manager->persist($salesmanLink);
+
+    $this->notifyClient($company, $salesmanLink);
 
     return $salesman;
+  }
+
+  public function notifyClient(People $company, PeopleLink $salesmanLink): ?Task
+  {
+    if ($salesmanLink->getLinkType() !== 'client') {
+      return null;
+    }
+
+    $salesman = $salesmanLink->getCompany();
+    $client = $salesmanLink->getPeople();
+
+    $task = $this->taskService->addTask(
+      $company,
+      $salesman,
+      $client,
+      'relationship'
+    );
+
+    $messageContent = new WhatsAppContent();
+    $messageContent->setBody(
+      "Olá,\n" .
+        "Sou {$salesman->getName()}, represento a empresa {$company->getAlias()}."
+    );
+
+    $message = new WhatsAppMessage();
+    $message->setAction('sendMessage');
+    $message->setMessageContent($messageContent);
+
+    $this->taskInterationService->addInteration(
+      $salesman,
+      $message,
+      $task,
+      'relationship',
+      'public'
+    );
+
+    return $task;
   }
 
   private function clientAlreadyHasSalesmanFromCompany(People $company, People $client): bool
@@ -141,19 +186,9 @@ class SalesmanService implements EventSubscriberInterface
       }
     }
 
-    // pegar vendedor aleatório da empresa
-    $result = $this->manager->getRepository(PeopleLink::class)
-      ->createQueryBuilder('pl')
-      ->andWhere('pl.company = :company')
-      ->andWhere('pl.link_type = :type')
-      ->setParameter('company', $company)
-      ->setParameter('type', 'salesman')
-      ->orderBy('RAND()')
-      ->setMaxResults(1)
-      ->getQuery()
-      ->getOneOrNullResult();
-
-    return $result?->getPeople();
+    // usar estratégia de distribuição configurada
+    return $this->salesmanDistributionService
+      ->discoverSalesman($company);
   }
 
   private function isSalesman(People $people): bool
