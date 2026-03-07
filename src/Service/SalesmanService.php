@@ -18,7 +18,6 @@ class SalesmanService implements EventSubscriberInterface
     private EntityManagerInterface $manager,
     private Security $security,
     private RequestStack $requestStack,
-
   ) {
     $this->request = $requestStack->getCurrentRequest();
   }
@@ -35,27 +34,42 @@ class SalesmanService implements EventSubscriberInterface
     $oldEntity = $event->getOldEntity();
     $entity = $event->getEntity();
 
-    if (!$entity instanceof People || !$oldEntity instanceof People)
+    if (!$entity instanceof People || !$oldEntity instanceof People) {
       return;
+    }
 
-    $entity->getLink()->map(function (PeopleLink $link) {
+    foreach ($entity->getLink() as $link) {
       if ($link->getLinkType() === 'client') {
-        $this->discoverSalesmanForClient($link->getCompany(), $link->getPeople());
+        $this->discoverSalesmanForClient(
+          $link->getCompany(),
+          $link->getPeople()
+        );
       }
-    });
+    }
   }
 
   public function discoverSalesmanForClient(People $company, People $client): ?People
   {
 
-    $client->getLink()->map(function (PeopleLink $link) {
-      if ($link->getLinkType() === 'salesman') {
-        return $link->getCompany();
-      }
-    });
+    $salesman = $this->getSalesmanFromCompany(
+      $company,
+      $this->getMyPeople()
+    );
 
-    $salesman = $this->getSalesmanFromCompany($company, $this->getMyPeople());
-    if (!$salesman) return null;
+    if (!$salesman) {
+      return null;
+    }
+
+    // evita duplicação
+    $exists = $this->manager->getRepository(PeopleLink::class)->findOneBy([
+      'company' => $salesman,
+      'people' => $client,
+      'linkType' => 'client'
+    ]);
+
+    if ($exists) {
+      return $salesman;
+    }
 
     $peopleLink = new PeopleLink();
     $peopleLink->setCompany($salesman);
@@ -63,7 +77,6 @@ class SalesmanService implements EventSubscriberInterface
     $peopleLink->setLinkType('client');
 
     $this->manager->persist($peopleLink);
-    $this->manager->flush();
 
     return $salesman;
   }
@@ -71,44 +84,53 @@ class SalesmanService implements EventSubscriberInterface
   public function getMyPeople(): ?People
   {
     $token = $this->security->getToken();
-    if (!$token) return null;
-    /**
-     * @var \ControleOnline\Entity\User $currentUser
-     */
-    $currentUser  =  $token->getUser();
-    if (!$currentUser) return null;
+
+    if (!$token) {
+      return null;
+    }
+
+    $currentUser = $token->getUser();
+
+    if (!$currentUser) {
+      return null;
+    }
+
     return $currentUser->getPeople();
   }
 
-  public function getSalesmanFromCompany(People $company, People $people): ?People
+  public function getSalesmanFromCompany(People $company, ?People $people): ?People
   {
 
-    $salesman = $this->manager->getRepository(PeopleLink::class)
+    if ($people) {
+
+      $result = $this->manager->getRepository(PeopleLink::class)
+        ->createQueryBuilder('pl')
+        ->andWhere('pl.company = :company')
+        ->andWhere('pl.people = :people')
+        ->andWhere('pl.linkType = :type')
+        ->setParameter('company', $company)
+        ->setParameter('people', $people)
+        ->setParameter('type', 'salesman')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+
+      if ($result) {
+        return $result->getPeople();
+      }
+    }
+
+    $result = $this->manager->getRepository(PeopleLink::class)
       ->createQueryBuilder('pl')
       ->andWhere('pl.company = :company')
-      ->andWhere('pl.people = :people')
-      ->andWhere('pl.link_type = :type')
-      ->setParameter('company', $company)
-      ->setParameter('people', $people)
-      ->setParameter('type', 'salesman')
-      ->setMaxResults(1);
-
-
-    if ($salesman->getQuery()->getOneOrNullResult())
-      return $salesman->getQuery()->getOneOrNullResult()?->getPeople();
-
-
-
-    $salesman = $this->manager->getRepository(PeopleLink::class)
-      ->createQueryBuilder('pl')
-      ->andWhere('pl.company = :company')
-      ->andWhere('pl.link_type = :type')
+      ->andWhere('pl.linkType = :type')
       ->setParameter('company', $company)
       ->setParameter('type', 'salesman')
       ->orderBy('RAND()')
-      ->setMaxResults(1);
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
 
-    return $salesman->getQuery()
-      ->getOneOrNullResult()?->getPeople();
+    return $result?->getPeople();
   }
 }
