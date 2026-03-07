@@ -64,7 +64,7 @@ class SalesmanService implements EventSubscriberInterface
     $exists = $this->manager->getRepository(PeopleLink::class)->findOneBy([
       'company' => $salesman,
       'people' => $client,
-      'linkType' => 'client'
+      'link_type' => 'client'
     ]);
 
     if ($exists) {
@@ -107,7 +107,7 @@ class SalesmanService implements EventSubscriberInterface
         ->createQueryBuilder('pl')
         ->andWhere('pl.company = :company')
         ->andWhere('pl.people = :people')
-        ->andWhere('pl.linkType = :type')
+        ->andWhere('pl.link_type = :type')
         ->setParameter('company', $company)
         ->setParameter('people', $people)
         ->setParameter('type', 'salesman')
@@ -123,7 +123,7 @@ class SalesmanService implements EventSubscriberInterface
     $result = $this->manager->getRepository(PeopleLink::class)
       ->createQueryBuilder('pl')
       ->andWhere('pl.company = :company')
-      ->andWhere('pl.linkType = :type')
+      ->andWhere('pl.link_type = :type')
       ->setParameter('company', $company)
       ->setParameter('type', 'salesman')
       ->orderBy('RAND()')
