@@ -273,10 +273,18 @@ class PeopleService
       $queryBuilder->setParameter('link_type', $link_type);
     }
 
-    if ($company || $link) {
-      $queryBuilder->andWhere('PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)');
-      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", ($link ?: $company)));
-    }
+    $queryBuilder->andWhere(
+      $queryBuilder->expr()->orX(
+        'PeopleLink.people IN(:people)',
+        'PeopleLink.company IN(:people)'
+      )
+    );
+
+    $queryBuilder->setParameter('people', array_filter([
+      preg_replace("/[^0-9]/", "", ($link ?: $company)),
+      $this->getMyPeople()
+    ]));
+    
   }
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
@@ -290,19 +298,24 @@ class PeopleService
     }
   }
 
-  public function getMyCompanies(): array
+  public function getMyPeople(): ?People
   {
+    $token = $this->security->getToken();
+    if (!$token) return null;
     /**
      * @var \ControleOnline\Entity\User $currentUser
      */
-    $token = $this->security->getToken();
-    if (!$token) return [];
     $currentUser  =  $token->getUser();
-    $companies    = [];
-    if (!$currentUser) return [];
+    if (!$currentUser) return null;
+    return $currentUser->getPeople();
+  }
 
-    if (!$currentUser->getPeople()->getLink()->isEmpty()) {
-      foreach ($currentUser->getPeople()->getLink() as $company) {
+  public function getMyCompanies(): array
+  {
+    $people = $this->getMyPeople();
+    if (!$people) return [];
+    if (!$people->getLink()->isEmpty()) {
+      foreach ($people->getLink() as $company) {
         if ($company->getLinkType() == 'employee')
           $companies[] = $company->getCompany();
       }
