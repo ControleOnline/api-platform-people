@@ -273,12 +273,17 @@ class PeopleService
       $queryBuilder->setParameter('link_type', $link_type);
     }
 
-    $queryBuilder->andWhere(
-      $queryBuilder->expr()->orX(
-        'PeopleLink.people IN(:people)',
-        'PeopleLink.company IN(:people)'
-      )
-    );
+    if ($company || $link) {
+      $queryBuilder->andWhere('PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)');
+      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", ($link ?: $company)));
+    } else {
+      $queryBuilder->andWhere(
+        $queryBuilder->expr()->orX(
+          'PeopleLink.people IN(:people)',
+          'PeopleLink.company IN(:people)'
+        )
+      );
+    }
 
     $queryBuilder->setParameter('people', array_filter(
       array_merge(
@@ -291,7 +296,7 @@ class PeopleService
       )
     ));
   }
-  
+
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
     $companies   = $this->getMyCompanies();
