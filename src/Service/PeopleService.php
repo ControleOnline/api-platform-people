@@ -262,20 +262,35 @@ class PeopleService
 
   public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
-
-    $link   = $this->request->query->get('link',   null);
-    $company = $this->request->query->get('company', null);
+    $link      = $this->request->query->get('link', null);
+    $company   = $this->request->query->get('company', null);
     $link_type = $this->request->query->get('link_type', null);
 
-    if ($link_type) {
-      $queryBuilder->join(sprintf('%s.' . ($link ? 'company' : 'link'), $rootAlias), 'PeopleLink');
-      $queryBuilder->andWhere('PeopleLink.link_type IN(:link_type)');
-      $queryBuilder->setParameter('link_type', $link_type);
+    $aliases = $queryBuilder->getAllAliases();
+    if (!in_array('PeopleLink', $aliases)) {
+      $queryBuilder->leftJoin(sprintf('%s.link', $rootAlias), 'PeopleLink');
     }
 
+    if ($link_type) {
+      $queryBuilder->andWhere('PeopleLink.link_type IN(:link_type)');
+      $queryBuilder->setParameter('link_type', (array) $link_type);
+    }
+
+    $peopleIds = array_filter(
+      array_merge(
+        !$company ? array_map(fn($c) => $c->getId(), $this->getMyCompanies()) : [],
+        [
+          $link ? (int) preg_replace("/[^0-9]/", "", $link) : null,
+          $company ? (int) preg_replace("/[^0-9]/", "", $company) : null,
+          $this->getMyPeople()?->getId()
+        ]
+      )
+    );
+
     if ($company || $link) {
-      $queryBuilder->andWhere('PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)');
-      $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", ($link ?: $company)));
+      $queryBuilder->andWhere(
+        'PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)'
+      );
     } else {
       $queryBuilder->andWhere(
         $queryBuilder->expr()->orX(
@@ -285,17 +300,9 @@ class PeopleService
       );
     }
 
-    $queryBuilder->setParameter('people', array_filter(
-      array_merge(
-        !$company ? $this->getMyCompanies() : [],
-        [
-          $link ? preg_replace("/[^0-9]/", "", $link) : null,
-          $company ? preg_replace("/[^0-9]/", "", $company) : null,
-          $this->getMyPeople()
-        ]
-      )
-    ));
+    $queryBuilder->setParameter('people', $peopleIds);
   }
+
 
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
