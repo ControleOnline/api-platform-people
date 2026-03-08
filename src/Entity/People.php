@@ -93,22 +93,22 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
@@ -116,12 +116,12 @@ class People
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people:write', 'order_details:read', 'contract:read'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
