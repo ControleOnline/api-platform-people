@@ -26,7 +26,7 @@ class PeopleRepository extends ServiceEntityRepository
         $queryBuilder->select('pl')
             ->from('ControleOnline\Entity\PeopleLink', 'pl')
             ->where('pl.people = :people')
-            ->andWhere('pl.link_type = :linkType')
+            ->andWhere('pl.linkType = :linkType')
             ->setParameter('people', $people->getId())
             ->setParameter('linkType', $linkType);
 
@@ -50,7 +50,7 @@ class PeopleRepository extends ServiceEntityRepository
             ->setParameter('people', $people->getId());
 
         if ($linkType)
-            $queryBuilder->setParameter('linkType', $linkType)->andWhere('pl.link_type = :linkType');
+            $queryBuilder->setParameter('linkType', $linkType)->andWhere('pl.linkType = :linkType');
 
         if ($maxResults) {
             $queryBuilder->setMaxResults($maxResults);

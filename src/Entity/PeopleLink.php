@@ -28,7 +28,7 @@ use Doctrine\ORM\Mapping as ORM;
     'id' => 'exact',
     'company' => 'exact',
     'people' => 'exact',
-    'link_type' => 'exact',
+    'linkType' => 'exact',
     'enable' => 'exact',
 ])]
 class PeopleLink
@@ -66,10 +66,10 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','client','provider','franchisee')", nullable: false)]
+    #[ORM\Column(name: 'linkType', type: 'string', columnDefinition: "ENUM('employee','client','provider','franchisee')", nullable: false)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
-    private $link_type;
+    private $linkType;
 
 
     /**
@@ -179,19 +179,19 @@ class PeopleLink
     }
 
     /**
-     * Get the value of link_type
+     * Get the value of linkType
      */
     public function getLinkType()
     {
-        return $this->link_type;
+        return $this->linkType;
     }
 
     /**
-     * Set the value of link_type
+     * Set the value of linkType
      */
-    public function setLinkType($link_type): self
+    public function setLinkType($linkType): self
     {
-        $this->link_type = $link_type;
+        $this->linkType = $linkType;
 
         return $this;
     }

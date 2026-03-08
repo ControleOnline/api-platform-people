@@ -50,7 +50,7 @@ class PeopleService
     $peopleLink =   $this->manager->getRepository(PeopleLink::class)->findOneBy([
       'company' => $company,
       'people' => $people,
-      'link_type' => $linkType
+      'linkType' => $linkType
     ]);
 
     if (!$peopleLink)
@@ -219,14 +219,14 @@ class PeopleService
     $request = $this->requestStack->getCurrentRequest();
     if (!$request) return;
     $payload   = json_decode($request->getContent());
-    if (isset($payload->link_type)) {
+    if (isset($payload->linkType)) {
       $company = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->company));
       if ($company)
-        $this->discoveryLink($company, $people, $payload->link_type);
+        $this->discoveryLink($company, $people, $payload->linkType);
       else {
         $link = $this->manager->getRepository(People::class)->find(preg_replace('/\D/', '', $payload->link));
-        if ($payload->link_type == 'employee' && $link) {
-          $this->discoveryLink($people, $link, $payload->link_type);
+        if ($payload->linkType == 'employee' && $link) {
+          $this->discoveryLink($people, $link, $payload->linkType);
           if ($payload->people_document)
             $this->addDocument($people, $payload->people_document);
         }
@@ -234,13 +234,13 @@ class PeopleService
     }
   }
 
-  public function addLink(People $company, People $people, $link_type): PeopleLink
+  public function addLink(People $company, People $people, $linkType): PeopleLink
   {
 
     $peopleLink = $this->manager->getRepository(PeopleLink::class)->findOneBy([
       'company' => $company,
       'people' => $people,
-      'link_type' => $link_type
+      'linkType' => $linkType
     ]);
 
     if (!$peopleLink)
@@ -248,7 +248,7 @@ class PeopleService
 
     $peopleLink->setCompany($company);
     $peopleLink->setPeople($people);
-    $peopleLink->setLinkType($link_type);
+    $peopleLink->setLinkType($linkType);
 
     $this->manager->persist($peopleLink);
     $this->manager->flush();
@@ -264,16 +264,16 @@ class PeopleService
   {
     $link      = $this->request->query->get('link', null);
     $company   = $this->request->query->get('company', null);
-    $link_type = $this->request->query->get('link_type', null);
+    $linkType = $this->request->query->get('linkType', null);
 
     $aliases = $queryBuilder->getAllAliases();
     if (!in_array('PeopleLink', $aliases)) {
       $queryBuilder->leftJoin(sprintf('%s.link', $rootAlias), 'PeopleLink');
     }
 
-    if ($link_type) {
-      $queryBuilder->andWhere('PeopleLink.link_type IN(:link_type)');
-      $queryBuilder->setParameter('link_type', (array) $link_type);
+    if ($linkType) {
+      $queryBuilder->andWhere('PeopleLink.linkType IN(:linkType)');
+      $queryBuilder->setParameter('linkType', (array) $linkType);
     }
 
     $peopleIds = array_filter(

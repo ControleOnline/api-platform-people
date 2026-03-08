@@ -39,7 +39,7 @@ class PeopleRoleService
 
     $getPeopleCompanies = $this->manager->getRepository(PeopleLink::class)->findBy([
       'people' => $people,
-      'link_type' => 'employee'
+      'linkType' => 'employee'
     ]);
     /**
      * @var \ControleOnline\Entity\PeopleLink $peopleCompany

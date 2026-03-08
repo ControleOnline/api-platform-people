@@ -129,10 +129,10 @@ class SalesmanService implements EventSubscriberInterface
         PeopleLink::class,
         'salesmanLink',
         'WITH',
-        'salesmanLink.people = clientLink.company AND salesmanLink.link_type = :salesman'
+        'salesmanLink.people = clientLink.company AND salesmanLink.linkType = :salesman'
       )
       ->andWhere('clientLink.people = :client')
-      ->andWhere('clientLink.link_type = :clientType')
+      ->andWhere('clientLink.linkType = :clientType')
       ->andWhere('salesmanLink.company = :company')
       ->setParameter('client', $client)
       ->setParameter('company', $company)
@@ -173,7 +173,7 @@ class SalesmanService implements EventSubscriberInterface
         ->createQueryBuilder('pl')
         ->andWhere('pl.company = :company')
         ->andWhere('pl.people = :people')
-        ->andWhere('pl.link_type = :type')
+        ->andWhere('pl.linkType = :type')
         ->setParameter('company', $company)
         ->setParameter('people', $me)
         ->setParameter('type', 'salesman')
@@ -197,7 +197,7 @@ class SalesmanService implements EventSubscriberInterface
     return (bool) $this->manager->getRepository(PeopleLink::class)
       ->createQueryBuilder('pl')
       ->andWhere('pl.people = :people')
-      ->andWhere('pl.link_type = :type')
+      ->andWhere('pl.linkType = :type')
       ->setParameter('people', $people)
       ->setParameter('type', 'salesman')
       ->setMaxResults(1)

@@ -79,7 +79,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     'name' => 'partial',
     'alias' => 'partial',
     'peopleType' => 'exact',
-    'link.link_type' => 'exact',
+    'link.linkType' => 'exact',
     'link.company' => 'exact',
     'link.people' => 'exact',
     'user' => 'exact',
