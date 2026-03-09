@@ -59,6 +59,74 @@ class PeopleService
     return $peopleLink;
   }
 
+
+  public function importPeopleFromCSV(
+    string $company,
+    string $document,
+    string $segment,
+    string $contact,
+    array $phones,
+    array $emails,
+    string $address,
+    string $city,
+    string $uf,
+    string $CEP,
+    string $number,
+    string $Complement,
+    string $linkType,
+    People $provider
+  ) {
+
+    $document = preg_replace('/\D/', '', $document);
+
+    $companyPeople = $this->discoveryPeople(
+      $document,
+      $emails[0] ?? null,
+      [],
+      $company,
+      'J'
+    );
+
+    foreach ($emails as $email) {
+      $this->addEmail($companyPeople, $email);
+    }
+
+    foreach ($phones as $phone) {
+
+      $phone = preg_replace('/\D/', '', $phone);
+
+      if (strlen($phone) >= 10) {
+
+        $ddd = substr($phone, 0, 2);
+        $numberPhone = substr($phone, 2);
+
+        $this->addPhone($companyPeople, [
+          'ddi' => 55,
+          'ddd' => $ddd,
+          'phone' => $numberPhone
+        ]);
+      }
+    }
+
+    if ($contact) {
+      $contactPeople = $this->discoveryPeople(
+        null,
+        null,
+        [],
+        $contact,
+        'F'
+      );
+    }
+
+
+    $realPeople = $companyPeople ?: $contactPeople;
+    $this->discoveryLink($companyPeople, $realPeople, 'employee');
+    $this->discoveryLink($provider, $realPeople, $linkType);
+
+
+    return $realPeople;
+  }
+
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
 

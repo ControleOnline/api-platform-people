@@ -3,18 +3,20 @@
 namespace ControleOnline\Service\Imports;
 
 use ControleOnline\Entity\Import;
-use ControleOnline\Service\LeadService;
+use ControleOnline\Service\PeopleService;
 
-class LeadsImportService implements ImportProcessorInterface
+class PeopleImportService implements ImportProcessorInterface
 {
     public function __construct(
-        private LeadService $leadsService
+        private PeopleService $peopleService
     ) {}
 
     public function getType(): string
     {
-        return 'leads';
+        return 'people';
     }
+
+
 
     public function process(Import $import): void
     {
@@ -24,28 +26,51 @@ class LeadsImportService implements ImportProcessorInterface
 
         foreach ($rows as $index => $row) {
 
-            if ($index === 0) {
+            if ($index === 0 || trim($row) === '') {
                 continue;
             }
 
             $data = str_getcsv($row);
 
-            $this->leadsService->createLead([
-                'empresa' => $data[0] ?? null,
-                'cnpj' => $data[1] ?? null,
-                'segmento' => $data[2] ?? null,
-                'responsavel' => $data[3] ?? null,
-                'telefones' => $data[4] ?? null,
-                'emails' => $data[5] ?? null,
-                'endereco' => $data[6] ?? null,
-                'cidade' => $data[7] ?? null,
-                'estado' => $data[8] ?? null,
-                'cep' => $data[9] ?? null,
-                'numero' => $data[10] ?? null,
-                'complemento' => $data[11] ?? null,
-            ]);
+            [
+                $company,
+                $document,
+                $segment,
+                $contact,
+                $phones,
+                $emails,
+                $address,
+                $bairro,
+                $city,
+                $uf,
+                $cep,
+                $number,
+                $complement
+
+            ] = $data;
+
+            $phones = array_filter(array_map('trim', explode(',', $phones)));
+            $emails = array_filter(array_map('trim', explode(',', $emails)));
+
+            $this->peopleService->importPeopleFromCSV(
+                $company,
+                $document,
+                $segment,
+                $contact,
+                $phones,
+                $emails,
+                $address,
+                $city,
+                $uf,
+                $cep,
+                $number,
+                $complement,
+                $import->getImportType(),
+                $import->getPeople()
+            );
         }
     }
+
 
     public function getExampleCsv(): string
     {
@@ -58,6 +83,7 @@ class LeadsImportService implements ImportProcessorInterface
                 'Telefones',
                 'Emails',
                 'Endereco',
+                'Bairro',
                 'Cidade',
                 'Estado',
                 'CEP',
@@ -72,6 +98,7 @@ class LeadsImportService implements ImportProcessorInterface
                 '11999999999,11888888888',
                 'contato@empresa.com,financeiro@empresa.com',
                 'Rua das Flores',
+                'Jd Logo Ali',
                 'São Paulo',
                 'SP',
                 '01001000',
