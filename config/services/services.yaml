@@ -19,4 +19,10 @@ services:
         resource: '../../src/Filter'
     ControleOnline\Service\Imports\PeopleImportService:
         tags:
-            - app.import_processor                     
+            - app.import_processor      
+    ControleOnline\Service\Imports\LeadsImportService:
+        tags:
+            - app.import_processor                         
+    ControleOnline\Service\Imports\ClientImportService:
+        tags:
+            - app.import_processor                         
