@@ -2,11 +2,11 @@
 
 namespace ControleOnline\Service\Imports;
 
-class LeadsImportService extends PeopleImportService
+class LeadImportService extends PeopleImportService
 {
 
     public function getType(): string
     {
-        return 'leads';
+        return 'lead';
     }
 }
