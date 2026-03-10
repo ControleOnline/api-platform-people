@@ -20,7 +20,7 @@ services:
     ControleOnline\Service\Imports\PeopleImportService:
         tags:
             - app.import_processor      
-    ControleOnline\Service\Imports\LeadsImportService:
+    ControleOnline\Service\Imports\ProspectImportService:
         tags:
             - app.import_processor                         
     ControleOnline\Service\Imports\ClientImportService:
