@@ -336,18 +336,12 @@ class PeopleService
 
     $aliases = $queryBuilder->getAllAliases();
 
-    // join com people (caso a entidade tenha people_id)
-    if (!in_array('p', $aliases)) {
-      $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), 'p');
-    }
-
-    // join com people_link nos dois sentidos (empresa ou pessoa)
     if (!in_array('PeopleLink', $aliases)) {
       $queryBuilder->leftJoin(
         PeopleLink::class,
         'PeopleLink',
         'WITH',
-        '(PeopleLink.company = p.id OR PeopleLink.people = p.id)'
+        sprintf('(PeopleLink.company = %s.id OR PeopleLink.people = %s.id)', $rootAlias, $rootAlias)
       );
     }
 
