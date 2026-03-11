@@ -330,13 +330,25 @@ class PeopleService
 
   public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
-    $link      = $this->request->query->get('link', null);
-    $company   = $this->request->query->get('company', null);
+    $link     = $this->request->query->get('link', null);
+    $company  = $this->request->query->get('company', null);
     $linkType = $this->request->query->get('linkType', null);
 
     $aliases = $queryBuilder->getAllAliases();
+
+    // join com people (caso a entidade tenha people_id)
+    if (!in_array('p', $aliases)) {
+      $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), 'p');
+    }
+
+    // join com people_link nos dois sentidos (empresa ou pessoa)
     if (!in_array('PeopleLink', $aliases)) {
-      $queryBuilder->leftJoin(sprintf('%s.link', $rootAlias), 'PeopleLink');
+      $queryBuilder->leftJoin(
+        PeopleLink::class,
+        'PeopleLink',
+        'WITH',
+        '(PeopleLink.company = p.id OR PeopleLink.people = p.id)'
+      );
     }
 
     if ($linkType) {
@@ -348,27 +360,23 @@ class PeopleService
       array_merge(
         !$company ? array_map(fn($c) => $c->getId(), $this->getMyCompanies()) : [],
         [
-          $link ? (int) preg_replace("/[^0-9]/", "", $link) : null,
-          $company ? (int) preg_replace("/[^0-9]/", "", $company) : null,
+          $link ? (int) preg_replace('/\D/', '', $link) : null,
+          $company ? (int) preg_replace('/\D/', '', $company) : null,
           $this->getMyPeople()?->getId()
         ]
       )
     );
 
-    if ($company || $link) {
-      $queryBuilder->andWhere(
-        'PeopleLink.' . ($link ? 'people' : 'company') . ' IN(:people)'
-      );
-    } else {
+    if (!empty($peopleIds)) {
       $queryBuilder->andWhere(
         $queryBuilder->expr()->orX(
           'PeopleLink.people IN(:people)',
           'PeopleLink.company IN(:people)'
         )
       );
-    }
 
-    $queryBuilder->setParameter('people', $peopleIds);
+      $queryBuilder->setParameter('people', $peopleIds);
+    }
   }
 
 
