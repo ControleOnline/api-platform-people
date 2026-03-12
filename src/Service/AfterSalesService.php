@@ -189,7 +189,6 @@ class AfterSalesService implements EventSubscriberInterface
 
     public function onEntityChanged(EntityChangedEvent $event)
     {
-        $oldEntity = $event->getOldEntity();
         $entity = $event->getEntity();
 
         $currentUser = $this->security->getToken()?->getUser();
