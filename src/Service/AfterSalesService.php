@@ -10,14 +10,18 @@ use Doctrine\ORM\EntityManagerInterface;
 use ControleOnline\WhatsApp\Messages\WhatsAppMessage;
 use ControleOnline\WhatsApp\Messages\WhatsAppContent;
 use Doctrine\ORM\QueryBuilder;
+use ControleOnline\Event\EntityChangedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as Security;
 
-class AfterSalesService
+class AfterSalesService implements EventSubscriberInterface
 {
     public function __construct(
         private EntityManagerInterface $manager,
         private TaskService $taskService,
         private ConfigService $configService,
-        private TaskInterationService $taskInterationService
+        private TaskInterationService $taskInterationService,
+        private Security $security
     ) {}
 
     /**
@@ -52,11 +56,11 @@ class AfterSalesService
             ->andWhere('i_sub.invoice_date >= :revenueStartDate');
     }
 
-    public function processAfterSales(int $buffer = 10): int
+    public function processAfterSales(?People $company, ?int $buffer = 10): int
     {
         $created = 0;
         // O buffer aqui limita quantos responsáveis processaremos por execução
-        $responsibles = $this->getResponsiblesWithRoom($buffer);
+        $responsibles = $this->getResponsiblesWithRoom($company, $buffer);
 
         foreach ($responsibles as $data) {
             if ($created >= $buffer) break;
@@ -117,12 +121,10 @@ class AfterSalesService
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    private function getResponsiblesWithRoom(int $limit): array
+    private function getResponsiblesWithRoom(?People $company, ?int $limit = 10): array
     {
-        $qb = $this->manager->createQueryBuilder();
-
-        // Buscamos os responsáveis
-        $results = $qb->select('r as responsible, comp as company, COUNT(t.id) as current_tasks')
+        $qb = $this->manager->createQueryBuilder()
+            ->select('r as responsible, comp as company, COUNT(t.id) as current_tasks')
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 'r')
             ->join('pl.company', 'comp')
@@ -136,8 +138,14 @@ class AfterSalesService
             ->setParameter('roles', ['salesman', 'after-sales'])
             ->setParameter('type', 'relationship')
             ->setParameter('openStatus', 'open')
-            ->setMaxResults($limit)
-            ->getQuery()
+            ->setMaxResults($limit);
+
+        if ($company) {
+            $qb->andWhere('comp = :company')
+                ->setParameter('company', $company);
+        }
+
+        $results = $qb->getQuery()
             ->getResult();
 
         // Filtramos manualmente para respeitar o limite dinâmico de cada empresa
@@ -170,5 +178,26 @@ class AfterSalesService
         );
 
         $this->manager->flush();
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            EntityChangedEvent::class => 'onEntityChanged',
+        ];
+    }
+
+    public function onEntityChanged(EntityChangedEvent $event)
+    {
+        $oldEntity = $event->getOldEntity();
+        $entity = $event->getEntity();
+
+        $currentUser = $this->security->getToken()?->getUser();
+
+        if (!$entity instanceof PeopleLink || !$currentUser)
+            return;
+
+        if ($entity->getLinkType() === 'client' && $entity->getCompany() != $entity->getPeople())
+            $this->processAfterSales($entity->getCompany(), 1);
     }
 }

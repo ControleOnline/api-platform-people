@@ -8,14 +8,18 @@ use ControleOnline\Entity\Task;
 use Doctrine\ORM\EntityManagerInterface;
 use ControleOnline\WhatsApp\Messages\WhatsAppMessage;
 use ControleOnline\WhatsApp\Messages\WhatsAppContent;
+use ControleOnline\Event\EntityChangedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface as Security;
 
-class LeadService
+class LeadService implements EventSubscriberInterface
 {
     public function __construct(
         private EntityManagerInterface $manager,
         private TaskService $taskService,
         private ConfigService $configService,
-        private TaskInterationService $taskInterationService
+        private TaskInterationService $taskInterationService,
+        private Security $security
     ) {}
 
     /**
@@ -28,12 +32,12 @@ class LeadService
         return $config ? (int) $config : 10;
     }
 
-    public function distributeLeads(int $limit = 10): int
+    public function distributeLeads(?People $company, ?int $limit = 10): int
     {
         $created = 0;
 
         // 1. Busca os vendedores que têm espaço na agenda (respeitando o limite da empresa)
-        $availableSalesmen = $this->getSalesmenWithRoom($limit);
+        $availableSalesmen = $this->getSalesmenWithRoom($company, $limit);
 
         foreach ($availableSalesmen as $data) {
             if ($created >= $limit) break;
@@ -81,12 +85,10 @@ class LeadService
         );
     }
 
-    private function getSalesmenWithRoom(int $limit): array
+    private function getSalesmenWithRoom(?People $company, ?int $limit = 10): array
     {
-        $qb = $this->manager->createQueryBuilder();
-
-        // Buscamos vendedores e a contagem de suas tarefas abertas
-        $results = $qb->select('s as salesman, c as company, COUNT(t.id) as current_tasks')
+        $qb = $this->manager->createQueryBuilder()
+            ->select('s as salesman, c as company, COUNT(t.id) as current_tasks')
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 's')
             ->join('pl.company', 'c')
@@ -99,8 +101,14 @@ class LeadService
             ->setParameter('salesmanRole', 'salesman')
             ->setParameter('type', 'opportunity')
             ->setParameter('openStatus', 'open')
-            ->setMaxResults($limit)
-            ->getQuery()
+            ->setMaxResults($limit);
+
+        if ($company) {
+            $qb->andWhere('c = :company')
+                ->setParameter('company', $company);
+        }
+
+        $results = $qb->getQuery()
             ->getResult();
 
         // Filtra os resultados comparando a contagem atual com o limite dinâmico da empresa
@@ -135,5 +143,24 @@ class LeadService
             ->getOneOrNullResult();
 
         return $result ? $result->getPeople() : null;
+    }
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            EntityChangedEvent::class => 'onEntityChanged',
+        ];
+    }
+
+    public function onEntityChanged(EntityChangedEvent $event)
+    {
+        $entity = $event->getEntity();
+
+        $currentUser = $this->security->getToken()?->getUser();
+
+        if (!$entity instanceof PeopleLink || !$currentUser)
+            return;
+
+        if ($entity->getLinkType() === 'client' && $entity->getCompany() != $entity->getPeople())
+            $this->distributeLeads($entity->getCompany(), 1);
     }
 }
