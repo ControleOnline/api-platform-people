@@ -157,10 +157,9 @@ class LeadService implements EventSubscriberInterface
 
         $currentUser = $this->security->getToken()?->getUser();
 
-        if (!$entity instanceof PeopleLink || !$currentUser)
+        if (!$entity instanceof Task || !$currentUser)
             return;
 
-        if ($entity->getLinkType() === 'prospect' && $entity->getCompany() != $entity->getPeople())
-            $this->distributeLeads($entity->getCompany(), 1);
+        $this->distributeLeads($entity->getProvider(), 1);
     }
 }
