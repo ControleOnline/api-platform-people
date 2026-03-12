@@ -48,23 +48,31 @@ class AfterSalesService implements EventSubscriberInterface
         $responsibles = $this->getResponsiblesWithRoom($company, $buffer);
 
         foreach ($responsibles as $data) {
-            if ($created >= $buffer) break;
+            if ($created >= $buffer) {
+                break;
+            }
 
             $responsible = $data['responsible'];
-            $company     = $data['company'];
+            $companyData = $data['company'];
 
-            $profiles    = $this->configService->getConfig($company, 'after-sales-profiles', true) ?? [];
-            $revenueDays = (int) ($this->configService->getConfig($company, 'after-sales-revenue-period') ?? 90);
+            if (!$companyData instanceof People) {
+                continue;
+            }
+
+            $profiles = $this->configService->getConfig($companyData, 'after-sales-profiles', true) ?? [];
+            $revenueDays = (int) ($this->configService->getConfig($companyData, 'after-sales-revenue-period') ?? 90);
 
             usort($profiles, fn($a, $b) => $b['maxRevenue'] <=> $a['maxRevenue']);
 
             foreach ($profiles as $profile) {
-                if ($created >= $buffer) break;
+                if ($created >= $buffer) {
+                    break;
+                }
 
-                $client = $this->getEligibleClient($responsible, $company, $profile, $revenueDays);
+                $client = $this->getEligibleClient($responsible, $companyData, $profile, $revenueDays);
 
                 if ($client) {
-                    $this->createRelationshipTaskWithInteraction($company, $responsible, $client);
+                    $this->createRelationshipTaskWithInteraction($companyData, $responsible, $client);
                     $created++;
                     break;
                 }
@@ -76,8 +84,8 @@ class AfterSalesService implements EventSubscriberInterface
 
     private function getEligibleClient(People $responsible, People $company, array $profile, int $revenueDays): ?People
     {
-        $contactDays      = (int) $profile['days'];
-        $minRevenue       = (float) $profile['maxRevenue'];
+        $contactDays = (int) $profile['days'];
+        $minRevenue = (float) $profile['maxRevenue'];
         $contactThreshold = (new \DateTime())->modify("-$contactDays days");
         $revenueStartDate = (new \DateTime())->modify("-$revenueDays days");
 
@@ -140,10 +148,14 @@ class AfterSalesService implements EventSubscriberInterface
         $results = [];
 
         foreach ($rows as $row) {
-            $pl = $row[0];
-            $responsible = $row[1];
-            $comp = $row[2];
-            $currentTasks = $row['current_tasks'];
+            $pl = $row[0] ?? null;
+            $responsible = $row[1] ?? null;
+            $comp = $row[2] ?? null;
+            $currentTasks = $row['current_tasks'] ?? 0;
+
+            if (!$comp instanceof People) {
+                continue;
+            }
 
             $maxAllowed = $this->getMaxTasksAllowed($comp);
 
