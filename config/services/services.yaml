@@ -23,6 +23,9 @@ services:
     ControleOnline\Service\Imports\ProspectImportService:
         tags:
             - app.import_processor                         
+    ControleOnline\Service\Imports\ProviderImportService:
+        tags:
+            - app.import_processor                         
     ControleOnline\Service\Imports\ClientImportService:
         tags:
             - app.import_processor                         
