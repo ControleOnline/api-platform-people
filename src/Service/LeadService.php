@@ -84,7 +84,7 @@ class LeadService implements EventSubscriberInterface
     private function getSalesmenWithRoom(?People $company, ?int $limit = 10): array
     {
         $qb = $this->manager->createQueryBuilder()
-            ->select('s as salesman, c as company, COUNT(t.id) as current_tasks')
+            ->select('pl, s, c, COUNT(t.id) as current_tasks')
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 's')
             ->join('pl.company', 'c')
@@ -92,7 +92,7 @@ class LeadService implements EventSubscriberInterface
             ->leftJoin('t.taskStatus', 'ts')
             ->where('pl.linkType = :salesmanRole')
             ->andWhere('ts.realStatus = :openStatus OR t.id IS NULL')
-            ->groupBy('s.id, c.id')
+            ->groupBy('pl.id, s.id, c.id')
             ->orderBy('current_tasks', 'ASC')
             ->setParameter('salesmanRole', 'salesman')
             ->setParameter('type', 'opportunity')
@@ -104,16 +104,31 @@ class LeadService implements EventSubscriberInterface
                 ->setParameter('company', $company);
         }
 
-        $results = $qb->getQuery()->getResult();
+        $rows = $qb->getQuery()->getResult();
 
-        return array_values(array_filter($results, function ($data) {
-            if (!isset($data['company']) || !$data['company'] instanceof People) {
-                return false;
+        $results = [];
+
+        foreach ($rows as $row) {
+            $salesman = $row[1] ?? null;
+            $comp = $row[2] ?? null;
+            $currentTasks = $row['current_tasks'] ?? 0;
+
+            if (!$comp instanceof People || !$salesman instanceof People) {
+                continue;
             }
 
-            $maxAllowed = $this->getMaxTasksAllowed($data['company']);
-            return (int)$data['current_tasks'] < $maxAllowed;
-        }));
+            $maxAllowed = $this->getMaxTasksAllowed($comp);
+
+            if ($currentTasks < $maxAllowed) {
+                $results[] = [
+                    'salesman' => $salesman,
+                    'company' => $comp,
+                    'current_tasks' => $currentTasks
+                ];
+            }
+        }
+
+        return $results;
     }
 
     private function getFreshLeadForCompany(People $company): ?People
@@ -121,7 +136,7 @@ class LeadService implements EventSubscriberInterface
         $qb = $this->manager->createQueryBuilder();
 
         $subQB = $this->manager->createQueryBuilder();
-        $subQB->select('identity(st.client)')
+        $subQB->select('IDENTITY(st.client)')
             ->from(Task::class, 'st')
             ->where('st.provider = :company')
             ->andWhere('st.type = :type');
