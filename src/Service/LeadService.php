@@ -160,7 +160,7 @@ class LeadService implements EventSubscriberInterface
         if (!$entity instanceof PeopleLink || !$currentUser)
             return;
 
-        if ($entity->getLinkType() === 'client' && $entity->getCompany() != $entity->getPeople())
+        if ($entity->getLinkType() === 'prospect' && $entity->getCompany() != $entity->getPeople())
             $this->distributeLeads($entity->getCompany(), 1);
     }
 }
