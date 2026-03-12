@@ -70,6 +70,7 @@ class AfterSalesService implements EventSubscriberInterface
                 }
             }
         }
+
         return $created;
     }
 
@@ -83,6 +84,7 @@ class AfterSalesService implements EventSubscriberInterface
         $revenueDQL = $this->getRevenueSubquery('c')->getDQL();
 
         $qb = $this->manager->createQueryBuilder();
+
         $qb->select('c')
             ->from(People::class, 'c')
             ->join(PeopleLink::class, 'pl_empresa', 'WITH', 'pl_empresa.people = c AND pl_empresa.company = :company')
@@ -111,12 +113,13 @@ class AfterSalesService implements EventSubscriberInterface
 
     private function getResponsiblesWithRoom(?People $company, ?int $limit = 10): array
     {
-        $qb = $this->manager->createQueryBuilder()
-            ->select('r as responsible, comp as company, COUNT(t.id) as current_tasks')
+        $qb = $this->manager->createQueryBuilder();
+
+        $qb->select('r as responsible, comp as company, COUNT(t.id) as current_tasks')
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 'r')
             ->join('pl.company', 'comp')
-            ->leftJoin(Task::class, 't', 'WITH', 't.taskFor = r AND t.company = comp AND t.type = :type')
+            ->leftJoin(Task::class, 't', 'WITH', 't.taskFor = r AND t.type = :type')
             ->leftJoin('t.taskStatus', 'ts')
             ->where('pl.linkType IN (:roles)')
             ->andWhere('ts.realStatus = :openStatus OR t.id IS NULL')
@@ -146,8 +149,7 @@ class AfterSalesService implements EventSubscriberInterface
 
         $messageContent = new WhatsAppContent();
         $messageContent->setBody(
-            "Olá {$client->getName()},\n" .
-                "Como estão as coisas por aí? Precisa de algo?"
+            "Olá {$client->getName()},\nComo estão as coisas por aí? Precisa de algo?"
         );
 
         $message = new WhatsAppMessage();
