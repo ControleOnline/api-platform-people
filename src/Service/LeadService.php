@@ -22,10 +22,6 @@ class LeadService implements EventSubscriberInterface
         private Security $security
     ) {}
 
-    /**
-     * Busca o limite máximo de tarefas para vendedores da empresa.
-     * Default: 10
-     */
     private function getMaxTasksAllowed(People $company): int
     {
         $config = $this->configService->getConfig($company, 'salesman-max-tasks');
@@ -36,25 +32,25 @@ class LeadService implements EventSubscriberInterface
     {
         $created = 0;
 
-        // 1. Busca os vendedores que têm espaço na agenda (respeitando o limite da empresa)
         $availableSalesmen = $this->getSalesmenWithRoom($company, $limit);
 
         foreach ($availableSalesmen as $data) {
-            if ($created >= $limit) break;
+            if ($created >= $limit) {
+                break;
+            }
 
             $salesman = $data['salesman'];
-            $company  = $data['company'];
+            $companyData = $data['company'];
 
-            // 2. Busca um lead que ainda não foi abordado por esta empresa
-            $lead = $this->getFreshLeadForCompany($company);
+            if (!$companyData instanceof People) {
+                continue;
+            }
+
+            $lead = $this->getFreshLeadForCompany($companyData);
 
             if ($lead) {
-                // Cria a task e a interação automática de WhatsApp
-                $this->createOpportunityWithInteraction($company, $salesman, $lead);
-
+                $this->createOpportunityWithInteraction($companyData, $salesman, $lead);
                 $created++;
-
-                // Flush imediato para que a contagem de tasks reflita na próxima iteração
                 $this->manager->flush();
             }
         }
@@ -92,7 +88,7 @@ class LeadService implements EventSubscriberInterface
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 's')
             ->join('pl.company', 'c')
-            ->leftJoin(Task::class, 't', 'WITH', 't.taskFor = s AND t.company = c AND t.type = :type')
+            ->leftJoin(Task::class, 't', 'WITH', 't.taskFor = s AND t.provider = c AND t.type = :type')
             ->leftJoin('t.taskStatus', 'ts')
             ->where('pl.linkType = :salesmanRole')
             ->andWhere('ts.realStatus = :openStatus OR t.id IS NULL')
@@ -108,25 +104,26 @@ class LeadService implements EventSubscriberInterface
                 ->setParameter('company', $company);
         }
 
-        $results = $qb->getQuery()
-            ->getResult();
+        $results = $qb->getQuery()->getResult();
 
-        // Filtra os resultados comparando a contagem atual com o limite dinâmico da empresa
-        return array_filter($results, function ($data) {
+        return array_values(array_filter($results, function ($data) {
+            if (!isset($data['company']) || !$data['company'] instanceof People) {
+                return false;
+            }
+
             $maxAllowed = $this->getMaxTasksAllowed($data['company']);
             return (int)$data['current_tasks'] < $maxAllowed;
-        });
+        }));
     }
 
     private function getFreshLeadForCompany(People $company): ?People
     {
         $qb = $this->manager->createQueryBuilder();
 
-        // Subquery para excluir leads que já possuem tarefa do tipo 'opportunity' nesta empresa
         $subQB = $this->manager->createQueryBuilder();
         $subQB->select('identity(st.client)')
             ->from(Task::class, 'st')
-            ->where('st.company = :company')
+            ->where('st.provider = :company')
             ->andWhere('st.type = :type');
 
         $result = $qb->select('pl_lead')
@@ -144,6 +141,7 @@ class LeadService implements EventSubscriberInterface
 
         return $result ? $result->getPeople() : null;
     }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -154,11 +152,11 @@ class LeadService implements EventSubscriberInterface
     public function onEntityChanged(EntityChangedEvent $event)
     {
         $entity = $event->getEntity();
-
         $currentUser = $this->security->getToken()?->getUser();
 
         if (!$entity instanceof Task || !$currentUser)
             return;
+
 
         $this->distributeLeads($entity->getProvider(), 1);
     }
