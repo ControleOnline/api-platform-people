@@ -24,24 +24,10 @@ class AfterSalesService implements EventSubscriberInterface
         private Security $security
     ) {}
 
-    /**
-     * Busca o limite de tarefas configurado para a empresa.
-     * Default: 10
-     */
     private function getMaxTasksAllowed(People $company): int
     {
         $config = $this->configService->getConfig($company, 'salesman-max-tasks');
         return $config ? (int) $config : 10;
-    }
-
-    private function getOwnerSubquery(string $clientAlias): string
-    {
-        return "COALESCE(
-            (SELECT as_l.company FROM ControleOnline\Entity\PeopleLink as_l 
-             WHERE as_l.people = $clientAlias AND as_l.linkType = 'after-sales' LIMIT 1),
-            (SELECT sm_l.company FROM ControleOnline\Entity\PeopleLink sm_l 
-             WHERE sm_l.people = $clientAlias AND sm_l.linkType = 'salesman' LIMIT 1)
-        )";
     }
 
     private function getRevenueSubquery(string $clientAlias): QueryBuilder
@@ -59,7 +45,6 @@ class AfterSalesService implements EventSubscriberInterface
     public function processAfterSales(?People $company, ?int $buffer = 10): int
     {
         $created = 0;
-        // O buffer aqui limita quantos responsáveis processaremos por execução
         $responsibles = $this->getResponsiblesWithRoom($company, $buffer);
 
         foreach ($responsibles as $data) {
@@ -102,11 +87,12 @@ class AfterSalesService implements EventSubscriberInterface
             ->from(People::class, 'c')
             ->join(PeopleLink::class, 'pl_empresa', 'WITH', 'pl_empresa.people = c AND pl_empresa.company = :company')
             ->leftJoin(Task::class, 't', 'WITH', 't.client = c AND t.taskFor = :responsible AND t.type = :type')
+            ->leftJoin(PeopleLink::class, 'pl_after', 'WITH', 'pl_after.people = c AND pl_after.linkType = :afterSales')
+            ->leftJoin(PeopleLink::class, 'pl_sales', 'WITH', 'pl_sales.people = c AND pl_sales.linkType = :salesman')
             ->where('pl_empresa.linkType = :clientType')
-            ->andWhere(':responsible = (' . $this->getOwnerSubquery('c.id') . ')')
+            ->andWhere(':responsible = COALESCE(pl_after.company, pl_sales.company)')
             ->andWhere('t.id IS NULL OR t.createdAt < :contactThreshold')
             ->andWhere("($revenueDQL) >= :minRevenue")
-
             ->setParameter('company', $company)
             ->setParameter('responsible', $responsible)
             ->setParameter('clientType', 'client')
@@ -115,6 +101,8 @@ class AfterSalesService implements EventSubscriberInterface
             ->setParameter('minRevenue', $minRevenue)
             ->setParameter('contactThreshold', $contactThreshold)
             ->setParameter('revenueStartDate', $revenueStartDate)
+            ->setParameter('afterSales', 'after-sales')
+            ->setParameter('salesman', 'salesman')
             ->orderBy("($revenueDQL)", 'DESC')
             ->setMaxResults(1);
 
@@ -132,7 +120,6 @@ class AfterSalesService implements EventSubscriberInterface
             ->leftJoin('t.taskStatus', 'ts')
             ->where('pl.linkType IN (:roles)')
             ->andWhere('ts.realStatus = :openStatus OR t.id IS NULL')
-            ->andWhere('t.id IS NULL OR r.id = (' . $this->getOwnerSubquery('t.client') . ')')
             ->groupBy('r.id, comp.id')
             ->orderBy('current_tasks', 'ASC')
             ->setParameter('roles', ['salesman', 'after-sales'])
@@ -145,10 +132,8 @@ class AfterSalesService implements EventSubscriberInterface
                 ->setParameter('company', $company);
         }
 
-        $results = $qb->getQuery()
-            ->getResult();
+        $results = $qb->getQuery()->getResult();
 
-        // Filtramos manualmente para respeitar o limite dinâmico de cada empresa
         return array_filter($results, function ($data) {
             $maxAllowed = $this->getMaxTasksAllowed($data['company']);
             return $data['current_tasks'] < $maxAllowed;
@@ -190,12 +175,11 @@ class AfterSalesService implements EventSubscriberInterface
     public function onEntityChanged(EntityChangedEvent $event)
     {
         $entity = $event->getEntity();
-
         $currentUser = $this->security->getToken()?->getUser();
 
         if (!$entity instanceof Task || !$currentUser)
             return;
-        
+
         $this->processAfterSales($entity->getProvider(), 1);
     }
 }
