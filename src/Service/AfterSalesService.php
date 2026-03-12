@@ -115,7 +115,7 @@ class AfterSalesService implements EventSubscriberInterface
     {
         $qb = $this->manager->createQueryBuilder();
 
-        $qb->select('r as responsible, comp as company, COUNT(t.id) as current_tasks')
+        $qb->select('pl, r, comp, COUNT(t.id) as current_tasks')
             ->from(PeopleLink::class, 'pl')
             ->join('pl.people', 'r')
             ->join('pl.company', 'comp')
@@ -123,7 +123,7 @@ class AfterSalesService implements EventSubscriberInterface
             ->leftJoin('t.taskStatus', 'ts')
             ->where('pl.linkType IN (:roles)')
             ->andWhere('ts.realStatus = :openStatus OR t.id IS NULL')
-            ->groupBy('r.id, comp.id')
+            ->groupBy('r.id, comp.id, pl.id')
             ->orderBy('current_tasks', 'ASC')
             ->setParameter('roles', ['salesman', 'after-sales'])
             ->setParameter('type', 'relationship')
@@ -135,12 +135,28 @@ class AfterSalesService implements EventSubscriberInterface
                 ->setParameter('company', $company);
         }
 
-        $results = $qb->getQuery()->getResult();
+        $rows = $qb->getQuery()->getResult();
 
-        return array_filter($results, function ($data) {
-            $maxAllowed = $this->getMaxTasksAllowed($data['company']);
-            return $data['current_tasks'] < $maxAllowed;
-        });
+        $results = [];
+
+        foreach ($rows as $row) {
+            $pl = $row[0];
+            $responsible = $row[1];
+            $comp = $row[2];
+            $currentTasks = $row['current_tasks'];
+
+            $maxAllowed = $this->getMaxTasksAllowed($comp);
+
+            if ($currentTasks < $maxAllowed) {
+                $results[] = [
+                    'responsible' => $responsible,
+                    'company' => $comp,
+                    'current_tasks' => $currentTasks
+                ];
+            }
+        }
+
+        return $results;
     }
 
     private function createRelationshipTaskWithInteraction(People $company, People $responsible, People $client): void
