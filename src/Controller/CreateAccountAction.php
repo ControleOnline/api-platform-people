@@ -46,18 +46,14 @@ class CreateAccountAction
       if (
         !isset($peopleData->phone->ddi) ||
         !isset($peopleData->phone->ddd) ||
-        !isset($peopleData->phone->number)
+        !isset($peopleData->phone->phone)
       )
         throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
-
-      $phone = $peopleData->phone->ddi .
-        $peopleData->phone->ddd .
-        $peopleData->phone->number;
 
       $people = $this->peopleService->discoveryPeople(
         $peopleData->document ?? null,
         $peopleData->email,
-        $phone,
+        $peopleData->phone,
         $peopleData->name . ' ' . $peopleData->alias,
         'F'
       );
