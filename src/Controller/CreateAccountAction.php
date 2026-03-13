@@ -113,7 +113,7 @@ class CreateAccountAction
       return new JsonResponse(
         $this->hydratorService->item(
           User::class,
-          $people->getId(),
+          $client->getId(),
           "people:read"
         )
       );
