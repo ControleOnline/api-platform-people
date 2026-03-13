@@ -347,7 +347,7 @@ class PeopleService
 
     if ($linkType) {
       $queryBuilder->andWhere('PeopleLink.linkType IN(:linkType)');
-      $queryBuilder->setParameter('linkType', (array) $linkType);
+      $queryBuilder->setParameter('linkType', $linkType);
     }
 
     $peopleIds = array_filter(
