@@ -22,20 +22,19 @@ class PeopleRepository extends ServiceEntityRepository
 
     public function getPeopleLinks(People $people, $linkType, $maxResults = null)
     {
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        $queryBuilder->select('pl')
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb->select('pl')
             ->from('ControleOnline\Entity\PeopleLink', 'pl')
             ->where('pl.people = :people')
             ->andWhere('pl.linkType = :linkType')
-            ->setParameter('people', $people->getId())
+            ->setParameter('people', $people)
             ->setParameter('linkType', $linkType);
 
-        if ($maxResults) {
-            $queryBuilder->setMaxResults($maxResults);
-            return $queryBuilder->getQuery()->getOneOrNullResult();
-        } else {
-            return $queryBuilder->getQuery()->getResult();
-        }
+        if ($maxResults)
+            $qb->setMaxResults($maxResults);
+
+
+        return $qb->getQuery()->getResult();
     }
 
 

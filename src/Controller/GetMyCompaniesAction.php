@@ -13,7 +13,7 @@ use ControleOnline\Service\DomainService;
 use ControleOnline\Service\FileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
- AS Security;
+as Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -75,7 +75,7 @@ class GetMyCompaniesAction
         foreach ($allConfigs as $config) {
           $configs[$config->getConfigKey()] = $config->getConfigValue();
         }
-     
+
 
         $myCompanies[$people->getId()] = [
           'id'            => $people->getId(),
@@ -101,7 +101,7 @@ class GetMyCompaniesAction
       $peopleSalesman = $this->em->getRepository(People::class)->getPeopleLinks($userPeople, 'salesman');
 
       foreach ($peopleSalesman as $com) {
-        $company = $this->em->getRepository(People::class)->find($com['people_id']);
+        $company = $this->em->getRepository(People::class)->find($com->getId());
         $allConfigs = [];
         $configs = [];
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
@@ -113,7 +113,7 @@ class GetMyCompaniesAction
         }
 
         if ($company) {
-          $people_domains = $this->em->getRepository(PeopleDomain::class)->findBy(['people' => $com['people_id']]);
+          $people_domains = $this->em->getRepository(PeopleDomain::class)->findBy(['people' => $com->getCompany()->getId()]);
 
           $domains = [];
 
@@ -132,7 +132,7 @@ class GetMyCompaniesAction
             }
           }
 
-          $peopleemployee =   $this->em->getRepository(PeopleLink::class)->findOneBy(['company' => $company, 'employee' => $userPeople]);
+          $peopleemployee = $this->em->getRepository(PeopleLink::class)->findOneBy(['company' => $company, 'employee' => $userPeople]);
 
           $permissions[$company->getId()][] = 'salesman';
           $myCompanies[$company->getId()] = [
@@ -141,7 +141,7 @@ class GetMyCompaniesAction
             'alias'      => $company->getAlias(),
             'logo'       => $this->fileService->getFileUrl($company),
             'document'   => $this->getDocument($company),
-            'commission' => $com['commission'],
+            'commission' => $com->getCommission(),
             'domains'    => $domains,
             'configs'       => $configs,
             'user'          => [
@@ -149,8 +149,8 @@ class GetMyCompaniesAction
               'name' => $userPeople->getName(),
               'alias' => $userPeople->getAlias(),
               'enabled' => $userPeople->getEnabled(),
-              'employee_enabled' => $peopleemployee ? $peopleemployee->getEnabled() : $com['enable'],
-              'salesman_enabled' => $com['enable']
+              'employee_enabled' => $peopleemployee ? $peopleemployee->getEnabled() : $com->getEnabled(),
+              'salesman_enabled' => $com->getEnabled()
             ]
           ];
         }
