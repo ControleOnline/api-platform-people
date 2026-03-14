@@ -74,7 +74,7 @@ class SalesmanService implements EventSubscriberInterface
     $salesmanLink = new PeopleLink();
     $salesmanLink->setCompany($salesman);
     $salesmanLink->setPeople($client);
-    $salesmanLink->setLinkType('client');
+    $salesmanLink->setLinkType('sellers-client');
 
     $this->manager->persist($salesmanLink);
 
