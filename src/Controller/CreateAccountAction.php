@@ -53,7 +53,7 @@ class CreateAccountAction
       $people = $this->peopleService->discoveryPeople(
         $peopleData->document ?? null,
         $peopleData->email,
-        $peopleData->phone,
+        (array)$peopleData->phone,
         $peopleData->name . ' ' . $peopleData->alias,
         'F'
       );
