@@ -2,6 +2,7 @@
 
 namespace ControleOnline\Controller;
 
+use ControleOnline\Entity\People;
 use ControleOnline\Entity\User;
 use ControleOnline\Service\DomainService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -108,7 +109,7 @@ class CreateAccountAction
 
       return new JsonResponse(
         $this->hydratorService->item(
-          User::class,
+          People::class,
           $client->getId(),
           "people:read"
         )
