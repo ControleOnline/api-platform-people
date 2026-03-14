@@ -61,7 +61,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             uriTemplate: '/create-account',
             controller: CreateAccountAction::class,
             securityPostDenormalize: 'is_granted(\'PUBLIC_ACCESS\')',
-            security: 'is_granted(\'PUBLIC_ACCESS\')',
         ),
         new Get(security: "is_granted('PUBLIC_ACCESS')"),
         new Post(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
