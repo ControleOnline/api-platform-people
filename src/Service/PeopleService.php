@@ -330,6 +330,7 @@ class PeopleService
 
   public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
+    return;
     $link     = $this->request->query->get('link', null);
     $company  = $this->request->query->get('company', null);
     $linkType = $this->request->query->get('linkType', null);
