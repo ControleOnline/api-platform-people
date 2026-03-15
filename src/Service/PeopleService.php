@@ -40,11 +40,6 @@ class PeopleService
   public function addClient() {}
 
 
-  public function discoveryClient(People $provider, People $client)
-  {
-    return $this->discoveryLink($provider, $client, 'client');
-  }
-
   public function discoveryLink(People $company, People $people, $linkType): PeopleLink
   {
     $peopleLink =   $this->manager->getRepository(PeopleLink::class)->findOneBy([

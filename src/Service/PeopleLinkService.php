@@ -23,15 +23,4 @@ class PeopleLinkService
     $this->request = $requestStack->getCurrentRequest();
   }
 
-  public function createLink(People $people, People $company, string $linkType, ?array $roles = ['admin']): PeopleLink
-  {
-    $link = new PeopleLink();
-    $link->setPeople($people);
-    $link->setCompany($company);
-    $link->setLinkType($linkType);
-    $this->manager->persist($link);
-    $this->manager->flush();
-
-    return $link;
-  }
 }

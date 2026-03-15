@@ -73,9 +73,9 @@ class CreateAccountAction
           'J'
         );
 
-        $this->peopleLinkService->createLink(
-          $people,
+        $this->peopleService->discoveryLink(
           $company,
+          $people,
           'employee'
         );
 
@@ -86,9 +86,9 @@ class CreateAccountAction
 
       $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
 
-      $this->peopleLinkService->createLink(
-        $client,
+      $this->peopleService->discoveryLink(
         $mainCompany,
+        $client,
         'client'
       );
 

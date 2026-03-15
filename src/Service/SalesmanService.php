@@ -18,6 +18,7 @@ class SalesmanService implements EventSubscriberInterface
   public function __construct(
     private EntityManagerInterface $manager,
     private Security $security,
+    private PeopleService $peopleService,
     private TaskService $taskService,
     private TaskInterationService $taskInterationService,
     private SalesmanDistributionService $salesmanDistributionService
@@ -71,13 +72,14 @@ class SalesmanService implements EventSubscriberInterface
       return null;
     }
 
-    $salesmanLink = new PeopleLink();
-    $salesmanLink->setCompany($salesman);
-    $salesmanLink->setPeople($client);
-    $salesmanLink->setLinkType('sellers-client');
 
-    $this->manager->persist($salesmanLink);
 
+    $salesmanLink =   $this->peopleService->discoveryLink(
+      $salesman,
+      $client,
+      'sellers-client'
+    );
+    
     $this->notifyClient($company, $salesmanLink);
 
     return $salesman;
