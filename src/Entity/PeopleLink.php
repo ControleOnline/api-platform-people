@@ -66,7 +66,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','client','provider','franchisee')", nullable: false)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','owner','director','manager','client','provider','franchisee')", nullable: false)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;
