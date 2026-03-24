@@ -394,13 +394,13 @@ class PeopleService
     return $currentUser->getPeople();
   }
 
-  public function getMyCompanies(): array
+  public function getMyCompanies(?array $companyType = ['prospect', 'employee', 'salesman', 'owner', 'director', 'manager']): array
   {
     $people = $this->getMyPeople();
     if (!$people) return [];
     if (!$people->getLink()->isEmpty()) {
       foreach ($people->getLink() as $company) {
-        if ($company->getLinkType() == 'employee')
+        if (in_array($company->getLinkType(), $companyType))
           $companies[] = $company->getCompany();
       }
     }
