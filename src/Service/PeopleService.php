@@ -394,7 +394,7 @@ class PeopleService
     return $currentUser->getPeople();
   }
 
-  public function getMyCompanies(?array $companyType = ['prospect', 'employee', 'salesman', 'owner', 'director', 'manager']): array
+  public function getMyCompanies(?array $companyType = PeopleLink::EMPLOYEE_LINK): array
   {
     $people = $this->getMyPeople();
     if (!$people) return [];

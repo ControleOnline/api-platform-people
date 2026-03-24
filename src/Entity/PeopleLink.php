@@ -33,6 +33,9 @@ use Doctrine\ORM\Mapping as ORM;
 ])]
 class PeopleLink
 {
+    public const EMPLOYEE_LINK = ['employee', 'salesman', 'owner', 'director', 'manager'];
+    public const MANAGER_LINK  = ['owner', 'director', 'manager'];
+
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
