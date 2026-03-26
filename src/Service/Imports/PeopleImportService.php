@@ -72,9 +72,9 @@ class PeopleImportService implements ImportProcessorInterface
     }
 
 
-    public function getExampleCsv(): string
+    public function getExampleCsv(): array
     {
-        $rows = [
+        return [
             [
                 'Empresa',
                 'CNPJ',
@@ -106,15 +106,5 @@ class PeopleImportService implements ImportProcessorInterface
                 'Sala 10'
             ]
         ];
-
-        $fp = fopen('php://temp', 'r+');
-
-        foreach ($rows as $row) {
-            fputcsv($fp, $row);
-        }
-
-        rewind($fp);
-
-        return stream_get_contents($fp);
     }
 }
