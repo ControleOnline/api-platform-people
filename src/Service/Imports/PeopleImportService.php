@@ -5,7 +5,7 @@ namespace ControleOnline\Service\Imports;
 use ControleOnline\Entity\Import;
 use ControleOnline\Service\PeopleService;
 
-class PeopleImportService implements ImportProcessorInterface
+class PeopleImportService extends AbstractCsvImportProcessor
 {
     public function __construct(
         private PeopleService $peopleService
@@ -107,14 +107,6 @@ class PeopleImportService implements ImportProcessorInterface
             ]
         ];
 
-        $fp = fopen('php://temp', 'r+');
-
-        foreach ($rows as $row) {
-            fputcsv($fp, $row);
-        }
-
-        rewind($fp);
-
-        return stream_get_contents($fp);
+        return $this->generateUtf8Csv($rows);
     }
 }
