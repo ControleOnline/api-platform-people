@@ -5,7 +5,7 @@ namespace ControleOnline\Service\Imports;
 use ControleOnline\Entity\Import;
 use ControleOnline\Service\PeopleService;
 
-class PeopleImportService extends ImportCommon implements ImportProcessorInterface
+class PeopleImportService extends ImportCommon
 {
 
     private const CSV_HEADERS = [
