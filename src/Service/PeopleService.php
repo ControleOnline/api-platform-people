@@ -55,22 +55,24 @@ class PeopleService
   }
 
 
-  public function importPeopleFromCSV(
-    string $company,
-    string $document,
-    string $segment,
-    string $contact,
-    array $phones,
-    array $emails,
-    string $address,
-    string $city,
-    string $uf,
-    string $CEP,
-    string $number,
-    string $Complement,
-    string $linkType,
-    People $provider
-  ) {
+  public function importFromCSV(array $rowData, People $provider)
+  {
+
+    [
+      $company,
+      $document,
+      $segment,
+      $contact,
+      $phones,
+      $emails,
+      $address,
+      $city,
+      $uf,
+      $CEP,
+      $number,
+      $Complement,
+      $linkType,
+    ] = $rowData;
 
     $document = preg_replace('/\D/', '', $document);
 

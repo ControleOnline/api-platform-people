@@ -5,8 +5,25 @@ namespace ControleOnline\Service\Imports;
 use ControleOnline\Entity\Import;
 use ControleOnline\Service\PeopleService;
 
-class PeopleImportService implements ImportProcessorInterface
+class PeopleImportService extends ImportCommon implements ImportProcessorInterface
 {
+
+    private const CSV_HEADERS = [
+        'Empresa',
+        'CNPJ',
+        'Segmento',
+        'Responsavel',
+        'Telefones',
+        'Emails',
+        'Endereco',
+        'Bairro',
+        'Cidade',
+        'Estado',
+        'CEP',
+        'Numero',
+        'Complemento'
+    ];
+
     public function __construct(
         private PeopleService $peopleService
     ) {}
@@ -16,79 +33,16 @@ class PeopleImportService implements ImportProcessorInterface
         return 'people';
     }
 
-
-
     public function process(Import $import): void
     {
-        $file = $import->getFile();
-
-        $rows = explode("\n", $file->getContent());
-
-        foreach ($rows as $index => $row) {
-
-            if ($index === 0 || trim($row) === '') {
-                continue;
-            }
-
-            $data = str_getcsv($row);
-
-            [
-                $company,
-                $document,
-                $segment,
-                $contact,
-                $phones,
-                $emails,
-                $address,
-                $bairro,
-                $city,
-                $uf,
-                $cep,
-                $number,
-                $complement
-
-            ] = $data;
-
-            $phones = array_filter(array_map('trim', explode(',', $phones)));
-            $emails = array_filter(array_map('trim', explode(',', $emails)));
-
-            $this->peopleService->importPeopleFromCSV(
-                $company,
-                $document,
-                $segment,
-                $contact,
-                $phones,
-                $emails,
-                $address,
-                $city,
-                $uf,
-                $cep,
-                $number,
-                $complement,
-                $import->getImportType(),
-                $import->getPeople()
-            );
-        }
+        $this->import($import, self::CSV_HEADERS, $this->peopleService);
     }
-
 
     public function getExampleCsv(): array
     {
         return [
             [
-                'Empresa',
-                'CNPJ',
-                'Segmento',
-                'Responsavel',
-                'Telefones',
-                'Emails',
-                'Endereco',
-                'Bairro',
-                'Cidade',
-                'Estado',
-                'CEP',
-                'Numero',
-                'Complemento'
+                ...self::CSV_HEADERS,
             ],
             [
                 'Empresa Exemplo LTDA',
