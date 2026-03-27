@@ -5,7 +5,7 @@ namespace ControleOnline\Service\Imports;
 use ControleOnline\Entity\Import;
 use ControleOnline\Service\PeopleService;
 
-class PeopleImportService extends AbstractCsvImportProcessor
+class PeopleImportService implements ImportProcessorInterface
 {
     public function __construct(
         private PeopleService $peopleService
@@ -72,9 +72,9 @@ class PeopleImportService extends AbstractCsvImportProcessor
     }
 
 
-    public function getExampleCsv(): string
+    public function getExampleCsv(): array
     {
-        $rows = [
+        return [
             [
                 'Empresa',
                 'CNPJ',
@@ -106,7 +106,5 @@ class PeopleImportService extends AbstractCsvImportProcessor
                 'Sala 10'
             ]
         ];
-
-        return $this->generateUtf8Csv($rows);
     }
 }
