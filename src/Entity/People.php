@@ -99,7 +99,7 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
@@ -107,14 +107,14 @@ class People
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
@@ -122,7 +122,7 @@ class People
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
@@ -177,6 +177,10 @@ class People
     #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $email;
 
+    #[ORM\OneToMany(targetEntity: ProductPeople::class, mappedBy: 'people')]
+    #[Groups(['people:read'])]
+    private $productPeople;
+
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
     #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $foundationDate = null;
@@ -193,6 +197,7 @@ class People
         $this->address = new ArrayCollection();
         $this->email = new ArrayCollection();
         $this->phone = new ArrayCollection();
+        $this->productPeople = new ArrayCollection();
         $this->otherInformations = json_encode(new stdClass());
     }
 
@@ -337,6 +342,30 @@ class People
     public function getEmail()
     {
         return $this->email;
+    }
+
+    public function getProductPeople(): Collection
+    {
+        return $this->productPeople;
+    }
+
+    public function addProductPeople(ProductPeople $productPeople): self
+    {
+        if (!$this->productPeople->contains($productPeople)) {
+            $this->productPeople[] = $productPeople;
+            $productPeople->setPeople($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductPeople(ProductPeople $productPeople): self
+    {
+        if ($this->productPeople->removeElement($productPeople) && $productPeople->getPeople() === $this) {
+            $productPeople->setPeople(null);
+        }
+
+        return $this;
     }
 
     public function getFoundationDate(): ?DateTime
