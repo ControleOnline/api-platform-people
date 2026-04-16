@@ -78,7 +78,17 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new Delete(security: "is_granted('ROLE_CLIENT')")
     ]
 )]
-#[ApiFilter(CustomOrFilter::class, properties: ['name', 'id', 'alias'])]
+#[ApiFilter(CustomOrFilter::class, properties: [
+    'name',
+    'id',
+    'alias',
+    'email.email',
+    'phone.ddd',
+    'phone.phone',
+    'document.document',
+    'address.nickname',
+    'address.search_for'
+])]
 #[ApiFilter(SearchFilter::class, properties: [
     'id' => 'exact',
     'enable' => 'exact',
