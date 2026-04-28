@@ -7,6 +7,7 @@ use ControleOnline\Service\AccountRegistrationService;
 use ControleOnline\Service\HydratorService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class CreateAccountAction
 {
@@ -33,7 +34,7 @@ class CreateAccountAction
 
       return new JsonResponse(
         $this->hydratorService->error($e),
-        500
+        $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500
       );
     }
   }
