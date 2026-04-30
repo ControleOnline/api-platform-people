@@ -1,0 +1,15 @@
+checks:
+  php: true
+
+filter:
+  excluded_paths:
+    - "vendor/*"
+    - "migrations/*"
+
+build:
+  nodes:
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
+          - phpcs-run --standard=phpcs.xml src tests
