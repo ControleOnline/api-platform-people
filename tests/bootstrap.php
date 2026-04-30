@@ -15,7 +15,13 @@ foreach ($autoloadPaths as $autoloadPath) {
 if (!class_exists('Doctrine\\ORM\\EntityRepository')) {
     eval(<<<'PHP'
 namespace Doctrine\ORM {
-    class EntityRepository {}
+    class EntityRepository
+    {
+        public function findBy(array $criteria): array
+        {
+            return [];
+        }
+    }
 
     interface EntityManagerInterface
     {
