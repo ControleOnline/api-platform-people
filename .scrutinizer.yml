@@ -9,7 +9,11 @@ filter:
 build:
   nodes:
     analysis:
+      dependencies:
+        override:
+          - composer self-update --2
+          - composer install --no-interaction --prefer-dist --no-progress
       tests:
         override:
           - php-scrutinizer-run
-          - phpcs-run --standard=phpcs.xml src tests
+          - vendor/bin/phpcs --standard=phpcs.xml src tests
