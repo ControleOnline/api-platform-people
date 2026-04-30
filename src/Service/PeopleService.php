@@ -25,6 +25,7 @@ class PeopleService
   public function __construct(
     private EntityManagerInterface $manager,
     private Security               $security,
+    private PeopleRoleService      $peopleRoleService,
     private RequestStack $requestStack,
   ) {
     $this->request  = $requestStack->getCurrentRequest();
@@ -327,10 +328,26 @@ class PeopleService
 
   public function checkLink(QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
-    return;
-    $link     = $this->request->query->get('link', null);
-    $company  = $this->request->query->get('company', null);
-    $linkType = $this->request->query->get('linkType', null);
+    $request = $this->requestStack->getCurrentRequest();
+    $link     = $request?->query->get('link', null);
+    $company  = $request?->query->get('company', null);
+    $linkType = $request?->query->all('linkType');
+
+    if ($linkType === []) {
+      $linkType = $request?->query->get('linkType', null);
+    }
+
+    $myPeople = $this->getMyPeople();
+    $myCompanies = $this->getMyCompanies();
+    $myCompanyIds = array_map(
+      static fn(People $company): int => (int) $company->getId(),
+      $myCompanies
+    );
+
+    if (!$myPeople && $myCompanyIds === []) {
+      $queryBuilder->andWhere('1 = 0');
+      return;
+    }
 
     $aliases = $queryBuilder->getAllAliases();
 
@@ -344,41 +361,70 @@ class PeopleService
     }
 
     if ($linkType) {
+      $linkTypes = is_array($linkType) ? $linkType : [$linkType];
       $queryBuilder->andWhere('PeopleLink.linkType IN(:linkType)');
-      $queryBuilder->setParameter('linkType', $linkType);
+      $queryBuilder->setParameter('linkType', $linkTypes);
     }
 
-    $peopleIds = array_filter(
-      array_merge(
-        !$company ? array_map(fn($c) => $c->getId(), $this->getMyCompanies()) : [],
-        [
-          $link ? (int) preg_replace('/\D/', '', $link) : null,
-          $company ? (int) preg_replace('/\D/', '', $company) : null,
-          $this->getMyPeople()?->getId()
-        ]
-      )
-    );
+    if ($company) {
+      $requestedCompanyId = (int) preg_replace('/\D/', '', $company);
+      if (!in_array($requestedCompanyId, $myCompanyIds, true)) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
 
-    if (!empty($peopleIds)) {
+      $queryBuilder->andWhere('PeopleLink.company = :requestedCompany');
+      $queryBuilder->setParameter('requestedCompany', $requestedCompanyId);
+    }
+
+    if ($link) {
+      $requestedLinkId = (int) preg_replace('/\D/', '', $link);
       $queryBuilder->andWhere(
         $queryBuilder->expr()->orX(
-          'PeopleLink.people IN(:people)',
-          'PeopleLink.company IN(:people)'
+          'PeopleLink.people = :requestedLink',
+          sprintf('%s.id = :requestedLink', $rootAlias)
         )
       );
+      $queryBuilder->setParameter('requestedLink', $requestedLinkId);
+    }
 
-      $queryBuilder->setParameter('people', $peopleIds);
+    $visibilityConditions = [];
+    if ($myPeople) {
+      $visibilityConditions[] = sprintf('%s.id = :myPeopleId', $rootAlias);
+      $visibilityConditions[] = 'PeopleLink.people = :myPeopleId';
+      $queryBuilder->setParameter('myPeopleId', (int) $myPeople->getId());
+    }
+
+    if ($myCompanyIds !== []) {
+      $visibilityConditions[] = 'PeopleLink.company IN(:myCompanies)';
+      $visibilityConditions[] = 'PeopleLink.people IN(:myCompanies)';
+      $visibilityConditions[] = sprintf('%s.id IN(:myCompanies)', $rootAlias);
+      $queryBuilder->setParameter('myCompanies', $myCompanyIds);
+    }
+
+    if ($visibilityConditions !== []) {
+      $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
     }
   }
 
 
   public function checkCompany($type, QueryBuilder $queryBuilder, $resourceClass = null, $applyTo = null, $rootAlias = null): void
   {
-    $companies   = $this->getMyCompanies();
+    $request = $this->requestStack->getCurrentRequest();
+    $companies = array_map(
+      static fn(People $company): int => (int) $company->getId(),
+      $this->getMyCompanies()
+    );
+
+    if ($companies === []) {
+      $queryBuilder->andWhere('1 = 0');
+      return;
+    }
+
     $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:companies)', $rootAlias, $rootAlias));
     $queryBuilder->setParameter('companies', $companies);
 
-    if ($payer = $this->request->query->get('company', null)) {
+    if ($payer = $request?->query->get('company', null)) {
       $queryBuilder->andWhere(sprintf('%s.' . $type . ' IN(:people)', $rootAlias));
       $queryBuilder->setParameter('people', preg_replace("/[^0-9]/", "", $payer));
     }
@@ -392,20 +438,24 @@ class PeopleService
      * @var \ControleOnline\Entity\User $currentUser
      */
     $currentUser  =  $token->getUser();
-    if (!$currentUser) return null;
+    if (!is_object($currentUser) || !method_exists($currentUser, 'getPeople')) return null;
     return $currentUser->getPeople();
   }
 
   public function getMyCompanies(?array $companyType = PeopleLink::EMPLOYEE_LINK): array
   {
-    $people = $this->getMyPeople();
-    if (!$people) return [];
-    if (!$people->getLink()->isEmpty()) {
-      foreach ($people->getLink() as $company) {
-        if (in_array($company->getLinkType(), $companyType))
-          $companies[] = $company->getCompany();
-      }
-    }
-    return $companies;
+    return $this->peopleRoleService->getAccessibleCompaniesForPeople(
+      $this->getMyPeople(),
+      $companyType
+    );
+  }
+
+  public function canAccessCompany(People $company, ?People $people = null, ?array $linkTypes = null): bool
+  {
+    return $this->peopleRoleService->canAccessCompany(
+      $company,
+      $people ?? $this->getMyPeople(),
+      $linkTypes
+    );
   }
 }

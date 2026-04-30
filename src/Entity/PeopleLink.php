@@ -19,9 +19,9 @@ use Doctrine\ORM\Mapping as ORM;
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv'],
     normalizationContext: ['groups' => ['people_link:read']],
     denormalizationContext: ['groups' => ['people_link:write']],
-    security: "is_granted('ROLE_CLIENT')",
+    security: "is_granted('ROLE_HUMAN')",
     operations: [
-        new GetCollection(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
+        new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -33,8 +33,35 @@ use Doctrine\ORM\Mapping as ORM;
 ])]
 class PeopleLink
 {
-    public const EMPLOYEE_LINK = ['employee', 'salesman', 'owner', 'director', 'manager'];
-    public const MANAGER_LINK  = ['owner', 'director', 'manager'];
+    public const HUMAN_LINK = [
+        'employee',
+        'owner',
+        'director',
+        'manager',
+        'salesman',
+        'after-sales',
+    ];
+
+    public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee'];
+
+    public const PANEL_LINK = ['client', 'provider', 'franchisee'];
+
+    public const ADMIN_LINK = ['owner', 'director', 'manager'];
+
+    public const API_ROLE_MAP = [
+        'employee' => 'ROLE_EMPLOYEE',
+        'owner' => 'ROLE_OWNER',
+        'director' => 'ROLE_DIRECTOR',
+        'manager' => 'ROLE_MANAGER',
+        'salesman' => 'ROLE_SALESMAN',
+        'after-sales' => 'ROLE_AFTER_SALES',
+        'client' => 'ROLE_CLIENT',
+        'provider' => 'ROLE_PROVIDER',
+        'franchisee' => 'ROLE_FRANCHISEE',
+    ];
+
+    public const EMPLOYEE_LINK = self::HUMAN_LINK;
+    public const MANAGER_LINK  = self::ADMIN_LINK;
 
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
@@ -69,7 +96,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','owner','director','manager','client','provider','franchisee')", nullable: false)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','owner','director','manager','client','provider','franchisee','salesman','after-sales')", nullable: false)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;
@@ -197,5 +224,12 @@ class PeopleLink
         $this->linkType = $linkType;
 
         return $this;
+    }
+
+    public static function toRole(string $linkType): ?string
+    {
+        $normalizedLinkType = trim(strtolower($linkType));
+
+        return self::API_ROLE_MAP[$normalizedLinkType] ?? null;
     }
 }

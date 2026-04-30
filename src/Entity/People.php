@@ -44,9 +44,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         // @todo // remover no futuro
         AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
     ],
-    security: "is_granted('ROLE_CLIENT')",
+    security: "is_granted('ROLE_HUMAN')",
     operations: [
-        new GetCollection(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
+        new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new GetCollection(
             uriTemplate: '/people/company/default',
             controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
@@ -55,7 +55,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new GetCollection(
             uriTemplate: '/people/companies/my',
             controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
-            security: "is_granted('ROLE_CLIENT')"
+            security: "is_granted('ROLE_HUMAN')"
         ),
         new Post(
             uriTemplate: '/create-account',
@@ -63,9 +63,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             securityPostDenormalize: 'is_granted(\'PUBLIC_ACCESS\')',
         ),
         new Get(security: "is_granted('PUBLIC_ACCESS')"),
-        new Post(securityPostDenormalize: "is_granted('ROLE_CLIENT')"),
+        new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
-            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_CLIENT')",
+            security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
                 'groups' => ['people:write'],
@@ -75,7 +75,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
                 AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
             ]
         ),
-        new Delete(security: "is_granted('ROLE_CLIENT')")
+        new Delete(security: "is_granted('ROLE_HUMAN')")
     ]
 )]
 #[ApiFilter(CustomOrFilter::class, properties: [

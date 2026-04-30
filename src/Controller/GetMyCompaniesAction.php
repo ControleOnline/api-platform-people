@@ -49,24 +49,30 @@ class GetMyCompaniesAction
       $permissions = [];
 
 
-      $getPeopleCompanies = $userPeople->getLink();
+      $getPeopleCompanies = $this->roles->getAccessibleLinksForPeople($userPeople, PeopleLink::HUMAN_LINK);
 
       /**
        * @var \ControleOnline\Entity\PeopleLink $peopleCompany
        */
       foreach ($getPeopleCompanies as $peopleCompany) {
-
-        $allConfigs = [];
-        $configs = [];
         $people = $peopleCompany->getCompany();
+        if (!$people instanceof People) {
+          continue;
+        }
 
-        //if ($peopleCompany->getEnabled() && $people->getEnabled()) {
+        $linkType = (string) $peopleCompany->getLinkType();
+        $flagMap = [
+          'employee' => 'employee_enabled',
+          'owner' => 'owner_enabled',
+          'director' => 'director_enabled',
+          'manager' => 'manager_enabled',
+          'salesman' => 'salesman_enabled',
+          'after-sales' => 'after_sales_enabled',
+        ];
 
+        $configs = [];
         $domains = $this->getPeopleDomains($people);
         $packages = $this->getPeoplePackages($people);
-
-
-        $permissions[$people->getId()] = $this->roles->getAllRoles($people);
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      => $people->getId(),
@@ -76,6 +82,20 @@ class GetMyCompaniesAction
           $configs[$config->getConfigKey()] = $config->getConfigValue();
         }
 
+        $permissions[$people->getId()] = array_values(array_unique(array_merge(
+          $permissions[$people->getId()] ?? [],
+          $this->roles->getCompanyPermissions($people, $userPeople)
+        )));
+
+        $existingCompany = $myCompanies[$people->getId()] ?? null;
+        $userFlags = $existingCompany['user'] ?? [];
+        foreach ($flagMap as $flagKey) {
+          $userFlags[$flagKey] = $userFlags[$flagKey] ?? false;
+        }
+
+        if (isset($flagMap[$linkType]) && $peopleCompany->getEnabled()) {
+          $userFlags[$flagMap[$linkType]] = true;
+        }
 
         $myCompanies[$people->getId()] = [
           'id'            => $people->getId(),
@@ -91,68 +111,12 @@ class GetMyCompaniesAction
             'name' => $userPeople->getName(),
             'alias' => $userPeople->getAlias(),
             'enabled' => $userPeople->getEnabled(),
-            'employee_enabled' => $peopleCompany->getEnabled(),
-            'salesman_enabled' => false
+            ...$userFlags,
           ]
         ];
-        //}
-      }
 
-      $peopleSalesman = $this->em->getRepository(People::class)->getPeopleLinks($userPeople, 'salesman');
-
-      foreach ($peopleSalesman as $com) {
-        $company = $this->em->getRepository(People::class)->find($com->getId());
-        $allConfigs = [];
-        $configs = [];
-        $allConfigs = $this->em->getRepository(Config::class)->findBy([
-          'people'      => $company->getId(),
-          'visibility'  => 'public'
-        ]);
-        foreach ($allConfigs as $config) {
-          $configs[$config->getConfigKey()] = $config->getConfigValue();
-        }
-
-        if ($company) {
-          $people_domains = $this->em->getRepository(PeopleDomain::class)->findBy(['people' => $com->getCompany()->getId()]);
-
-          $domains = [];
-
-          if (!empty($people_domains)) {
-
-            /**
-             * @var PeopleDomain $company
-             */
-            foreach ($people_domains as $domain) {
-
-              $domains[] = [
-                'id'         => $domain->getId(),
-                'domainType' => $domain->getDomainType(),
-                'domain'     => $domain->getDomain()
-              ];
-            }
-          }
-
-          $peopleemployee = $this->em->getRepository(PeopleLink::class)->findOneBy(['company' => $company, 'employee' => $userPeople]);
-
-          $permissions[$company->getId()][] = 'salesman';
-          $myCompanies[$company->getId()] = [
-            'id'         => $company->getId(),
-            'enabled'    => $company->getEnabled(),
-            'alias'      => $company->getAlias(),
-            'logo'       => $this->fileService->getFileUrl($company),
-            'document'   => $this->getDocument($company),
-            'commission' => $com->getCommission(),
-            'domains'    => $domains,
-            'configs'       => $configs,
-            'user'          => [
-              'id' => $userPeople->getId(),
-              'name' => $userPeople->getName(),
-              'alias' => $userPeople->getAlias(),
-              'enabled' => $userPeople->getEnabled(),
-              'employee_enabled' => $peopleemployee ? $peopleemployee->getEnabled() : $com->getEnabled(),
-              'salesman_enabled' => $com->getEnabled()
-            ]
-          ];
+        if ($peopleCompany->getComission() > 0) {
+          $myCompanies[$people->getId()]['commission'] = $peopleCompany->getComission();
         }
       }
 

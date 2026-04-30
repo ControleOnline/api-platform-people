@@ -14,7 +14,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_CLIENT\')'), new GetCollection(security: 'is_granted(\'ROLE_CLIENT\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['package_modules:read']], denormalizationContext: ['groups' => ['package_modules:write']])]
+#[ApiResource(operations: [new Get(security: 'is_granted(\'ROLE_HUMAN\')'), new GetCollection(security: 'is_granted(\'ROLE_HUMAN\')')], formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']], normalizationContext: ['groups' => ['package_modules:read']], denormalizationContext: ['groups' => ['package_modules:write']])]
 #[ORM\Table(name: 'package_modules')]
 #[ORM\Index(name: 'module_id', columns: ['module_id'])]
 #[ORM\Index(name: 'IDX_A1EC265BF44CABFF', columns: ['package_id'])]

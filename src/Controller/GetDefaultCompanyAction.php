@@ -37,8 +37,13 @@ class GetDefaultCompanyAction
       $allConfigs = [];
       $token = $this->security->getToken();
       $user = $token ? $token->getUser() : null;
+      $userPeople = is_object($user) && method_exists($user, 'getPeople')
+        ? $user->getPeople()
+        : null;
 
-      $permissions = $user ? $this->roles->getAllRoles($this->company) : ['guest'];
+      $permissions = $this->company
+        ? $this->roles->getCompanyPermissions($this->company, $userPeople)
+        : ['guest'];
 
       if ($this->company) {
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
