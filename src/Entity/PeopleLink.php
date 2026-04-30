@@ -7,7 +7,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ControleOnline\Repository\PeopleLinkRepository;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -21,7 +25,14 @@ use Doctrine\ORM\Mapping as ORM;
     denormalizationContext: ['groups' => ['people_link:write']],
     security: "is_granted('ROLE_HUMAN')",
     operations: [
+        new Get(security: "is_granted('ROLE_HUMAN')"),
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        new Put(
+            security: "is_granted('ROLE_HUMAN')",
+            denormalizationContext: ['groups' => ['people_link:write']]
+        ),
+        new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        new Delete(security: "is_granted('ROLE_HUMAN')")
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
