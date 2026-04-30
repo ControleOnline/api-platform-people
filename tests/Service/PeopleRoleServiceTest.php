@@ -1,12 +1,15 @@
 <?php
 
-namespace ControleOnline\Tests\Service;
+namespace ControleOnline\Service {
+    if (!class_exists(DomainService::class)) {
+        class DomainService
+        {
+            public function getPeopleDomain() {}
+        }
+    }
+}
 
-require_once dirname(__DIR__, 2) . '/src/Entity/People.php';
-require_once dirname(__DIR__, 2) . '/src/Entity/PeopleDomain.php';
-require_once dirname(__DIR__, 2) . '/src/Entity/PeopleLink.php';
-require_once dirname(__DIR__, 2) . '/src/Service/PeopleRoleService.php';
-require_once dirname(__DIR__, 3) . '/common/src/Service/DomainService.php';
+namespace ControleOnline\Tests\Service {
 
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
@@ -175,4 +178,5 @@ class PeopleRoleServiceTest extends TestCase
 
         return $values;
     }
+}
 }
