@@ -2,61 +2,55 @@
 
 namespace ControleOnline\Entity;
 
+use Symfony\Component\Serializer\Attribute\Groups; 
+use ControleOnline\Repository\PeopleDomainRepository;
+
+
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * PeopleDomain
- *
- * @ORM\Table(name="people_domain")
- * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleDomainRepository")
- * @ORM\EntityListeners({App\Listener\LogListener::class}) 
  */
+#[ORM\Table(name: 'people_domain')]
+#[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
+
 class PeopleDomain
 {
 
     /**
      * @var integer
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
+    #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
 
     /**
-     * @var \ControleOnline\Entity\People
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
+     * @var People
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: People::class)]
     private $people;
 
 
 
     /**
-     * @var \ControleOnline\Entity\Theme
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\Theme")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="theme_id", referencedColumnName="id")
-     * })
+     * @var Theme
      */
+    #[ORM\JoinColumn(name: 'theme_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: Theme::class)]
     private $theme;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="domain", type="string", length=255, nullable=false)
      */
+    #[ORM\Column(name: 'domain', type: 'string', length: 255, nullable: false)]
     private $domain;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="domain_type", type="string", length=255, nullable=false)
      */
+    #[ORM\Column(name: 'domain_type', type: 'string', length: 255, nullable: false)]
     private $domain_type;
 
     public function __construct()
@@ -77,10 +71,10 @@ class PeopleDomain
     /**
      * Set people
      *
-     * @param \ControleOnline\Entity\People $people
+     * @param People $people
      * @return PeopleDomain
      */
-    public function setPeople(\ControleOnline\Entity\People $people = null)
+    public function setPeople(People $people = null)
     {
         $this->people = $people;
 
@@ -90,7 +84,7 @@ class PeopleDomain
     /**
      * Get people
      *
-     * @return \ControleOnline\Entity\People
+     * @return People
      */
     public function getPeople()
     {

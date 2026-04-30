@@ -2,7 +2,8 @@
 
 namespace ControleOnline\Repository;
 
-
+use ControleOnline\Entity\People;
+use ControleOnline\Entity\User;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,5 +20,16 @@ class PeopleLinkRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, PeopleLink::class);
+    }
+
+    public function hasLinkWith(User $user, People $people): bool
+    {
+        $qb = $this->createQueryBuilder('pl')
+            ->where('pl.company = :people')->setParameter('people', $people->getId())
+            ->andWhere('pl.people = :user')->setParameter('user', $user->getPeople()->getId())
+            ->andWhere('pl.enable = :enabled')->setParameter('enabled', true)
+            ->andWhere('pl.linkType IN (:types)')->setParameter('types', PeopleLink::HUMAN_LINK);
+
+        return $qb->getQuery()->getOneOrNullResult() !== null;
     }
 }

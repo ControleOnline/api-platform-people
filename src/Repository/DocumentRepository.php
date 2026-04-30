@@ -2,7 +2,7 @@
 
 namespace ControleOnline\Repository;
 
-use ControleOnline\Entity\Document\Document;
+use ControleOnline\Entity\Document;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
