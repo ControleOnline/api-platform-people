@@ -205,7 +205,7 @@ class PeopleLink
      */
     public function getComission(): float
     {
-        return $this->comission;
+        return (float) ($this->comission ?? 0);
     }
 
     /**

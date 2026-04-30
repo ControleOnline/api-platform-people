@@ -61,6 +61,7 @@ class GetMyCompaniesAction
         }
 
         $linkType = (string) $peopleCompany->getLinkType();
+        $commercialEnabled = $this->roles->companyHasPanelAccess($people);
         $flagMap = [
           'employee' => 'employee_enabled',
           'owner' => 'owner_enabled',
@@ -100,6 +101,8 @@ class GetMyCompaniesAction
         $myCompanies[$people->getId()] = [
           'id'            => $people->getId(),
           'enabled'       => $people->getEnabled(),
+          'commercial_enabled' => $commercialEnabled,
+          'panel_enabled' => $people->getEnabled() && $commercialEnabled,
           'alias'         => $people->getAlias(),
           'logo'          => $this->fileService->getFileUrl($people),
           'document'      => $this->getDocument($people),
