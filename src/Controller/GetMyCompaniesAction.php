@@ -49,7 +49,7 @@ class GetMyCompaniesAction
       $permissions = [];
 
 
-      $getPeopleCompanies = $this->roles->getAccessibleLinksForPeople($userPeople, PeopleLink::HUMAN_LINK);
+      $getPeopleCompanies = $this->roles->getDirectLinksForPeople($userPeople, PeopleLink::HUMAN_LINK);
 
       /**
        * @var \ControleOnline\Entity\PeopleLink $peopleCompany

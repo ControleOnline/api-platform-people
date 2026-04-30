@@ -110,6 +110,27 @@ class PeopleRoleService
         return $links;
     }
 
+    public function getDirectLinksForPeople(?People $people = null, ?array $linkTypes = null): array
+    {
+        $people ??= $this->getCurrentPeople();
+        if (!$people instanceof People) {
+            return [];
+        }
+
+        $allowedTypes = $this->normalizeLinkTypes($linkTypes ?? PeopleLink::HUMAN_LINK);
+        $links = [];
+
+        foreach ($this->getActiveDirectLinks($people) as $link) {
+            if (!in_array($link->getLinkType(), $allowedTypes, true)) {
+                continue;
+            }
+
+            $links[] = $link;
+        }
+
+        return $links;
+    }
+
     public function getAccessibleCompaniesForPeople(?People $people = null, ?array $linkTypes = null): array
     {
         $people ??= $this->getCurrentPeople();

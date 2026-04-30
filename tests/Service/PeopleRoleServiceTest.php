@@ -91,6 +91,22 @@ class PeopleRoleServiceTest extends TestCase
         self::assertSame(['guest'], $service->getCompanyPermissions($company, $person));
     }
 
+    public function testDirectLinksRemainAvailableForCompanySelectorOutsideCurrentDomainChain(): void
+    {
+        $person = $this->createPeople(14);
+        $company = $this->createPeople(24);
+        $mainCompany = $this->createPeople(99);
+
+        $service = $this->buildService([
+            14 => [$this->createLink($company, $person, 'employee')],
+            24 => [],
+            99 => [],
+        ], $mainCompany);
+
+        self::assertCount(1, $service->getDirectLinksForPeople($person, PeopleLink::HUMAN_LINK));
+        self::assertSame([], $service->getAccessibleCompaniesForPeople($person));
+    }
+
     private function buildService(array $linksByPeopleId, People $mainCompany): PeopleRoleService
     {
         $repository = $this->createMock(EntityRepository::class);
