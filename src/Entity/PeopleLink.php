@@ -2,93 +2,81 @@
 
 namespace ControleOnline\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups; 
+use ControleOnline\Repository\PeopleLinkRepository;
+use ControleOnline\Listener\LogListener;
+
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-/**
- * @ORM\Table(name="people_people", uniqueConstraints={@ORM\UniqueConstraint(name="people_id", columns={"people_id", "people_company"})}, indexes={@ORM\Index(name="people_company_id", columns={"people_company"})})
- * @ORM\Entity(repositoryClass="ControleOnline\Repository\PeopleLinkRepository")
- * @ORM\EntityListeners({App\Listener\LogListener::class}) 
- */
+#[ORM\Table(name: 'people_link')]
+#[ORM\Index(name: 'company_id', columns: ['company'])]
+#[ORM\UniqueConstraint(name: 'people_id', columns: ['people_id', 'company'])]
+#[ORM\Entity(repositoryClass: PeopleLinkRepository::class)]
+#[ORM\EntityListeners([LogListener::class])]
 class PeopleLink
 {
-    /**
-     *
-     * @ORM\Column(type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
-     */
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     private $id;
 
     /**
-     * @var \ControleOnline\Entity\People
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="peoplePeopleCompany")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_company_id", referencedColumnName="id")
-     * })
+     * @var People
      */
-    private $people_company;
+    #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'company')]
+    private $company;
 
     /**
-     * @var \ControleOnline\Entity\People
-     *
-     * @ORM\ManyToOne(targetEntity="ControleOnline\Entity\People", inversedBy="peoplePeople")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="people_id", referencedColumnName="id")
-     * })
+     * @var People
      */
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'link')]
     private $people;
 
-    /**
-     *
-     * @ORM\Column(type="boolean",  nullable=false)
-     */
-    private $enable = 0;
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private $enable = 1;
 
 
     /**
      * @var string
-     * 
      *
-     * @ORM\Column(name="link_type", type="string", columnDefinition="ENUM('employee','client','provider','franchisee')", nullable=false)
      */
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','client','provider','franchisee')", nullable: false)]
     private $link_type;
 
 
     /**
      * @var float
-     *
-     * @ORM\Column(name="comission", type="float", nullable=false)
      */
-    private $comission;
+    #[ORM\Column(name: 'comission', type: 'float', nullable: false)]
+    private $comission = 0;
 
 
     /**
      * @var float
-     *
-     * @ORM\Column(name="minimum_comission", type="float", nullable=false)
      */
-    private $minimum_comission;
+    #[ORM\Column(name: 'minimum_comission', type: 'float', nullable: false)]
+    private $minimum_comission = 0;
 
     public function getId()
     {
         return $this->id;
     }
 
-    public function setPeopleCompany(People $people_company = null)
+    public function setCompany(People $company = null)
     {
-        $this->people_company = $people_company;
+        $this->company = $company;
 
         return $this;
     }
 
-    public function getPeopleCompany()
+    public function getCompany()
     {
-        return $this->people_company;
+        return $this->company;
     }
 
     public function setPeople(People $people = null)
