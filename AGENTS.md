@@ -18,6 +18,10 @@
 - `client` nao concede permissao operacional humana; ele apenas habilita o acesso comercial da empresa ao painel.
 - `permission` retornado por company context deve refletir o link direto da pessoa com a empresa e a cadeia comercial valida.
 - O filtro principal de dados do modulo mora em `PeopleService::securityFilter()` e helpers derivados.
+- `People` nao pode expor por serializacao aninhada dados sensiveis de `User` para leitores mais amplos do que a politica direta de `User`.
+- Campos como `username`, `apiKey`, hash de recuperacao, credenciais ou identificadores equivalentes de `User` nao podem sair em grupos amplos como `people:read`.
+- Se `People` mantiver relacao com `User`, essa relacao so pode aparecer em grupo e operacao com autorizacao tao forte quanto a leitura direta de `User`.
+- Operacoes amplas ou publicas de `People`, incluindo `Get` com `PUBLIC_ACCESS`, nunca podem se tornar caminho lateral para leitura de credenciais ou segredos de `User`.
 
 ## Regras de vendedores e comissao
 - O vinculo `sellers-client` em `people_link` e sensivel porque revela e altera a relacao comercial entre cliente e vendedor.
