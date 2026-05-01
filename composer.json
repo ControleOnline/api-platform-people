@@ -9,11 +9,17 @@
             "ControleOnline\\Controller\\": "src/Controller/"
         }
     },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.10"
+    },
     "authors": [
         {
             "name": "Controle Online",
             "email": "luiz.kim@controleonline.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "scripts": {
+        "lint": "phpcs --standard=phpcs.xml src"
+    }
 }
