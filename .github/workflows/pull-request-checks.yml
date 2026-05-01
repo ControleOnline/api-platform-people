@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -25,5 +27,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Run PHP_CodeSniffer
-        run: vendor/bin/phpcs --standard=phpcs.xml src
+      - name: Run PHP_CodeSniffer on changed PHP files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash tools/phpcs-changed-files.sh "$BASE_SHA" "$HEAD_SHA" src
