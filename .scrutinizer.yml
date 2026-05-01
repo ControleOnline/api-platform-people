@@ -1,0 +1,16 @@
+checks:
+  php: true
+
+filter:
+  excluded_paths:
+    - "vendor/*"
+    - "migrations/*"
+
+build:
+  nodes:
+    analysis:
+      commands:
+        - checkout-code ~/build
+        - cd ~/build && composer self-update --2
+        - cd ~/build && composer install --no-interaction --prefer-dist --no-progress
+        - cd ~/build && php-scrutinizer-run
