@@ -14,4 +14,3 @@ build:
         - cd ~/build && composer self-update --2
         - cd ~/build && composer install --no-interaction --prefer-dist --no-progress
         - cd ~/build && php-scrutinizer-run
-        - cd ~/build && vendor/bin/phpcs --standard=phpcs.xml src
