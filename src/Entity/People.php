@@ -363,7 +363,6 @@ class People
         'category:read',
         'document:read',
         'email:read',
-        'people:read',
         'people:write',
         'order_detail_status:read',
         'task_interaction:read',
