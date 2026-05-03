@@ -109,22 +109,22 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
@@ -132,7 +132,7 @@ class People
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
