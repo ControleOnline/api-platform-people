@@ -5,6 +5,8 @@ namespace ControleOnline\Entity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -76,7 +78,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             ]
         ),
         new Delete(security: "is_granted('ROLE_HUMAN')")
-    ]
+    ],
+    order: ['name' => 'ASC', 'id' => 'DESC']
 )]
 #[ApiFilter(CustomOrFilter::class, properties: [
     'name',
@@ -89,6 +92,16 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     'address.nickname',
     'address.search_for'
 ])]
+#[ApiFilter(OrderFilter::class, properties: [
+    'id',
+    'name',
+    'alias',
+    'foundationDate',
+    'registerDate',
+    'peopleType',
+    'enable'
+])]
+#[ApiFilter(DateFilter::class, properties: ['foundationDate', 'registerDate'])]
 #[ApiFilter(SearchFilter::class, properties: [
     'id' => 'exact',
     'enable' => 'exact',

@@ -22,6 +22,7 @@
 - Campos como `username`, `apiKey`, hash de recuperacao, credenciais ou identificadores equivalentes de `User` nao podem sair em grupos amplos como `people:read`.
 - Se `People` mantiver relacao com `User`, essa relacao so pode aparecer em grupo e operacao com autorizacao tao forte quanto a leitura direta de `User`.
 - Operacoes amplas ou publicas de `People`, incluindo `Get` com `PUBLIC_ACCESS`, nunca podem se tornar caminho lateral para leitura de credenciais ou segredos de `User`.
+- Listagens de `People` consumidas por `DefaultTable` React precisam de `CustomOrFilter`, `OrderFilter` e `DateFilter` alinhados com os campos declarados no store, com datas ordenando pelo valor persistido.
 
 ## Regras de vendedores e comissao
 - O vinculo `sellers-client` em `people_link` e sensivel porque revela e altera a relacao comercial entre cliente e vendedor.
