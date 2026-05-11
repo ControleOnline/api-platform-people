@@ -253,7 +253,6 @@ class PeopleRoleService
             if (
                 !$company instanceof People
                 || !$link->getEnabled()
-                || !$company->getEnabled()
             ) {
                 continue;
             }
@@ -286,7 +285,6 @@ class PeopleRoleService
             if (
                 !$parentCompany instanceof People
                 || !$link->getEnabled()
-                || !$parentCompany->getEnabled()
                 || !in_array($link->getLinkType(), PeopleLink::PANEL_LINK, true)
             ) {
                 continue;
