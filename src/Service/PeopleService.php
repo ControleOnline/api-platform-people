@@ -350,19 +350,35 @@ class PeopleService
     }
 
     $aliases = $queryBuilder->getAllAliases();
+    $peopleLinkAlias = $this->getPeopleLinkAlias();
+    $commercialLinkAlias = $this->getCommercialAccessLinkAlias();
 
-    if (!in_array('PeopleLink', $aliases)) {
+    if (!in_array($peopleLinkAlias, $aliases, true)) {
       $queryBuilder->leftJoin(
         PeopleLink::class,
-        'PeopleLink',
+        $peopleLinkAlias,
         'WITH',
-        sprintf('(PeopleLink.company = %s.id OR PeopleLink.people = %s.id)', $rootAlias, $rootAlias)
+        $this->getPeopleLinkJoinCondition($rootAlias, $peopleLinkAlias)
       );
+    }
+
+    if (!in_array($commercialLinkAlias, $aliases, true)) {
+      $queryBuilder->leftJoin(
+        PeopleLink::class,
+        $commercialLinkAlias,
+        'WITH',
+        $this->getCommercialAccessJoinCondition(
+          $peopleLinkAlias,
+          $commercialLinkAlias,
+        )
+      );
+      $queryBuilder->setParameter('commercialLinkEnabled', true);
+      $queryBuilder->setParameter('panelLinkTypes', PeopleLink::PANEL_LINK);
     }
 
     if ($linkType) {
       $linkTypes = is_array($linkType) ? $linkType : [$linkType];
-      $queryBuilder->andWhere('PeopleLink.linkType IN(:linkType)');
+      $queryBuilder->andWhere(sprintf('%s.linkType IN(:linkType)', $peopleLinkAlias));
       $queryBuilder->setParameter('linkType', $linkTypes);
     }
 
@@ -373,7 +389,9 @@ class PeopleService
         return;
       }
 
-      $queryBuilder->andWhere('PeopleLink.company = :requestedCompany');
+      $queryBuilder->andWhere(
+        sprintf('%s.company = :requestedCompany', $peopleLinkAlias)
+      );
       $queryBuilder->setParameter('requestedCompany', $requestedCompanyId);
     }
 
@@ -381,30 +399,93 @@ class PeopleService
       $requestedLinkId = (int) preg_replace('/\D/', '', $link);
       $queryBuilder->andWhere(
         $queryBuilder->expr()->orX(
-          'PeopleLink.people = :requestedLink',
+          sprintf('%s.people = :requestedLink', $peopleLinkAlias),
           sprintf('%s.id = :requestedLink', $rootAlias)
         )
       );
       $queryBuilder->setParameter('requestedLink', $requestedLinkId);
     }
 
-    $visibilityConditions = [];
+    $visibilityConditions = $this->buildPeopleVisibilityConditions(
+      $myPeople,
+      $myCompanyIds,
+      $rootAlias,
+      $peopleLinkAlias,
+      $commercialLinkAlias,
+    );
+
     if ($myPeople) {
-      $visibilityConditions[] = sprintf('%s.id = :myPeopleId', $rootAlias);
-      $visibilityConditions[] = 'PeopleLink.people = :myPeopleId';
       $queryBuilder->setParameter('myPeopleId', (int) $myPeople->getId());
     }
 
     if ($myCompanyIds !== []) {
-      $visibilityConditions[] = 'PeopleLink.company IN(:myCompanies)';
-      $visibilityConditions[] = 'PeopleLink.people IN(:myCompanies)';
-      $visibilityConditions[] = sprintf('%s.id IN(:myCompanies)', $rootAlias);
       $queryBuilder->setParameter('myCompanies', $myCompanyIds);
     }
 
     if ($visibilityConditions !== []) {
       $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
     }
+  }
+
+  private function getPeopleLinkAlias(): string
+  {
+    return 'PeopleLink';
+  }
+
+  private function getCommercialAccessLinkAlias(): string
+  {
+    return 'PeopleCompanyLink';
+  }
+
+  private function getPeopleLinkJoinCondition(string $rootAlias, string $peopleLinkAlias): string
+  {
+    return sprintf(
+      '(%1$s.company = %2$s.id OR %1$s.people = %2$s.id)',
+      $peopleLinkAlias,
+      $rootAlias
+    );
+  }
+
+  private function getCommercialAccessJoinCondition(
+    string $peopleLinkAlias,
+    string $commercialLinkAlias,
+  ): string {
+    return sprintf(
+      '%1$s.people = %2$s.company AND %1$s.enable = :commercialLinkEnabled AND %1$s.linkType IN(:panelLinkTypes)',
+      $commercialLinkAlias,
+      $peopleLinkAlias
+    );
+  }
+
+  private function buildPeopleVisibilityConditions(
+    ?People $myPeople,
+    array $myCompanyIds,
+    string $rootAlias,
+    string $peopleLinkAlias,
+    string $commercialLinkAlias,
+  ): array {
+    $visibilityConditions = [];
+
+    if ($myPeople) {
+      $visibilityConditions[] = sprintf('%s.id = :myPeopleId', $rootAlias);
+      $visibilityConditions[] = sprintf('%s.people = :myPeopleId', $peopleLinkAlias);
+    }
+
+    if ($myCompanyIds !== []) {
+      $visibilityConditions[] = sprintf('%s.company IN(:myCompanies)', $peopleLinkAlias);
+      $visibilityConditions[] = sprintf('%s.people IN(:myCompanies)', $peopleLinkAlias);
+      $visibilityConditions[] = sprintf('%s.id IN(:myCompanies)', $rootAlias);
+
+      // Allow accessing contacts of commercially reachable companies from
+      // an already accessible company context, e.g. employee of company 11
+      // editing contact 30 linked to client company 31.
+      $visibilityConditions[] = sprintf(
+        '%s.company IN(:myCompanies)',
+        $commercialLinkAlias
+      );
+    }
+
+    return $visibilityConditions;
   }
 
 
