@@ -23,6 +23,7 @@
 - Se `People` mantiver relacao com `User`, essa relacao so pode aparecer em grupo e operacao com autorizacao tao forte quanto a leitura direta de `User`.
 - Operacoes amplas ou publicas de `People`, incluindo `Get` com `PUBLIC_ACCESS`, nunca podem se tornar caminho lateral para leitura de credenciais ou segredos de `User`.
 - Listagens de `People` consumidas por `DefaultTable` React precisam de `CustomOrFilter`, `OrderFilter` e `DateFilter` alinhados com os campos declarados no store, com datas ordenando pelo valor persistido.
+- Documentos de pessoa continuam sendo a entidade canonica para `tipo + numero`; anexos agora pertencem a `DocumentFile` para permitir multiplos arquivos por documento sem quebrar o campo legado `file`.
 
 ## Regras de vendedores e comissao
 - O vinculo `sellers-client` em `people_link` e sensivel porque revela e altera a relacao comercial entre cliente e vendedor.

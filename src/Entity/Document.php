@@ -14,6 +14,8 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 
 use ControleOnline\Repository\DocumentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource(
@@ -66,6 +68,15 @@ class Document
     #[ORM\ManyToOne(targetEntity: DocumentType::class)]
     #[Groups(['people:read', 'document:read', 'carrier:read', 'document:write'])]
     private DocumentType $documentType;
+
+    #[ORM\OneToMany(targetEntity: DocumentFile::class, mappedBy: 'document', orphanRemoval: true)]
+    #[Groups(['people:read', 'document:read'])]
+    private Collection $documentFiles;
+
+    public function __construct()
+    {
+        $this->documentFiles = new ArrayCollection();
+    }
 
     public function getId(): int
     {
@@ -121,5 +132,26 @@ class Document
     public function getDocumentType(): DocumentType
     {
         return $this->documentType;
+    }
+
+    public function getDocumentFiles(): Collection
+    {
+        return $this->documentFiles;
+    }
+
+    public function addDocumentFile(DocumentFile $documentFile): self
+    {
+        if (!$this->documentFiles->contains($documentFile)) {
+            $this->documentFiles[] = $documentFile;
+            $documentFile->setDocument($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentFile(DocumentFile $documentFile): self
+    {
+        $this->documentFiles->removeElement($documentFile);
+        return $this;
     }
 }
