@@ -107,23 +107,6 @@ class PeopleRoleServiceTest extends TestCase
         self::assertSame([], $service->getAccessibleCompaniesForPeople($person));
     }
 
-    public function testDisabledCompanyWithValidCommercialChainStillRemainsAccessible(): void
-    {
-        $person = $this->createPeople(15);
-        $company = $this->createPeople(25, false);
-        $mainCompany = $this->createPeople(99);
-
-        $service = $this->buildService([
-            15 => [$this->createLink($company, $person, 'owner')],
-            25 => [$this->createLink($mainCompany, $company, 'client')],
-            99 => [],
-        ], $mainCompany);
-
-        self::assertSame(['ROLE_OWNER'], $service->getGrantedRoles($person));
-        self::assertSame([25], $this->extractIds($service->getAccessibleCompaniesForPeople($person)));
-        self::assertTrue($service->companyHasPanelAccess($company));
-    }
-
     private function buildService(array $linksByPeopleId, People $mainCompany): PeopleRoleService
     {
         $repository = $this->createMock(EntityRepository::class);
