@@ -52,11 +52,15 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new GetCollection(
             uriTemplate: '/people/company/default',
             controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
+            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
+            read: false,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new GetCollection(
             uriTemplate: '/people/companies/my',
             controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
+            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
+            read: false,
             security: "is_granted('ROLE_HUMAN')"
         ),
         new Post(
