@@ -60,6 +60,23 @@ class PeopleRoleServiceTest extends TestCase
         self::assertFalse(in_array('ROLE_EMPLOYEE', $service->getGrantedRoles($person), true));
     }
 
+    public function testCourierRemainsExplicitRole(): void
+    {
+        $person = $this->createPeople(15);
+        $company = $this->createPeople(25);
+        $mainCompany = $this->createPeople(99);
+
+        $service = $this->buildService([
+            15 => [$this->createLink($company, $person, 'courier')],
+            25 => [$this->createLink($mainCompany, $company, 'client')],
+            99 => [],
+        ], $mainCompany);
+
+        self::assertSame(['ROLE_COURIER'], $service->getGrantedRoles($person));
+        self::assertFalse(in_array('ROLE_EMPLOYEE', $service->getGrantedRoles($person), true));
+        self::assertContains('courier', $service->getCompanyPermissions($company, $person));
+    }
+
     public function testMainCompanyOwnerGetsSuperRole(): void
     {
         $person = $this->createPeople(12);

@@ -40,6 +40,7 @@ class PeopleLink
         'manager',
         'salesman',
         'after-sales',
+        'courier',
     ];
 
     public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee'];
@@ -55,6 +56,7 @@ class PeopleLink
         'manager' => 'ROLE_MANAGER',
         'salesman' => 'ROLE_SALESMAN',
         'after-sales' => 'ROLE_AFTER_SALES',
+        'courier' => 'ROLE_COURIER',
         'client' => 'ROLE_CLIENT',
         'provider' => 'ROLE_PROVIDER',
         'franchisee' => 'ROLE_FRANCHISEE',
@@ -96,7 +98,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "ENUM('employee','owner','director','manager','client','provider','franchisee','salesman','after-sales')", nullable: false)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;

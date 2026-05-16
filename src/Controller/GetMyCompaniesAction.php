@@ -69,6 +69,7 @@ class GetMyCompaniesAction
           'manager' => 'manager_enabled',
           'salesman' => 'salesman_enabled',
           'after-sales' => 'after_sales_enabled',
+          'courier' => 'courier_enabled',
         ];
 
         $configs = [];

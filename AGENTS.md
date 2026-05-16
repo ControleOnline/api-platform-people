@@ -7,9 +7,10 @@
 
 ## Regras de vinculo
 - `people_link` e o catalogo oficial de relacionamento entre pessoa e empresa.
-- Roles humanas explicitas do modulo: `employee`, `owner`, `director`, `manager`, `salesman`, `after-sales`.
+- Roles humanas explicitas do modulo: `employee`, `owner`, `director`, `manager`, `salesman`, `after-sales`, `courier`.
 - Roles comerciais explicitas do modulo: `client`, `provider`, `franchisee`.
 - `family` e `sellers-client` nao entram como role humana de API.
+- `courier` e o vinculo humano usado para entregadores da loja; nao reutilizar `carrier` como sinonimo de cadastro.
 - `ROLE_SUPER` so existe quando o vinculo direto com a empresa principal for `owner`.
 
 ## Regras de acesso
