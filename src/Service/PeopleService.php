@@ -127,6 +127,7 @@ class PeopleService
 
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
+    $people = null;
 
     // Tenta encontrar por documento
     if (!empty($document))
