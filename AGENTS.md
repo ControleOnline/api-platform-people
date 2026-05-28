@@ -38,5 +38,10 @@
 - `PeopleRoleService` resolve roles e empresas acessiveis a partir de `people_link`.
 - `PeopleService` aplica o recorte de dados por empresa em `securityFilter`.
 
+## Regra de extra_data
+- `extra_data` e `extra_fields` nao podem guardar snapshot rico de pessoa, empresa, integracao, loja ou configuracao quando o dado ja tiver destino canonico em `People`, `people_link`, `Config` ou JSON materializado da entidade.
+- Nesta area, `extra_data` so pode carregar IDs, codigos remotos e chaves de vinculo que ainda nao tenham coluna ou relacao canonica equivalente.
+- Quando um dado ja estiver materializado, a persistencia nova deve ir para a entidade dona e a limpeza de legado deve remover o respectivo par `extra_data`/`extra_fields`.
+
 ## Limites
 - Autenticacao, token e sessao pertencem a `users`.
