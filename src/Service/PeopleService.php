@@ -233,22 +233,48 @@ class PeopleService
 
   public function getEmail(string $email): ?Email
   {
-    return $this->manager->getRepository(Email::class)->findOneBy(['email' => $email]);
+    $normalizedEmail = trim($email);
+    if ($normalizedEmail === '') {
+      return null;
+    }
+
+    return $this->manager->createQueryBuilder()
+      ->select('email')
+      ->from(Email::class, 'email')
+      ->andWhere('email.email = :email')
+      ->setParameter('email', $normalizedEmail)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
   public function getPhone(int $ddi, int $ddd, string $phone): ?Phone
   {
-    return $this->manager->getRepository(Phone::class)->findOneBy([
-      'ddi' => $ddi,
-      'ddd' => $ddd,
-      'phone' => $phone
-    ]);
+    return $this->manager->createQueryBuilder()
+      ->select('phone')
+      ->from(Phone::class, 'phone')
+      ->andWhere('phone.ddi = :ddi')
+      ->andWhere('phone.ddd = :ddd')
+      ->andWhere('phone.phone = :phone')
+      ->setParameter('ddi', $ddi)
+      ->setParameter('ddd', $ddd)
+      ->setParameter('phone', $phone)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
 
   public function discoveryDocumentType(string $document_type): DocumentType
   {
-    $documentType =  $this->manager->getRepository(DocumentType::class)->findOneBy(['documentType' => $document_type]);
+    $documentType = $this->manager->createQueryBuilder()
+      ->select('documentType')
+      ->from(DocumentType::class, 'documentType')
+      ->andWhere('documentType.documentType = :documentType')
+      ->setParameter('documentType', $document_type)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
 
     if (!$documentType) {
       $documentType = new DocumentType();
@@ -262,13 +288,21 @@ class PeopleService
 
   public function getDocument(string $document_number, ?string $document_type = null): ?Document
   {
-    if (!$document_type)
+    if (!$document_type) {
       $document_type = $this->getDocumentTypeByDocumentLen($document_number);
-    return $this->manager->getRepository(Document::class)->findOneBy([
-      'document' => $document_number,
-      'documentType' =>
-      $this->discoveryDocumentType($document_type)
-    ]);
+    }
+
+    return $this->manager->createQueryBuilder()
+      ->select('document')
+      ->from(Document::class, 'document')
+      ->innerJoin('document.documentType', 'documentType')
+      ->andWhere('document.document = :documentNumber')
+      ->andWhere('documentType.documentType = :documentType')
+      ->setParameter('documentNumber', $document_number)
+      ->setParameter('documentType', $document_type)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
   public function getPeopleTypeByDocumentLen(?string $document_number = null)
