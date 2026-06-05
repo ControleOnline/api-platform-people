@@ -2,7 +2,15 @@
 
 namespace ControleOnline\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Put;
 use Symfony\Component\Serializer\Attribute\Groups; 
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use ControleOnline\Repository\PeopleDomainRepository;
 
 
@@ -11,6 +19,21 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * PeopleDomain
  */
+#[ApiResource(
+    operations: [
+        new Get(security: 'is_granted(\'ROLE_HUMAN\')'),
+        new GetCollection(security: 'is_granted(\'ROLE_HUMAN\')'),
+        new Put(
+            security: 'is_granted(\'ROLE_HUMAN\')',
+            denormalizationContext: ['groups' => ['people_domain:write']]
+        ),
+    ],
+    formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
+    normalizationContext: ['groups' => ['people_domain:read']],
+    denormalizationContext: ['groups' => ['people_domain:write']]
+)]
+#[ApiFilter(filterClass: OrderFilter::class, properties: ['domain' => 'ASC', 'id' => 'DESC'])]
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact', 'people' => 'exact', 'domain' => 'partial', 'theme' => 'exact'])]
 #[ORM\Table(name: 'people_domain')]
 #[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
 
@@ -23,6 +46,7 @@ class PeopleDomain
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[Groups(['people_domain:read'])]
     private $id;
 
     /**
@@ -30,6 +54,7 @@ class PeopleDomain
      */
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: People::class)]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
     private $people;
 
 
@@ -39,18 +64,22 @@ class PeopleDomain
      */
     #[ORM\JoinColumn(name: 'theme_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: Theme::class)]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
     private $theme;
 
     /**
      * @var string
      */
     #[ORM\Column(name: 'domain', type: 'string', length: 255, nullable: false)]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
     private $domain;
 
     /**
      * @var string
      */
     #[ORM\Column(name: 'domain_type', type: 'string', length: 255, nullable: false)]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
+    #[SerializedName('domainType')]
     private $domain_type;
 
     public function __construct()
@@ -74,7 +103,7 @@ class PeopleDomain
      * @param People $people
      * @return PeopleDomain
      */
-    public function setPeople(People $people = null)
+    public function setPeople(?People $people = null)
     {
         $this->people = $people;
 
@@ -86,7 +115,7 @@ class PeopleDomain
      *
      * @return People
      */
-    public function getPeople()
+    public function getPeople(): ?People
     {
         return $this->people;
     }
@@ -140,7 +169,7 @@ class PeopleDomain
     /**
      * Get the value of theme
      */
-    public function getTheme(): Theme
+    public function getTheme(): ?Theme
     {
         return $this->theme;
     }
@@ -148,7 +177,7 @@ class PeopleDomain
     /**
      * Set the value of theme
      */
-    public function setTheme(Theme $theme): self
+    public function setTheme(?Theme $theme): self
     {
         $this->theme = $theme;
 
