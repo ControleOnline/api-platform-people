@@ -63,6 +63,15 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             read: false,
             security: "is_granted('ROLE_HUMAN')"
         ),
+        // ALEMAC // 2026-06-16
+        // Endpoint customizado para o dropdown de proprietarios candidatos
+        // no cadastro de franquia da Lavego.
+        new GetCollection(
+            uriTemplate: '/people/franchise-owner-candidates',
+            controller: \ControleOnline\Controller\GetFranchiseOwnerCandidatesAction::class,
+            read: false,
+            security: "is_granted('ROLE_HUMAN')"
+        ),
         new Post(
             uriTemplate: '/create-account',
             controller: CreateAccountAction::class,

@@ -58,4 +58,43 @@ class PeopleRepository extends ServiceEntityRepository
             return $queryBuilder->getQuery()->getResult();
         }
     }
+
+    public function findFranchiseOwnerCandidates(People $company): array
+    {
+        // ALEMAC // 2026-06-16
+        // Dropdown de franquia Lavego: candidatos PF com alias owner,
+        // vinculados como employee nas empresas filhas da franquia informada.
+        $subQueryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $subQueryBuilder
+            ->select('IDENTITY(franchiseLink.people)')
+            ->from('ControleOnline\Entity\PeopleLink', 'franchiseLink')
+            ->where('franchiseLink.company = :company')
+            ->andWhere('franchiseLink.linkType = :franchiseLinkType')
+            ->andWhere('franchiseLink.enable = :enabled');
+
+        $queryBuilder = $this->createQueryBuilder('people');
+        $queryBuilder
+            ->select('DISTINCT people')
+            ->innerJoin(
+                'ControleOnline\Entity\PeopleLink',
+                'employeeLink',
+                'WITH',
+                'employeeLink.people = people.id'
+            )
+            ->where('people.enable = :enabled')
+            ->andWhere('people.peopleType = :peopleType')
+            ->andWhere('people.alias = :alias')
+            ->andWhere('employeeLink.linkType = :employeeLinkType')
+            ->andWhere('employeeLink.enable = :enabled')
+            ->andWhere($queryBuilder->expr()->in('employeeLink.company', $subQueryBuilder->getDQL()))
+            ->orderBy('people.name', 'ASC')
+            ->setParameter('company', $company->getId())
+            ->setParameter('franchiseLinkType', 'franchisee')
+            ->setParameter('employeeLinkType', 'employee')
+            ->setParameter('peopleType', 'F')
+            ->setParameter('alias', 'owner')
+            ->setParameter('enabled', true);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
 }
