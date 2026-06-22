@@ -90,8 +90,13 @@ class GetPublicShopFranchisesActionTest extends TestCase
         $peopleRepository = $this->createMock(PeopleRepository::class);
         $peopleRepository
             ->expects(self::once())
-            ->method('findPublicShopFranchises')
+            ->method('countPublicShopFranchises')
             ->with($mainCompany, [21], '')
+            ->willReturn(1);
+        $peopleRepository
+            ->expects(self::once())
+            ->method('findPublicShopFranchises')
+            ->with($mainCompany, [21], '', 1, 30)
             ->willReturn([$franchise]);
 
         $controller = new GetPublicShopFranchisesAction(
@@ -105,6 +110,8 @@ class GetPublicShopFranchisesActionTest extends TestCase
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame(1, $payload['totalItems']);
+        self::assertSame(1, $payload['page']);
+        self::assertSame(30, $payload['itemsPerPage']);
         self::assertCount(1, $payload['member']);
         self::assertSame('CENTRO', $payload['member'][0]['alias']);
         self::assertCount(1, $payload['member'][0]['shopAddresses']);

@@ -18,6 +18,8 @@ class GetPublicShopFranchisesAction
         'shop-franchise-visible-company-ids';
     private const VISIBLE_ADDRESS_IDS_CONFIG_KEY =
         'shop-franchise-visible-address-ids';
+    private const DEFAULT_ITEMS_PER_PAGE = 30;
+    private const MAX_ITEMS_PER_PAGE = 50;
 
     public function __construct(
         private PeopleRoleService $roles,
@@ -28,9 +30,18 @@ class GetPublicShopFranchisesAction
     public function __invoke(Request $request): JsonResponse
     {
         try {
+            $page = max(1, (int) $request->query->get('page', 1));
+            $itemsPerPage = max(
+                1,
+                min(
+                    self::MAX_ITEMS_PER_PAGE,
+                    (int) $request->query->get('itemsPerPage', self::DEFAULT_ITEMS_PER_PAGE)
+                        ?: self::DEFAULT_ITEMS_PER_PAGE
+                )
+            );
             $mainCompany = $this->roles->getMainCompany();
             if (!$mainCompany instanceof People) {
-                return new JsonResponse($this->buildCollection([]));
+                return new JsonResponse($this->buildCollection([], 0, $page, $itemsPerPage));
             }
 
             $configMap = $this->buildConfigMap(
@@ -41,18 +52,25 @@ class GetPublicShopFranchisesAction
             );
 
             if ($visibleCompanyIds === []) {
-                return new JsonResponse($this->buildCollection([]));
+                return new JsonResponse($this->buildCollection([], 0, $page, $itemsPerPage));
             }
 
             $visibleAddressIds = $this->normalizeEntityIds(
                 $configMap[self::VISIBLE_ADDRESS_IDS_CONFIG_KEY] ?? null
             );
             $search = (string) $request->query->get('search', '');
+            $totalItems = $this->peopleRepository->countPublicShopFranchises(
+                $mainCompany,
+                $visibleCompanyIds,
+                $search
+            );
 
             $companies = $this->peopleRepository->findPublicShopFranchises(
                 $mainCompany,
                 $visibleCompanyIds,
-                $search
+                $search,
+                $page,
+                $itemsPerPage
             );
             $items = array_map(
                 fn(People $company): array => $this->serializeCompany(
@@ -62,7 +80,7 @@ class GetPublicShopFranchisesAction
                 $companies
             );
 
-            return new JsonResponse($this->buildCollection($items));
+            return new JsonResponse($this->buildCollection($items, $totalItems, $page, $itemsPerPage));
         } catch (\Throwable $exception) {
             return new JsonResponse([
                 'member' => [],
@@ -257,12 +275,27 @@ class GetPublicShopFranchisesAction
      * @param array<int, array<string, mixed>> $items
      * @return array<string, mixed>
      */
-    private function buildCollection(array $items): array
+    private function buildCollection(
+        array $items,
+        ?int $totalItems = null,
+        ?int $page = null,
+        ?int $itemsPerPage = null
+    ): array
     {
-        return [
+        $payload = [
             'member' => array_values($items),
             'hydra:member' => array_values($items),
-            'totalItems' => count($items),
+            'totalItems' => $totalItems ?? count($items),
         ];
+
+        if ($page !== null) {
+            $payload['page'] = $page;
+        }
+
+        if ($itemsPerPage !== null) {
+            $payload['itemsPerPage'] = $itemsPerPage;
+        }
+
+        return $payload;
     }
 }
