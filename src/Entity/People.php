@@ -57,6 +57,12 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new GetCollection(
+            uriTemplate: '/shop/franchises',
+            controller: \ControleOnline\Controller\GetPublicShopFranchisesAction::class,
+            read: false,
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        new GetCollection(
             uriTemplate: '/people/companies/my',
             controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
             // Custom payload; do not let ApiPlatform eager-load the whole People graph.
