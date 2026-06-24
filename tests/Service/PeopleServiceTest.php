@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -59,5 +60,26 @@ class PeopleServiceTest extends TestCase
         );
 
         self::assertSame($document, $service->getDocument('12345678901', 'CPF'));
+    }
+
+    public function testResolveQueryArrayOrScalarAcceptsScalarLinkType(): void
+    {
+        $requestStack = new RequestStack();
+        $requestStack->push(new Request(['linkType' => 'client']));
+
+        $service = new PeopleService(
+            $this->createStub(EntityManagerInterface::class),
+            $this->createStub(TokenStorageInterface::class),
+            $this->createStub(PeopleRoleService::class),
+            $requestStack
+        );
+
+        $reflection = new \ReflectionMethod($service, 'resolveQueryArrayOrScalar');
+        $reflection->setAccessible(true);
+
+        self::assertSame(
+            'client',
+            $reflection->invoke($service, $requestStack->getCurrentRequest(), 'linkType')
+        );
     }
 }

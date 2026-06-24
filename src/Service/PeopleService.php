@@ -366,11 +366,7 @@ class PeopleService
     $request = $this->requestStack->getCurrentRequest();
     $link     = $request?->query->get('link', null);
     $company  = $request?->query->get('company', null);
-    $linkType = $request?->query->all('linkType');
-
-    if ($linkType === []) {
-      $linkType = $request?->query->get('linkType', null);
-    }
+    $linkType = $this->resolveQueryArrayOrScalar($request, 'linkType');
 
     $myPeople = $this->getMyPeople();
     $myCompanies = $this->getMyCompanies();
@@ -378,6 +374,24 @@ class PeopleService
       static fn(People $company): int => (int) $company->getId(),
       $myCompanies
     );
+    $requestedCompanyId = $company
+      ? (int) preg_replace('/\D/', '', (string) $company)
+      : null;
+
+    if (
+      $requestedCompanyId
+      && $this->isLoyaltyCpfSearchContext($request?->query->get('context', null), $linkType)
+    ) {
+      $mainCompanyId = $this->resolveMainCompanyId();
+      if (
+        $mainCompanyId !== null
+        && $requestedCompanyId === $mainCompanyId
+        && $myCompanyIds !== []
+        && !in_array($mainCompanyId, $myCompanyIds, true)
+      ) {
+        $myCompanyIds[] = $mainCompanyId;
+      }
+    }
 
     if (!$myPeople && $myCompanyIds === []) {
       $queryBuilder->andWhere('1 = 0');
@@ -401,7 +415,6 @@ class PeopleService
     }
 
     if ($company) {
-      $requestedCompanyId = (int) preg_replace('/\D/', '', $company);
       if (!in_array($requestedCompanyId, $myCompanyIds, true)) {
         $queryBuilder->andWhere('1 = 0');
         return;
@@ -439,6 +452,44 @@ class PeopleService
     if ($visibilityConditions !== []) {
       $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
     }
+  }
+
+  private function isLoyaltyCpfSearchContext(mixed $context, mixed $linkType): bool
+  {
+    if (trim((string) $context) !== 'loyalty-cpf') {
+      return false;
+    }
+
+    $linkTypes = is_array($linkType) ? $linkType : [$linkType];
+    $normalizedLinkTypes = array_values(array_unique(array_filter(array_map(
+      static fn(mixed $value): string => trim(strtolower((string) $value)),
+      $linkTypes
+    ))));
+
+    return in_array('client', $normalizedLinkTypes, true);
+  }
+
+  private function resolveMainCompanyId(): ?int
+  {
+    try {
+      return (int) $this->peopleRoleService->getMainCompany()->getId();
+    } catch (\Throwable) {
+      return null;
+    }
+  }
+
+  private function resolveQueryArrayOrScalar(mixed $request, string $key): mixed
+  {
+    if (!$request) {
+      return null;
+    }
+
+    $value = $request->query->get($key, null);
+    if ($value !== null) {
+      return $value;
+    }
+
+    return $request->query->all()[$key] ?? null;
   }
 
 
