@@ -81,7 +81,11 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new Post(
             uriTemplate: '/create-account',
             controller: CreateAccountAction::class,
-            securityPostDenormalize: 'is_granted(\'PUBLIC_ACCESS\')',
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
+            deserialize: false,
+            read: false,
+            output: false,
+            status: 202,
         ),
         new Get(security: "is_granted('PUBLIC_ACCESS')"),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
@@ -236,6 +240,7 @@ class People
         $this->link = new ArrayCollection();
         $this->user = new ArrayCollection();
         $this->document = new ArrayCollection();
+        $this->company_document = new ArrayCollection();
         $this->address = new ArrayCollection();
         $this->email = new ArrayCollection();
         $this->phone = new ArrayCollection();

@@ -3,14 +3,17 @@
 namespace ControleOnline\Service;
 
 use ControleOnline\Entity\People;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class AccountRegistrationService
 {
     public function __construct(
+        private EntityManagerInterface $manager,
         private UserService $userService,
         private PeopleService $peopleService,
-        private DomainService $domainService
+        private DomainService $domainService,
+        private AccountVerificationService $accountVerificationService,
     ) {}
 
     public function registerFromContent(?string $content): People
@@ -20,67 +23,84 @@ class AccountRegistrationService
 
     public function registerFromPayload(array $payload): People
     {
-        $peopleData = $payload['people'] ?? null;
-        if (!is_array($peopleData)) {
-            throw new BadRequestHttpException('people is required');
-        }
+        $connection = $this->manager->getConnection();
+        $connection->beginTransaction();
 
-        foreach (['name', 'alias', 'email', 'phone'] as $field) {
-            if (!isset($peopleData[$field])) {
-                throw new BadRequestHttpException('name, alias, email and phone are required');
+        try {
+            $peopleData = $payload['people'] ?? null;
+            if (!is_array($peopleData)) {
+                throw new BadRequestHttpException('people is required');
             }
-        }
 
-        $phoneData = is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : [];
-        foreach (['ddi', 'ddd', 'phone'] as $field) {
-            if (!isset($phoneData[$field])) {
-                throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
+            foreach (['name', 'alias', 'email', 'phone'] as $field) {
+                if (!isset($peopleData[$field])) {
+                    throw new BadRequestHttpException('name, alias, email and phone are required');
+                }
             }
-        }
 
-        $people = $this->peopleService->discoveryPeople(
-            $peopleData['document'] ?? null,
-            $peopleData['email'],
-            $phoneData,
-            trim($peopleData['name'] . ' ' . $peopleData['alias']),
-            'F'
-        );
+            $phoneData = is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : [];
+            foreach (['ddi', 'ddd', 'phone'] as $field) {
+                if (!isset($phoneData[$field])) {
+                    throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
+                }
+            }
 
-        $client = $people;
-
-        if (is_array($payload['company'] ?? null)) {
-            $companyData = $payload['company'];
-            $company = $this->peopleService->discoveryPeople(
-                $companyData['document'] ?? null,
-                $companyData['email'] ?? null,
-                is_array($companyData['phone'] ?? null) ? $companyData['phone'] : null,
-                $companyData['name'] ?? null,
-                'J'
+            $people = $this->peopleService->discoveryPeople(
+                $peopleData['document'] ?? null,
+                $peopleData['email'],
+                $phoneData,
+                trim($peopleData['name'] . ' ' . $peopleData['alias']),
+                'F'
             );
 
-            $this->peopleService->discoveryLink($company, $people, 'employee');
-            $client = $company;
-        }
+            $client = $people;
 
-        $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
-        $this->peopleService->discoveryLink($mainCompany, $client, 'client');
+            if (is_array($payload['company'] ?? null)) {
+                $companyData = $payload['company'];
+                $company = $this->peopleService->discoveryPeople(
+                    $companyData['document'] ?? null,
+                    $companyData['email'] ?? null,
+                    is_array($companyData['phone'] ?? null) ? $companyData['phone'] : null,
+                    $companyData['name'] ?? null,
+                    'J'
+                );
 
-        if (is_array($peopleData['user'] ?? null)) {
-            if (
-                !isset($peopleData['user']['user']) ||
-                !isset($peopleData['user']['password'])
-            ) {
-                throw new BadRequestHttpException('user.user and user.password are required');
+                $this->peopleService->discoveryLink($company, $people, 'employee');
+                $client = $company;
             }
 
-            $this->userService->createUser(
-                $people,
-                $peopleData['user']['user'],
-                $peopleData['user']['password']
-            );
-        }
+            $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
+            $this->peopleService->discoveryLink($mainCompany, $client, 'client');
 
-        return $client;
+            if (is_array($peopleData['user'] ?? null)) {
+                if (
+                    !isset($peopleData['user']['user']) ||
+                    !isset($peopleData['user']['password'])
+                ) {
+                    throw new BadRequestHttpException('user.user and user.password are required');
+                }
+
+                $user = $this->userService->createUser(
+                    $people,
+                    $peopleData['user']['user'],
+                    $peopleData['user']['password']
+                );
+
+                $this->accountVerificationService->sendVerification(
+                    $user,
+                    $peopleData['email'] ?? null
+                );
+            }
+
+            $connection->commit();
+            return $client;
+        } catch (\Throwable $exception) {
+            if ($connection->isTransactionActive()) {
+                $connection->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 
     private function decodePayload(?string $content): array
