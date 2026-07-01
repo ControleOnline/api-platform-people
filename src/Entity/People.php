@@ -29,6 +29,7 @@ use ControleOnline\Entity\Phone;
 use ControleOnline\Entity\User;
 use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Entity\CompanyDocument;
+use ControleOnline\State\HydratedReadProvider;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
@@ -48,7 +49,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     ],
     security: "is_granted('ROLE_HUMAN')",
     operations: [
-        new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        new GetCollection(
+            provider: HydratedReadProvider::class,
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')"
+        ),
         new GetCollection(
             uriTemplate: '/people/company/default',
             controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
@@ -87,7 +91,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             output: false,
             status: 202,
         ),
-        new Get(security: "is_granted('PUBLIC_ACCESS')"),
+        new Get(
+            provider: HydratedReadProvider::class,
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
             security: "is_granted('ROLE_HUMAN')",
