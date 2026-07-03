@@ -152,35 +152,35 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['invoice:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $peopleType = 'F';
 
     #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    #[Groups(['people:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
     private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
@@ -188,12 +188,12 @@ class People
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $alternative_image;
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
@@ -207,27 +207,27 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read',  'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people:write', 'order_details:read'])]
     private $document;
 
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read',  'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $address;
 
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $phone;
 
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $email;
 
     #[ORM\OneToMany(targetEntity: ProductPeople::class, mappedBy: 'people')]
@@ -235,7 +235,7 @@ class People
     private $productPeople;
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $foundationDate = null;
 
     public function __construct()
