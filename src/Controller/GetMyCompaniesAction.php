@@ -47,9 +47,10 @@ class GetMyCompaniesAction
        */
       $userPeople  = $currentUser->getPeople();
       $permissions = [];
+      $linkTypes = $this->resolveLinkTypes($request);
 
 
-      $getPeopleCompanies = $this->roles->getDirectLinksForPeople($userPeople, PeopleLink::HUMAN_LINK);
+      $getPeopleCompanies = $this->roles->getDirectLinksForPeople($userPeople, $linkTypes);
 
       /**
        * @var \ControleOnline\Entity\PeopleLink $peopleCompany
@@ -156,6 +157,45 @@ class GetMyCompaniesAction
       ]);
     }
   }
+
+  /**
+   * @return array<int, string>
+   */
+  private function resolveLinkTypes(Request $request): array
+  {
+    $linkTypes = $request->query->all('linkTypes');
+    if (is_array($linkTypes) && $linkTypes !== []) {
+      return $this->normalizeLinkTypes($linkTypes);
+    }
+
+    $linkType = $request->query->get('linkType');
+    if (is_string($linkType)) {
+      $normalizedLinkType = $this->normalizeLinkType($linkType);
+      if ($normalizedLinkType !== '') {
+        return [$normalizedLinkType];
+      }
+    }
+
+    return PeopleLink::HUMAN_LINK;
+  }
+
+  /**
+   * @param array<int, string> $linkTypes
+   * @return array<int, string>
+   */
+  private function normalizeLinkTypes(array $linkTypes): array
+  {
+    return array_values(array_unique(array_filter(array_map(
+      fn ($linkType) => $this->normalizeLinkType($linkType),
+      $linkTypes
+    ))));
+  }
+
+  private function normalizeLinkType(mixed $linkType): string
+  {
+    return strtolower(trim((string) $linkType));
+  }
+
   private function getPeoplePackages($people)
   {
 
