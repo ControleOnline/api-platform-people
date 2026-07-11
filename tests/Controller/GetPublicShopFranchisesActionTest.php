@@ -8,6 +8,7 @@ use ControleOnline\Entity\Cep;
 use ControleOnline\Entity\City;
 use ControleOnline\Entity\Config;
 use ControleOnline\Entity\District;
+use ControleOnline\Entity\File;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\Phone;
 use ControleOnline\Entity\State;
@@ -29,6 +30,9 @@ class GetPublicShopFranchisesActionTest extends TestCase
         $this->setEntityId($franchise, 21);
         $franchise->setName('Franquia Centro');
         $franchise->setAlias('Centro');
+        $logo = new File();
+        $this->setEntityId($logo, 321);
+        $franchise->setImage($logo);
 
         $phone = new Phone();
         $this->setEntityId($phone, 301);
@@ -114,6 +118,7 @@ class GetPublicShopFranchisesActionTest extends TestCase
         self::assertSame(30, $payload['itemsPerPage']);
         self::assertCount(1, $payload['member']);
         self::assertSame('CENTRO', $payload['member'][0]['alias']);
+        self::assertSame(321, $payload['member'][0]['image_id']);
         self::assertCount(1, $payload['member'][0]['shopAddresses']);
         self::assertSame(501, $payload['member'][0]['shopAddresses'][0]['id']);
         self::assertSame(

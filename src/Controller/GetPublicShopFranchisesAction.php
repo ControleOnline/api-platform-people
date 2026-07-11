@@ -178,6 +178,7 @@ class GetPublicShopFranchisesAction
             'id' => (int) $company->getId(),
             'name' => $company->getName(),
             'alias' => $company->getAlias(),
+            'image_id' => $company->getImage()?->getId(),
             'phone' => $this->serializePhones($company->getPhone()),
             'mobile' => [],
             'whatsapp' => [],
