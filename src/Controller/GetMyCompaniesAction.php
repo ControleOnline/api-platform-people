@@ -76,6 +76,8 @@ class GetMyCompaniesAction
         $configs = [];
         $domains = $this->getPeopleDomains($people);
         $packages = $this->getPeoplePackages($people);
+        $publicLogo = $this->fileService->getPeopleMediaFileUrl($people, 'logo');
+        $publicIcon = $this->fileService->getPeopleMediaFileUrl($people, 'icon');
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      => $people->getId(),
@@ -106,7 +108,8 @@ class GetMyCompaniesAction
           'commercial_enabled' => $commercialEnabled,
           'panel_enabled' => $people->getEnabled() && $commercialEnabled,
           'alias'         => $people->getAlias(),
-          'logo'          => $this->fileService->getFileUrl($people),
+          'logo'          => $publicLogo,
+          'icon'          => $publicIcon,
           'document'      => $this->getDocument($people),
           'domains'       => $domains,
           'configs'       => $configs,
