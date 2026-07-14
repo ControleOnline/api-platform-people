@@ -46,6 +46,10 @@ class GetDefaultCompanyAction
         : ['guest'];
 
       if ($this->company) {
+        $publicLogo = $this->fileService->getPeopleMediaFileUrl($this->company, 'logo');
+        $publicIcon = $this->fileService->getPeopleMediaFileUrl($this->company, 'icon');
+        $publicBackground = $this->fileService->getPeopleMediaFileUrl($this->company, 'background');
+
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      =>  $this->company->getId(),
           'visibility'  => 'public'
@@ -61,8 +65,9 @@ class GetDefaultCompanyAction
           'configs'    => $configs,
           'domainType' => $this->domainService->getPeopleDomain()->getDomainType(),
           'permissions' => $permissions,
-          'theme'       => $this->getTheme(),
-          'logo'        => $this->fileService->getFileUrl($this->company)
+          'theme'       => $this->getTheme($publicBackground),
+          'logo'        => $publicLogo,
+          'icon'        => $publicIcon,
         ];
       }
 
@@ -87,16 +92,12 @@ class GetDefaultCompanyAction
     }
   }
 
-  private function getTheme()
+  private function getTheme(?array $background = null)
   {
     return [
       'theme' =>  $this->domainService->getPeopleDomain()->getTheme()->getTheme(),
       'colors' =>  $this->domainService->getPeopleDomain()->getTheme()->getColors(),
-      'background'  =>  $this->domainService->getPeopleDomain()->getTheme()->getBackground() ? [
-        'id'     =>  $this->domainService->getPeopleDomain()->getTheme()->getBackground(),
-        'domain' => $this->domainService->getMainDomain(),
-        'url'    => '/files/' .  $this->domainService->getPeopleDomain()->getTheme()->getBackground() . '/download'
-      ] : null,
+      'background'  =>  $background,
     ];
   }
 }
