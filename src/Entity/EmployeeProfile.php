@@ -20,6 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'employee_profile_job_title_idx', columns: ['job_title_id'])]
 #[ORM\Index(name: 'employee_profile_job_function_idx', columns: ['job_function_id'])]
 #[ORM\Index(name: 'employee_profile_department_idx', columns: ['department_id'])]
+#[ORM\Index(name: 'employee_profile_employment_type_idx', columns: ['employment_type_id'])]
 #[ORM\UniqueConstraint(name: 'employee_profile_people_link_unique', columns: ['people_link_id'])]
 #[ORM\Entity(repositoryClass: EmployeeProfileRepository::class)]
 #[ApiResource(
@@ -41,29 +42,24 @@ use Symfony\Component\Serializer\Attribute\Groups;
     'peopleLink.people' => 'exact',
     'peopleLink.company' => 'exact',
     'peopleLink.linkType' => 'exact',
-    'jobTitleCategory' => 'exact',
-    'jobTitleCategory.name' => 'partial',
-    'jobFunctionCategory' => 'exact',
-    'jobFunctionCategory.name' => 'partial',
-    'departmentCategory' => 'exact',
-    'departmentCategory.name' => 'partial',
-    'jobTitle' => 'partial',
-    'jobFunction' => 'partial',
-    'department' => 'partial',
+    'jobTitle' => 'exact',
+    'jobTitle.name' => 'partial',
+    'jobFunction' => 'exact',
+    'jobFunction.name' => 'partial',
+    'department' => 'exact',
+    'department.name' => 'partial',
     'employmentType' => 'exact',
+    'employmentType.name' => 'partial',
     'active' => 'exact',
     'linkedinUrl' => 'partial',
     'linkedinHeadline' => 'partial',
 ])]
 #[ApiFilter(OrderFilter::class, properties: [
     'id',
-    'jobTitleCategory.name',
-    'jobFunctionCategory.name',
-    'departmentCategory.name',
-    'jobTitle',
-    'jobFunction',
-    'department',
-    'employmentType',
+    'jobTitle.name',
+    'jobFunction.name',
+    'department.name',
+    'employmentType.name',
     'admissionDate',
     'terminationDate',
     'creationDate',
@@ -85,30 +81,22 @@ class EmployeeProfile
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(name: 'job_title_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
-    private ?Category $jobTitleCategory = null;
+    private ?Category $jobTitle = null;
 
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(name: 'job_function_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
-    private ?Category $jobFunctionCategory = null;
+    private ?Category $jobFunction = null;
 
     #[ORM\ManyToOne(targetEntity: Category::class)]
     #[ORM\JoinColumn(name: 'department_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
-    private ?Category $departmentCategory = null;
+    private ?Category $department = null;
 
-    #[ORM\Column(name: 'job_title', type: 'string', length: 255, nullable: true)]
-    private ?string $jobTitle = null;
-
-    #[ORM\Column(name: 'job_function', type: 'string', length: 255, nullable: true)]
-    private ?string $jobFunction = null;
-
-    #[ORM\Column(name: 'department', type: 'string', length: 255, nullable: true)]
-    private ?string $department = null;
-
-    #[ORM\Column(name: 'employment_type', type: 'string', length: 120, nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: 'employment_type_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
-    private ?string $employmentType = null;
+    private ?Category $employmentType = null;
 
     #[ORM\Column(name: 'admission_date', type: 'date', nullable: true)]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
@@ -178,90 +166,50 @@ class EmployeeProfile
         return $this;
     }
 
-    public function getJobTitleCategory(): ?Category
-    {
-        return $this->jobTitleCategory;
-    }
-
-    public function setJobTitleCategory(?Category $jobTitleCategory): self
-    {
-        $this->jobTitleCategory = $jobTitleCategory;
-
-        return $this;
-    }
-
-    public function getJobFunctionCategory(): ?Category
-    {
-        return $this->jobFunctionCategory;
-    }
-
-    public function setJobFunctionCategory(?Category $jobFunctionCategory): self
-    {
-        $this->jobFunctionCategory = $jobFunctionCategory;
-
-        return $this;
-    }
-
-    public function getDepartmentCategory(): ?Category
-    {
-        return $this->departmentCategory;
-    }
-
-    public function setDepartmentCategory(?Category $departmentCategory): self
-    {
-        $this->departmentCategory = $departmentCategory;
-
-        return $this;
-    }
-
-    public function getJobTitle(): ?string
+    public function getJobTitle(): ?Category
     {
         return $this->jobTitle;
     }
 
-    public function setJobTitle(?string $jobTitle): self
+    public function setJobTitle(?Category $jobTitle): self
     {
-        $jobTitle = $jobTitle !== null ? trim($jobTitle) : null;
-        $this->jobTitle = $jobTitle !== '' ? $jobTitle : null;
+        $this->jobTitle = $jobTitle;
 
         return $this;
     }
 
-    public function getJobFunction(): ?string
+    public function getJobFunction(): ?Category
     {
         return $this->jobFunction;
     }
 
-    public function setJobFunction(?string $jobFunction): self
+    public function setJobFunction(?Category $jobFunction): self
     {
-        $jobFunction = $jobFunction !== null ? trim($jobFunction) : null;
-        $this->jobFunction = $jobFunction !== '' ? $jobFunction : null;
+        $this->jobFunction = $jobFunction;
 
         return $this;
     }
 
-    public function getDepartment(): ?string
+    public function getDepartment(): ?Category
     {
         return $this->department;
     }
 
-    public function setDepartment(?string $department): self
+    public function setDepartment(?Category $department): self
     {
-        $department = $department !== null ? trim($department) : null;
-        $this->department = $department !== '' ? $department : null;
+        $this->department = $department;
 
         return $this;
     }
 
-    public function getEmploymentType(): ?string
+    public function getEmploymentType(): ?Category
     {
         return $this->employmentType;
     }
 
-    public function setEmploymentType(?string $employmentType): self
+    public function setEmploymentType(?Category $employmentType): self
     {
-        $employmentType = $employmentType !== null ? trim($employmentType) : null;
-        $this->employmentType = $employmentType !== '' ? $employmentType : null;
+        $this->employmentType = $employmentType;
 
         return $this;
     }
@@ -410,19 +358,25 @@ class EmployeeProfile
     #[Groups(['employee_profile:read'])]
     public function getJobTitleLabel(): string
     {
-        return $this->resolveCategoryLabel($this->jobTitleCategory, $this->jobTitle);
+        return $this->resolveCategoryLabel($this->jobTitle);
     }
 
     #[Groups(['employee_profile:read'])]
     public function getJobFunctionLabel(): string
     {
-        return $this->resolveCategoryLabel($this->jobFunctionCategory, $this->jobFunction);
+        return $this->resolveCategoryLabel($this->jobFunction);
     }
 
     #[Groups(['employee_profile:read'])]
     public function getDepartmentLabel(): string
     {
-        return $this->resolveCategoryLabel($this->departmentCategory, $this->department);
+        return $this->resolveCategoryLabel($this->department);
+    }
+
+    #[Groups(['employee_profile:read'])]
+    public function getEmploymentTypeLabel(): string
+    {
+        return $this->resolveCategoryLabel($this->employmentType);
     }
 
     #[Groups(['employee_profile:read'])]
@@ -477,14 +431,9 @@ class EmployeeProfile
         return $alias !== '' ? $alias : $name;
     }
 
-    private function resolveCategoryLabel(?Category $category, ?string $legacyValue = null): string
+    private function resolveCategoryLabel(?Category $category): string
     {
         $categoryLabel = trim((string) ($category?->getName() ?? ''));
-        if ($categoryLabel !== '') {
-            return $categoryLabel;
-        }
-
-        $legacyLabel = trim((string) $legacyValue);
-        return $legacyLabel !== '' ? $legacyLabel : '';
+        return $categoryLabel !== '' ? $categoryLabel : '';
     }
 }
