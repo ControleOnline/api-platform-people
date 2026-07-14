@@ -8,6 +8,7 @@ use ControleOnline\Entity\People;
 use ControleOnline\Entity\Phone;
 use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Service\ConfigService;
+use ControleOnline\Service\FileService;
 use ControleOnline\Service\PeopleRoleService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +26,7 @@ class GetPublicShopFranchisesAction
         private PeopleRoleService $roles,
         private ConfigService $configService,
         private PeopleRepository $peopleRepository,
+        private FileService $fileService,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -178,7 +180,7 @@ class GetPublicShopFranchisesAction
             'id' => (int) $company->getId(),
             'name' => $company->getName(),
             'alias' => $company->getAlias(),
-            'image_id' => $company->getImage()?->getId(),
+            'logo' => $this->fileService->getPeopleMediaFileUrl($company, 'logo'),
             'phone' => $this->serializePhones($company->getPhone()),
             'mobile' => [],
             'whatsapp' => [],

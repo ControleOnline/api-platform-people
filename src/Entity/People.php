@@ -22,7 +22,6 @@ use ControleOnline\Entity\Address;
 use ControleOnline\Entity\Config;
 use ControleOnline\Entity\Document;
 use ControleOnline\Entity\Email;
-use ControleOnline\Entity\File;
 use ControleOnline\Entity\Language;
 use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\Phone;
@@ -178,23 +177,8 @@ class People
     #[Groups(['people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $peopleType = 'F';
 
-    #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
-    #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
-    private $image;
-
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
     private $config;
-
-    #[ORM\ManyToOne(targetEntity: File::class)]
-    #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write'])]
-    private $alternative_image;
-
-    #[ORM\ManyToOne(targetEntity: File::class)]
-    #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups(['people:read', 'people:write'])]
-    private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'language_id', referencedColumnName: 'id')]
@@ -505,36 +489,6 @@ class People
     public function getConfig()
     {
         return $this->config;
-    }
-
-    public function getBackground()
-    {
-        return $this->background;
-    }
-    public function setBackground($background): self
-    {
-        $this->background = $background;
-        return $this;
-    }
-
-    public function getImage()
-    {
-        return $this->image;
-    }
-    public function setImage($image): self
-    {
-        $this->image = $image;
-        return $this;
-    }
-
-    public function getAlternativeImage()
-    {
-        return $this->alternative_image;
-    }
-    public function setAlternativeImage($alternative_image): self
-    {
-        $this->alternative_image = $alternative_image;
-        return $this;
     }
 
     public function getCompanyDocument()
