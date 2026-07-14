@@ -17,6 +17,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Table(name: 'employee_profile')]
 #[ORM\Index(name: 'employee_profile_people_link_idx', columns: ['people_link_id'])]
+#[ORM\Index(name: 'employee_profile_job_title_idx', columns: ['job_title_id'])]
+#[ORM\Index(name: 'employee_profile_job_function_idx', columns: ['job_function_id'])]
+#[ORM\Index(name: 'employee_profile_department_idx', columns: ['department_id'])]
 #[ORM\UniqueConstraint(name: 'employee_profile_people_link_unique', columns: ['people_link_id'])]
 #[ORM\Entity(repositoryClass: EmployeeProfileRepository::class)]
 #[ApiResource(
@@ -38,6 +41,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
     'peopleLink.people' => 'exact',
     'peopleLink.company' => 'exact',
     'peopleLink.linkType' => 'exact',
+    'jobTitleCategory' => 'exact',
+    'jobTitleCategory.name' => 'partial',
+    'jobFunctionCategory' => 'exact',
+    'jobFunctionCategory.name' => 'partial',
+    'departmentCategory' => 'exact',
+    'departmentCategory.name' => 'partial',
     'jobTitle' => 'partial',
     'jobFunction' => 'partial',
     'department' => 'partial',
@@ -48,6 +57,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 ])]
 #[ApiFilter(OrderFilter::class, properties: [
     'id',
+    'jobTitleCategory.name',
+    'jobFunctionCategory.name',
+    'departmentCategory.name',
     'jobTitle',
     'jobFunction',
     'department',
@@ -70,16 +82,28 @@ class EmployeeProfile
     #[Groups(['employee_profile:write'])]
     private ?PeopleLink $peopleLink = null;
 
-    #[ORM\Column(name: 'job_title', type: 'string', length: 255, nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: 'job_title_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     #[Groups(['employee_profile:read', 'employee_profile:write'])]
+    private ?Category $jobTitleCategory = null;
+
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: 'job_function_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['employee_profile:read', 'employee_profile:write'])]
+    private ?Category $jobFunctionCategory = null;
+
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: 'department_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['employee_profile:read', 'employee_profile:write'])]
+    private ?Category $departmentCategory = null;
+
+    #[ORM\Column(name: 'job_title', type: 'string', length: 255, nullable: true)]
     private ?string $jobTitle = null;
 
     #[ORM\Column(name: 'job_function', type: 'string', length: 255, nullable: true)]
-    #[Groups(['employee_profile:read', 'employee_profile:write'])]
     private ?string $jobFunction = null;
 
     #[ORM\Column(name: 'department', type: 'string', length: 255, nullable: true)]
-    #[Groups(['employee_profile:read', 'employee_profile:write'])]
     private ?string $department = null;
 
     #[ORM\Column(name: 'employment_type', type: 'string', length: 120, nullable: true)]
@@ -150,6 +174,42 @@ class EmployeeProfile
     public function setPeopleLink(?PeopleLink $peopleLink): self
     {
         $this->peopleLink = $peopleLink;
+
+        return $this;
+    }
+
+    public function getJobTitleCategory(): ?Category
+    {
+        return $this->jobTitleCategory;
+    }
+
+    public function setJobTitleCategory(?Category $jobTitleCategory): self
+    {
+        $this->jobTitleCategory = $jobTitleCategory;
+
+        return $this;
+    }
+
+    public function getJobFunctionCategory(): ?Category
+    {
+        return $this->jobFunctionCategory;
+    }
+
+    public function setJobFunctionCategory(?Category $jobFunctionCategory): self
+    {
+        $this->jobFunctionCategory = $jobFunctionCategory;
+
+        return $this;
+    }
+
+    public function getDepartmentCategory(): ?Category
+    {
+        return $this->departmentCategory;
+    }
+
+    public function setDepartmentCategory(?Category $departmentCategory): self
+    {
+        $this->departmentCategory = $departmentCategory;
 
         return $this;
     }
@@ -348,6 +408,24 @@ class EmployeeProfile
     }
 
     #[Groups(['employee_profile:read'])]
+    public function getJobTitleLabel(): string
+    {
+        return $this->resolveCategoryLabel($this->jobTitleCategory, $this->jobTitle);
+    }
+
+    #[Groups(['employee_profile:read'])]
+    public function getJobFunctionLabel(): string
+    {
+        return $this->resolveCategoryLabel($this->jobFunctionCategory, $this->jobFunction);
+    }
+
+    #[Groups(['employee_profile:read'])]
+    public function getDepartmentLabel(): string
+    {
+        return $this->resolveCategoryLabel($this->departmentCategory, $this->department);
+    }
+
+    #[Groups(['employee_profile:read'])]
     public function getPeopleLinkId(): ?int
     {
         return $this->peopleLink?->getId();
@@ -397,5 +475,16 @@ class EmployeeProfile
         }
 
         return $alias !== '' ? $alias : $name;
+    }
+
+    private function resolveCategoryLabel(?Category $category, ?string $legacyValue = null): string
+    {
+        $categoryLabel = trim((string) ($category?->getName() ?? ''));
+        if ($categoryLabel !== '') {
+            return $categoryLabel;
+        }
+
+        $legacyLabel = trim((string) $legacyValue);
+        return $legacyLabel !== '' ? $legacyLabel : '';
     }
 }
