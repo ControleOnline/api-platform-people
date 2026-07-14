@@ -43,27 +43,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
     ]
 )]
-#[ApiFilter(SearchFilter::class, properties: [
-    'id' => 'exact',
-    'context' => 'exact',
-    'kind' => 'exact',
-    'company' => 'exact',
-    'people' => 'exact',
-    'status' => 'exact',
-    'periodStart' => 'exact',
-    'periodEnd' => 'exact',
-])]
-#[ApiFilter(OrderFilter::class, properties: [
-    'id',
-    'context',
-    'kind',
-    'status',
-    'periodStart',
-    'periodEnd',
-    'finishedAt',
-    'creationDate',
-    'alterDate',
-])]
 class PeopleExportJob
 {
     public const CONTEXT_EMPLOYMENT = 'employment';
@@ -84,36 +63,50 @@ class PeopleExportJob
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[ApiFilter(SearchFilter::class, properties: ['id' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['id' => 'ASC'])]
     #[Groups(['people_export_job:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'context', type: 'string', length: 120, nullable: false)]
+    #[ApiFilter(SearchFilter::class, properties: ['context' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['context' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private string $context = self::CONTEXT_EMPLOYMENT;
 
     #[ORM\Column(name: 'kind', type: 'string', length: 80, nullable: false)]
+    #[ApiFilter(SearchFilter::class, properties: ['kind' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['kind' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private string $kind = self::KIND_TIMESHEET;
 
     #[ORM\ManyToOne(targetEntity: People::class)]
     #[ORM\JoinColumn(name: 'company_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ApiFilter(SearchFilter::class, properties: ['company' => 'exact'])]
     #[Groups(['people_export_job:write'])]
     private ?People $company = null;
 
     #[ORM\ManyToOne(targetEntity: People::class)]
     #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ApiFilter(SearchFilter::class, properties: ['people' => 'exact'])]
     #[Groups(['people_export_job:write'])]
     private ?People $people = null;
 
     #[ORM\Column(name: 'period_start', type: 'date', nullable: false)]
+    #[ApiFilter(SearchFilter::class, properties: ['periodStart' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['periodStart' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private ?\DateTimeInterface $periodStart = null;
 
     #[ORM\Column(name: 'period_end', type: 'date', nullable: false)]
+    #[ApiFilter(SearchFilter::class, properties: ['periodEnd' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['periodEnd' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private ?\DateTimeInterface $periodEnd = null;
 
     #[ORM\Column(name: 'status', type: 'string', length: 20, nullable: false, options: ['default' => 'pending'])]
+    #[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
+    #[ApiFilter(OrderFilter::class, properties: ['status' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private string $status = self::STATUS_PENDING;
 
@@ -131,14 +124,17 @@ class PeopleExportJob
     private ?string $errorMessage = null;
 
     #[ORM\Column(name: 'finished_at', type: 'datetime', nullable: true)]
+    #[ApiFilter(OrderFilter::class, properties: ['finishedAt' => 'ASC'])]
     #[Groups(['people_export_job:read', 'people_export_job:write'])]
     private ?\DateTimeInterface $finishedAt = null;
 
     #[ORM\Column(name: 'creation_date', type: 'datetime', nullable: false, columnDefinition: 'DATETIME DEFAULT CURRENT_TIMESTAMP')]
+    #[ApiFilter(OrderFilter::class, properties: ['creationDate' => 'ASC'])]
     #[Groups(['people_export_job:read'])]
     private ?\DateTimeInterface $creationDate = null;
 
     #[ORM\Column(name: 'alter_date', type: 'datetime', nullable: false, columnDefinition: 'DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')]
+    #[ApiFilter(OrderFilter::class, properties: ['alterDate' => 'ASC'])]
     #[Groups(['people_export_job:read'])]
     private ?\DateTimeInterface $alterDate = null;
 
