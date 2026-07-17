@@ -60,7 +60,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'people_id', columns: ['people_id'])]
 #[ORM\Index(name: 'file_id', columns: ['file_id'])]
 #[ORM\Index(name: 'media_type_id', columns: ['media_type_id'])]
-#[ORM\UniqueConstraint(name: 'people_id_2', columns: ['people_id', 'file_id', 'media_type_id'])]
+#[ORM\UniqueConstraint(name: 'people_id_2', columns: ['people_id', 'media_type_id'])]
 #[ORM\Entity]
 class PeopleMedia
 {
