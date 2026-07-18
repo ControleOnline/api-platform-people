@@ -236,24 +236,4 @@ class PeopleDomain
 
         return $this;
     }
-
-    #[Groups(['people_domain:read'])]
-    public function getPeopleLabel(): string
-    {
-        if (!$this->people instanceof People) {
-            return '';
-        }
-
-        return trim((string) ($this->people->getAlias() ?: $this->people->getName() ?: ''));
-    }
-
-    #[Groups(['people_domain:read'])]
-    public function getApiPeopleDomainLabel(): string
-    {
-        if (!$this->apiPeopleDomain instanceof self) {
-            return '';
-        }
-
-        return trim((string) $this->apiPeopleDomain->getDomain());
-    }
 }
