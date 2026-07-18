@@ -16,6 +16,10 @@ final class Version20260718195000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if (!$this->tableExists('people_domain')) {
+            return;
+        }
+
         $hasOldColumn = $this->columnExists('api_people_domain_id');
         $hasNewColumn = $this->columnExists('people_domain_id');
 
@@ -72,6 +76,19 @@ final class Version20260718195000 extends AbstractMigration
             [
                 'table_name' => 'people_domain',
                 'column_name' => $column,
+            ]
+        ) > 0;
+    }
+
+    private function tableExists(string $table): bool
+    {
+        return (int) $this->connection->fetchOne(
+            'SELECT COUNT(*)
+             FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name',
+            [
+                'table_name' => $table,
             ]
         ) > 0;
     }
