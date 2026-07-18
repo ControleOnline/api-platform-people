@@ -61,8 +61,12 @@ class GetPeopleDomainOverviewAction
             'domain' => $peopleDomain->getDomain(),
             'domainType' => $peopleDomain->getDomainType(),
             'people' => $this->normalizePeople($peopleDomain->getPeople()),
+            'peopleLabel' => $this->normalizePeopleLabel($peopleDomain->getPeople()),
             'theme' => $this->normalizeTheme($peopleDomain->getTheme()),
             'apiPeopleDomain' => $this->normalizePeopleDomainRelation($peopleDomain->getApiPeopleDomain()),
+            'apiPeopleDomainLabel' => $peopleDomain->getApiPeopleDomain() instanceof PeopleDomain
+                ? trim((string) $peopleDomain->getApiPeopleDomain()->getDomain())
+                : '',
         ];
     }
 
@@ -78,6 +82,15 @@ class GetPeopleDomainOverviewAction
             'name' => $people->getName(),
             'peopleType' => $people->getPeopleType(),
         ];
+    }
+
+    private function normalizePeopleLabel(?People $people): string
+    {
+        if (!$people) {
+            return '';
+        }
+
+        return trim((string) ($people->getAlias() ?: $people->getName() ?: ''));
     }
 
     private function normalizeTheme(?Theme $theme): ?array
