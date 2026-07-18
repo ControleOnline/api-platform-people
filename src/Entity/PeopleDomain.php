@@ -6,15 +6,16 @@ use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use Symfony\Component\Serializer\Attribute\Groups; 
-use Symfony\Component\Serializer\Attribute\SerializedName;
+use ControleOnline\Controller\GetPeopleDomainOverviewAction;
 use ControleOnline\Repository\PeopleDomainRepository;
-
-
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
 /**
  * PeopleDomain
@@ -23,23 +24,29 @@ use Doctrine\ORM\Mapping as ORM;
     operations: [
         new Get(security: 'is_granted(\'ROLE_HUMAN\')'),
         new GetCollection(security: 'is_granted(\'ROLE_HUMAN\')'),
+        new Get(
+            uriTemplate: '/people_domains/{id}/overview',
+            controller: GetPeopleDomainOverviewAction::class,
+            read: false,
+            security: 'is_granted(\'ROLE_HUMAN\')'
+        ),
+        new Post(security: 'is_granted(\'ROLE_HUMAN\')'),
         new Put(
             security: 'is_granted(\'ROLE_HUMAN\')',
             denormalizationContext: ['groups' => ['people_domain:write']]
         ),
+        new Delete(security: 'is_granted(\'ROLE_HUMAN\')'),
     ],
     formats: ['jsonld', 'json', 'html', 'jsonhal', 'csv' => ['text/csv']],
     normalizationContext: ['groups' => ['people_domain:read']],
     denormalizationContext: ['groups' => ['people_domain:write']]
 )]
 #[ApiFilter(filterClass: OrderFilter::class, properties: ['domain' => 'ASC', 'id' => 'DESC'])]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact', 'people' => 'exact', 'domain' => 'partial', 'theme' => 'exact'])]
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact', 'people' => 'exact', 'domain' => 'partial', 'domainType' => 'exact', 'theme' => 'exact', 'apiPeopleDomain' => 'exact'])]
 #[ORM\Table(name: 'people_domain')]
 #[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
-
 class PeopleDomain
 {
-
     /**
      * @var integer
      */
@@ -57,8 +64,6 @@ class PeopleDomain
     #[Groups(['people_domain:read', 'people_domain:write'])]
     private $people;
 
-
-
     /**
      * @var Theme
      */
@@ -66,6 +71,14 @@ class PeopleDomain
     #[ORM\ManyToOne(targetEntity: Theme::class)]
     #[Groups(['people_domain:read', 'people_domain:write'])]
     private $theme;
+
+    /**
+     * @var PeopleDomain
+     */
+    #[ORM\JoinColumn(name: 'people_domain_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: PeopleDomain::class)]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
+    private $apiPeopleDomain;
 
     /**
      * @var string
@@ -84,7 +97,7 @@ class PeopleDomain
 
     public function __construct()
     {
-        $this->domain_type = 'cfp';
+        $this->domain_type = 'ERP';
     }
 
     /**
@@ -180,6 +193,24 @@ class PeopleDomain
     public function setTheme(?Theme $theme): self
     {
         $this->theme = $theme;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of apiPeopleDomain
+     */
+    public function getApiPeopleDomain(): ?PeopleDomain
+    {
+        return $this->apiPeopleDomain;
+    }
+
+    /**
+     * Set the value of apiPeopleDomain
+     */
+    public function setApiPeopleDomain(?PeopleDomain $apiPeopleDomain): self
+    {
+        $this->apiPeopleDomain = $apiPeopleDomain;
 
         return $this;
     }
