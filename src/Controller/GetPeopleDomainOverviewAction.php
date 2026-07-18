@@ -5,7 +5,7 @@ namespace ControleOnline\Controller;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleDomain;
 use ControleOnline\Entity\Theme;
-use ControleOnline\Service\ServerService;
+use ControleOnline\Service\DatabaseSwitchService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +15,7 @@ class GetPeopleDomainOverviewAction
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private ServerService $serverService,
+        private DatabaseSwitchService $databaseSwitchService,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -37,7 +37,7 @@ class GetPeopleDomainOverviewAction
             ['domain' => 'ASC', 'id' => 'ASC']
         );
 
-        $serverInfo = $this->serverService->findByDomain(
+        $serverInfo = $this->databaseSwitchService->getTenantConnectionInfo(
             (string) $peopleDomain->getDomain()
         );
 
@@ -125,11 +125,12 @@ class GetPeopleDomainOverviewAction
         }
 
         return [
-            'appHost' => $serverInfo['appHost'] ?? null,
-            'host' => $serverInfo['host'] ?? null,
-            'user' => $serverInfo['user'] ?? null,
-            'port' => $serverInfo['port'] ?? null,
-            'driver' => $serverInfo['driver'] ?? null,
+            'appHost' => $serverInfo['app_host'] ?? null,
+            'dbHost' => $serverInfo['db_host'] ?? null,
+            'dbName' => $serverInfo['db_name'] ?? null,
+            'dbPort' => $serverInfo['db_port'] ?? null,
+            'dbDriver' => $serverInfo['db_driver'] ?? null,
+            'dbInstance' => $serverInfo['db_instance'] ?? null,
         ];
     }
 
