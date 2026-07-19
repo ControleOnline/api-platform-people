@@ -37,7 +37,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(
             uriTemplate: '/people_media/upload',
             controller: PeopleMediaUploadController::class,
-            security: "is_granted('ROLE_HUMAN')",
+            security: "is_granted('ROLE_HUMAN') or is_granted('ROLE_CLIENT')",
             deserialize: false,
             read: false
         ),

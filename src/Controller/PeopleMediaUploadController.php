@@ -3,28 +3,41 @@
 namespace ControleOnline\Controller;
 
 use ControleOnline\Entity\MediaType;
+use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleMedia;
 use ControleOnline\Service\FileService;
 use ControleOnline\Service\HydratorService;
+use ControleOnline\Service\PeopleService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class PeopleMediaUploadController
 {
     public function __construct(
         private EntityManagerInterface $manager,
         private FileService $fileService,
-        private HydratorService $hydratorService
+        private HydratorService $hydratorService,
+        private PeopleService $peopleService,
+        private AuthorizationCheckerInterface $authorizationChecker
     ) {}
 
     public function __invoke(Request $request): Response
     {
         try {
             $uploadedFile = $request->files->get('file');
+            $isHuman = $this->authorizationChecker->isGranted('ROLE_HUMAN');
+            $authenticatedPeople = $this->peopleService->getMyPeople();
+            if (!$authenticatedPeople instanceof People) {
+                throw new AccessDeniedHttpException('authenticated person not found');
+            }
+
             $peopleReference = $request->request->get('people');
             $mediaTypeReference =
                 $request->request->get('media_type_id')
@@ -35,19 +48,28 @@ class PeopleMediaUploadController
                 throw new BadRequestHttpException('file is required');
             }
 
-            $people = $this->fileService->resolvePeopleReference($peopleReference);
+            $people = $isHuman && $peopleReference
+                ? $this->fileService->resolvePeopleReference($peopleReference)
+                : $authenticatedPeople;
             if (!$people) {
                 throw new BadRequestHttpException('people not found');
             }
 
-            $mediaTypeId = (int) preg_replace('/\D+/', '', (string) $mediaTypeReference);
-            if ($mediaTypeId <= 0) {
-                throw new BadRequestHttpException('media_type_id is required');
-            }
-
-            $mediaType = $this->manager->getRepository(MediaType::class)->find($mediaTypeId);
+            $mediaTypeId = $isHuman
+                ? (int) preg_replace('/\D+/', '', (string) $mediaTypeReference)
+                : 0;
+            $mediaType = $mediaTypeId > 0
+                ? $this->manager->getRepository(MediaType::class)->find($mediaTypeId)
+                : $this->manager->getRepository(MediaType::class)->findOneBy([
+                    'type' => strtoupper((string) $people->getPeopleType()) === 'F' ? 'avatar' : 'logo',
+                    'peopleType' => strtoupper((string) $people->getPeopleType()),
+                ]);
             if (!$mediaType instanceof MediaType) {
                 throw new BadRequestHttpException('media type not found');
+            }
+
+            if (!$isHuman && strtolower((string) $mediaType->getType()) !== 'avatar') {
+                throw new AccessDeniedHttpException('clients can only update their own avatar');
             }
 
             if (strtoupper((string) $people->getPeopleType()) !== $mediaType->getPeopleType()) {
@@ -106,7 +128,9 @@ class PeopleMediaUploadController
         } catch (Exception $e) {
             return new JsonResponse(
                 $this->hydratorService->error($e),
-                $e instanceof BadRequestHttpException ? Response::HTTP_BAD_REQUEST : Response::HTTP_INTERNAL_SERVER_ERROR
+                $e instanceof HttpExceptionInterface
+                    ? $e->getStatusCode()
+                    : Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
     }
