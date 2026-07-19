@@ -110,15 +110,24 @@ class GetMyCompaniesActionTest extends TestCase
             'domain' => 'https://cdn.example.test',
             'url' => '/files/92/download',
         ];
+        $stampUrl = [
+            'id' => 93,
+            'domain' => 'https://cdn.example.test',
+            'url' => '/files/93/download',
+        ];
 
         $fileService = $this->createMock(FileService::class);
         $fileService
-            ->expects(self::exactly(2))
+            ->expects(self::exactly(3))
             ->method('getPeopleMediaFileUrl')
-            ->willReturnCallback(static function (People $people, string $mediaType) use ($company, $logoUrl, $iconUrl) {
+            ->willReturnCallback(static function (People $people, string $mediaType) use ($company, $logoUrl, $iconUrl, $stampUrl) {
                 self::assertSame($company->getId(), $people->getId());
 
-                return $mediaType === 'icon' ? $iconUrl : $logoUrl;
+                return match ($mediaType) {
+                    'icon' => $iconUrl,
+                    'stamp' => $stampUrl,
+                    default => $logoUrl,
+                };
             });
         $fileService
             ->expects(self::never())
@@ -144,6 +153,7 @@ class GetMyCompaniesActionTest extends TestCase
         self::assertSame('CENTRO', $payload['response']['data'][0]['alias']);
         self::assertSame($logoUrl, $payload['response']['data'][0]['logo']);
         self::assertSame($iconUrl, $payload['response']['data'][0]['icon']);
+        self::assertSame($stampUrl, $payload['response']['data'][0]['stamp']);
         self::assertTrue($payload['response']['data'][0]['user']['courier_enabled']);
         self::assertSame(['courier'], $payload['response']['data'][0]['permission']);
     }

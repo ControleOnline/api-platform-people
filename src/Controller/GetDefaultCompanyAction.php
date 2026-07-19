@@ -48,6 +48,7 @@ class GetDefaultCompanyAction
       if ($this->company) {
         $publicLogo = $this->fileService->getPeopleMediaFileUrl($this->company, 'logo');
         $publicIcon = $this->fileService->getPeopleMediaFileUrl($this->company, 'icon');
+        $publicStamp = $this->fileService->getPeopleMediaFileUrl($this->company, 'stamp');
         $publicBackground = $this->fileService->getPeopleMediaFileUrl($this->company, 'background');
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
@@ -68,6 +69,7 @@ class GetDefaultCompanyAction
           'theme'       => $this->getTheme($publicBackground),
           'logo'        => $publicLogo,
           'icon'        => $publicIcon,
+          'stamp'       => $publicStamp,
         ];
       }
 

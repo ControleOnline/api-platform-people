@@ -102,14 +102,29 @@ class GetPublicShopFranchisesActionTest extends TestCase
 
         $fileService = $this->createMock(FileService::class);
         $fileService
-            ->expects(self::once())
+            ->expects(self::exactly(2))
             ->method('getPeopleMediaFileUrl')
-            ->with($franchise, 'logo')
-            ->willReturn([
-                'id' => 321,
-                'domain' => 'https://cdn.example.test',
-                'url' => '/files/321/download',
-            ]);
+            ->willReturnCallback(static function (People $people, string $mediaType): ?array {
+                self::assertSame(21, $people->getId());
+
+                if ($mediaType === 'logo') {
+                    return [
+                        'id' => 321,
+                        'domain' => 'https://cdn.example.test',
+                        'url' => '/files/321/download',
+                    ];
+                }
+
+                if ($mediaType === 'stamp') {
+                    return [
+                        'id' => 654,
+                        'domain' => 'https://cdn.example.test',
+                        'url' => '/files/654/download',
+                    ];
+                }
+
+                return null;
+            });
 
         $controller = new GetPublicShopFranchisesAction(
             $roles,
@@ -132,6 +147,11 @@ class GetPublicShopFranchisesActionTest extends TestCase
             'domain' => 'https://cdn.example.test',
             'url' => '/files/321/download',
         ], $payload['member'][0]['logo']);
+        self::assertSame([
+            'id' => 654,
+            'domain' => 'https://cdn.example.test',
+            'url' => '/files/654/download',
+        ], $payload['member'][0]['stamp']);
         self::assertArrayNotHasKey('image_id', $payload['member'][0]);
         self::assertCount(1, $payload['member'][0]['shopAddresses']);
         self::assertSame(501, $payload['member'][0]['shopAddresses'][0]['id']);

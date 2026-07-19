@@ -78,6 +78,7 @@ class GetMyCompaniesAction
         $packages = $this->getPeoplePackages($people);
         $publicLogo = $this->fileService->getPeopleMediaFileUrl($people, 'logo');
         $publicIcon = $this->fileService->getPeopleMediaFileUrl($people, 'icon');
+        $publicStamp = $this->fileService->getPeopleMediaFileUrl($people, 'stamp');
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      => $people->getId(),
@@ -110,6 +111,7 @@ class GetMyCompaniesAction
           'alias'         => $people->getAlias(),
           'logo'          => $publicLogo,
           'icon'          => $publicIcon,
+          'stamp'         => $publicStamp,
           'document'      => $this->getDocument($people),
           'domains'       => $domains,
           'configs'       => $configs,
