@@ -39,9 +39,7 @@ final class Version20260717195000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `people_domain` DROP FOREIGN KEY `people_domain_people_domain_id_fk`');
-        $this->addSql('ALTER TABLE `people_domain` DROP INDEX `people_domain_id`');
-        $this->addSql('ALTER TABLE `people_domain` DROP COLUMN `people_domain_id`');
+        return;
     }
 
     private function columnExists(string $column): bool

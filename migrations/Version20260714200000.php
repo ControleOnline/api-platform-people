@@ -39,13 +39,7 @@ final class Version20260714200000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        if (!$this->tableExists('employee_profile')) {
-            return;
-        }
-
-        $this->dropForeignKeyIfExists('employee_profile', 'FK_EMPLOYEE_PROFILE_EMPLOYMENT_TYPE');
-        $this->dropIndexIfExists('employee_profile', 'employee_profile_employment_type_idx');
-        $this->dropColumnIfExists('employee_profile', 'employment_type_id');
+        return;
     }
 
     private function backfillEmploymentTypeRelation(): void

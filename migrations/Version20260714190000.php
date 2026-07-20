@@ -350,29 +350,6 @@ final class Version20260714190000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql('SET FOREIGN_KEY_CHECKS=0');
-        $this->addSql('DROP TABLE IF EXISTS `phone`');
-        $this->addSql('DROP TABLE IF EXISTS `people_support`');
-        $this->addSql('DROP TABLE IF EXISTS `people_schedule`');
-        $this->addSql('DROP TABLE IF EXISTS `people_role`');
-        $this->addSql('DROP TABLE IF EXISTS `people_procurator`');
-        $this->addSql('DROP TABLE IF EXISTS `people_package`');
-        $this->addSql('DROP TABLE IF EXISTS `people_order`');
-        $this->addSql('DROP TABLE IF EXISTS `people_media`');
-        $this->addSql('DROP TABLE IF EXISTS `people_link`');
-        $this->addSql('DROP TABLE IF EXISTS `people_export_job`');
-        $this->addSql('DROP TABLE IF EXISTS `people_domain`');
-        $this->addSql('DROP TABLE IF EXISTS `people_access_event`');
-        $this->addSql('DROP TABLE IF EXISTS `people_absence`');
-        $this->addSql('DROP TABLE IF EXISTS `people`');
-        $this->addSql('DROP TABLE IF EXISTS `package_modules`');
-        $this->addSql('DROP TABLE IF EXISTS `package`');
-        $this->addSql('DROP TABLE IF EXISTS `media_types`');
-        $this->addSql('DROP TABLE IF EXISTS `employee_profile`');
-        $this->addSql('DROP TABLE IF EXISTS `email`');
-        $this->addSql('DROP TABLE IF EXISTS `document_type`');
-        $this->addSql('DROP TABLE IF EXISTS `document`');
-        $this->addSql('DROP TABLE IF EXISTS `company_document`');
-        $this->addSql('SET FOREIGN_KEY_CHECKS=1');
+        return;
     }
 }

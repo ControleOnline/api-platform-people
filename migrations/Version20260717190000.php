@@ -30,19 +30,7 @@ final class Version20260717190000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        if ($this->tableExists('people_media')) {
-            $this->addSql('ALTER TABLE people_media DROP INDEX people_id_2, ADD UNIQUE KEY people_id_2 (people_id, file_id, media_type_id)');
-        }
-
-        if (!$this->tableExists('people')) {
-            return;
-        }
-
-        $this->addSql('ALTER TABLE people ADD image_id INT DEFAULT NULL, ADD background_image INT DEFAULT NULL, ADD alternative_image INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE people ADD INDEX image_id (image_id), ADD INDEX alternative_image (background_image), ADD INDEX alternative_image_2 (alternative_image)');
-        $this->addSql('ALTER TABLE people ADD CONSTRAINT people_ibfk_1 FOREIGN KEY (image_id) REFERENCES files (id) ON DELETE SET NULL ON UPDATE CASCADE');
-        $this->addSql('ALTER TABLE people ADD CONSTRAINT people_ibfk_3 FOREIGN KEY (background_image) REFERENCES files (id) ON DELETE SET NULL ON UPDATE CASCADE');
-        $this->addSql('ALTER TABLE people ADD CONSTRAINT people_ibfk_4 FOREIGN KEY (alternative_image) REFERENCES files (id) ON DELETE SET NULL ON UPDATE CASCADE');
+        return;
     }
 
     private function backfillLegacyPeopleImages(): void
