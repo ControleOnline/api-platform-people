@@ -182,6 +182,7 @@ class GetPublicShopFranchisesAction
             'alias' => $company->getAlias(),
             'logo' => $this->fileService->getPeopleMediaFileUrl($company, 'logo'),
             'stamp' => $this->fileService->getPeopleMediaFileUrl($company, 'stamp'),
+            'pin' => $this->fileService->getPeopleMediaFileUrl($company, 'pin'),
             'phone' => $this->serializePhones($company->getPhone()),
             'mobile' => [],
             'whatsapp' => [],
