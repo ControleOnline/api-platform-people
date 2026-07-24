@@ -398,6 +398,18 @@ class PeopleService
       return;
     }
 
+    if (!$link && !$company && !$linkType) {
+      $visiblePeopleIds = $this->resolveVisiblePeopleIds($myPeople, $myCompanyIds);
+      if ($visiblePeopleIds === []) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
+
+      $queryBuilder->andWhere(sprintf('%s.id IN(:peopleVisibilityIds)', $rootAlias));
+      $queryBuilder->setParameter('peopleVisibilityIds', $visiblePeopleIds);
+      return;
+    }
+
     $aliases = $queryBuilder->getAllAliases();
     if (!in_array('PeopleLink', $aliases, true)) {
       $queryBuilder->leftJoin(
@@ -452,6 +464,55 @@ class PeopleService
     if ($visibilityConditions !== []) {
       $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
     }
+  }
+
+  private function resolveVisiblePeopleIds(?People $myPeople, array $myCompanyIds): array
+  {
+    $visiblePeopleIds = [];
+
+    if ($myPeople) {
+      $visiblePeopleIds[] = (int) $myPeople->getId();
+    }
+
+    foreach ($myCompanyIds as $companyId) {
+      $visiblePeopleIds[] = (int) $companyId;
+    }
+
+    $visibilityConditions = [];
+    $visibilityQueryBuilder = $this->manager->createQueryBuilder()
+      ->select(
+        'DISTINCT IDENTITY(visibleLink.company) AS companyId',
+        'IDENTITY(visibleLink.people) AS peopleId'
+      )
+      ->from(PeopleLink::class, 'visibleLink');
+
+    if ($myPeople) {
+      $visibilityConditions[] = 'visibleLink.people = :visibleMyPeopleId';
+      $visibilityQueryBuilder->setParameter('visibleMyPeopleId', (int) $myPeople->getId());
+    }
+
+    if ($myCompanyIds !== []) {
+      $visibilityConditions[] = 'visibleLink.company IN(:visibleMyCompanies)';
+      $visibilityConditions[] = 'visibleLink.people IN(:visibleMyCompanies)';
+      $visibilityQueryBuilder->setParameter('visibleMyCompanies', $myCompanyIds);
+    }
+
+    if ($visibilityConditions !== []) {
+      $visibilityQueryBuilder->andWhere($visibilityQueryBuilder->expr()->orX(...$visibilityConditions));
+
+      foreach ($visibilityQueryBuilder->getQuery()->getArrayResult() as $visibleLink) {
+        foreach (['companyId', 'peopleId'] as $field) {
+          if (isset($visibleLink[$field])) {
+            $visiblePeopleIds[] = (int) $visibleLink[$field];
+          }
+        }
+      }
+    }
+
+    return array_values(array_unique(array_filter(
+      $visiblePeopleIds,
+      static fn(int $peopleId): bool => $peopleId > 0
+    )));
   }
 
   private function isLoyaltyCpfSearchContext(mixed $context, mixed $linkType): bool

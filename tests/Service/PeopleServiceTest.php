@@ -3,14 +3,18 @@
 namespace ControleOnline\Tests\Service;
 
 use ControleOnline\Entity\Document;
+use ControleOnline\Entity\People;
+use ControleOnline\Entity\User;
 use ControleOnline\Service\PeopleRoleService;
 use ControleOnline\Service\PeopleService;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class PeopleServiceTest extends TestCase
@@ -81,5 +85,96 @@ class PeopleServiceTest extends TestCase
             'client',
             $reflection->invoke($service, $requestStack->getCurrentRequest(), 'linkType')
         );
+    }
+
+    public function testCheckLinkWithoutRequestFiltersUsesVisiblePeopleIds(): void
+    {
+        $myPeople = $this->createPeople(7);
+        $company = $this->createPeople(2);
+
+        $tokenUser = (new User())->setPeople($myPeople);
+
+        $token = $this->createMock(TokenInterface::class);
+        $token
+            ->method('getUser')
+            ->willReturn($tokenUser);
+
+        $security = $this->createMock(TokenStorageInterface::class);
+        $security
+            ->method('getToken')
+            ->willReturn($token);
+
+        $peopleRoleService = $this->createMock(PeopleRoleService::class);
+        $peopleRoleService
+            ->method('getAccessibleCompaniesForPeople')
+            ->with($myPeople)
+            ->willReturn([$company]);
+
+        $visibilityQuery = $this->getMockBuilder(Query::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getArrayResult'])
+            ->getMock();
+        $visibilityQuery
+            ->expects(self::once())
+            ->method('getArrayResult')
+            ->willReturn([
+                ['companyId' => 2, 'peopleId' => 7],
+                ['companyId' => 2, 'peopleId' => 99],
+            ]);
+
+        $visibilityQueryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['select', 'from', 'setParameter', 'andWhere', 'expr', 'getQuery'])
+            ->getMock();
+        $visibilityQueryBuilder->method('select')->willReturnSelf();
+        $visibilityQueryBuilder->method('from')->willReturnSelf();
+        $visibilityQueryBuilder->method('setParameter')->willReturnSelf();
+        $visibilityQueryBuilder->method('andWhere')->willReturnSelf();
+        $visibilityQueryBuilder->method('expr')->willReturn(new Expr());
+        $visibilityQueryBuilder->method('getQuery')->willReturn($visibilityQuery);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects(self::once())
+            ->method('createQueryBuilder')
+            ->willReturn($visibilityQueryBuilder);
+
+        $requestStack = new RequestStack();
+        $requestStack->push(new Request());
+
+        $service = new PeopleService(
+            $entityManager,
+            $security,
+            $peopleRoleService,
+            $requestStack
+        );
+
+        $rootQueryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['andWhere', 'setParameter', 'leftJoin'])
+            ->getMock();
+        $rootQueryBuilder
+            ->expects(self::once())
+            ->method('andWhere')
+            ->with('resource.id IN(:peopleVisibilityIds)')
+            ->willReturnSelf();
+        $rootQueryBuilder
+            ->expects(self::once())
+            ->method('setParameter')
+            ->with('peopleVisibilityIds', [7, 2, 99])
+            ->willReturnSelf();
+        $rootQueryBuilder
+            ->expects(self::never())
+            ->method('leftJoin');
+
+        $service->checkLink($rootQueryBuilder, null, 'api_platform', 'resource');
+    }
+
+    private function createPeople(int $id): People
+    {
+        $people = $this->createMock(People::class);
+        $people->method('getId')->willReturn($id);
+
+        return $people;
     }
 }
