@@ -102,7 +102,7 @@ class GetPublicShopFranchisesActionTest extends TestCase
 
         $fileService = $this->createMock(FileService::class);
         $fileService
-            ->expects(self::exactly(2))
+            ->expects(self::exactly(4))
             ->method('getPeopleMediaFileUrl')
             ->willReturnCallback(static function (People $people, string $mediaType): ?array {
                 self::assertSame(21, $people->getId());
@@ -115,11 +115,27 @@ class GetPublicShopFranchisesActionTest extends TestCase
                     ];
                 }
 
+                if ($mediaType === 'icon') {
+                    return [
+                        'id' => 987,
+                        'domain' => 'https://cdn.example.test',
+                        'url' => '/files/987/download',
+                    ];
+                }
+
                 if ($mediaType === 'stamp') {
                     return [
                         'id' => 654,
                         'domain' => 'https://cdn.example.test',
                         'url' => '/files/654/download',
+                    ];
+                }
+
+                if ($mediaType === 'pin') {
+                    return [
+                        'id' => 777,
+                        'domain' => 'https://cdn.example.test',
+                        'url' => '/files/777/download',
                     ];
                 }
 
@@ -148,10 +164,20 @@ class GetPublicShopFranchisesActionTest extends TestCase
             'url' => '/files/321/download',
         ], $payload['member'][0]['logo']);
         self::assertSame([
+            'id' => 987,
+            'domain' => 'https://cdn.example.test',
+            'url' => '/files/987/download',
+        ], $payload['member'][0]['icon']);
+        self::assertSame([
             'id' => 654,
             'domain' => 'https://cdn.example.test',
             'url' => '/files/654/download',
         ], $payload['member'][0]['stamp']);
+        self::assertSame([
+            'id' => 777,
+            'domain' => 'https://cdn.example.test',
+            'url' => '/files/777/download',
+        ], $payload['member'][0]['pin']);
         self::assertArrayNotHasKey('image_id', $payload['member'][0]);
         self::assertCount(1, $payload['member'][0]['shopAddresses']);
         self::assertSame(501, $payload['member'][0]['shopAddresses'][0]['id']);
