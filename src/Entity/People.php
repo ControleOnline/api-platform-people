@@ -282,9 +282,19 @@ class People
         $this->name = $name;
         return $this;
     }
+
+    private function uppercaseText(?string $value): string
+    {
+        $normalized = (string) $value;
+
+        return function_exists('mb_strtoupper')
+            ? mb_strtoupper($normalized, 'UTF-8')
+            : strtoupper($normalized);
+    }
+
     public function getName(): string
     {
-        return strtoupper((string) $this->name);
+        return $this->uppercaseText($this->name);
     }
 
     public function setAlias($alias)
@@ -294,7 +304,7 @@ class People
     }
     public function getAlias()
     {
-        return strtoupper((string) $this->alias);
+        return $this->uppercaseText($this->alias);
     }
 
     public function setLanguage(Language $language = null)
