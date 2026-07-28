@@ -109,7 +109,7 @@ class AccountRegistrationService
                 $connection->rollBack();
             }
 
-        throw $exception;
+            throw $exception;
         }
     }
 
