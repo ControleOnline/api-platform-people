@@ -3,6 +3,7 @@
 namespace ControleOnline\Service;
 
 use ControleOnline\Entity\People;
+use ControleOnline\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -70,9 +71,14 @@ class AccountRegistrationService
             }
 
             $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
-            $this->peopleService->discoveryLink($mainCompany, $client, 'client');
+            $isFirstTenantUser = $this->isFirstTenantUser();
+            $registersUser = is_array($peopleData['user'] ?? null);
 
-            if (is_array($peopleData['user'] ?? null)) {
+            if (!$isFirstTenantUser || !$registersUser || $client !== $people) {
+                $this->peopleService->discoveryLink($mainCompany, $client, 'client');
+            }
+
+            if ($registersUser) {
                 if (
                     !isset($peopleData['user']['user']) ||
                     !isset($peopleData['user']['password'])
@@ -85,6 +91,10 @@ class AccountRegistrationService
                     $peopleData['user']['user'],
                     $peopleData['user']['password']
                 );
+
+                if ($isFirstTenantUser) {
+                    $this->peopleService->discoveryLink($mainCompany, $people, 'owner');
+                }
 
                 $this->accountVerificationService->sendVerification(
                     $user,
@@ -99,8 +109,13 @@ class AccountRegistrationService
                 $connection->rollBack();
             }
 
-            throw $exception;
+        throw $exception;
         }
+    }
+
+    private function isFirstTenantUser(): bool
+    {
+        return $this->manager->getRepository(User::class)->count([]) === 0;
     }
 
     private function decodePayload(?string $content): array

@@ -98,9 +98,19 @@ class GetDefaultCompanyAction
 
   private function getTheme(?array $background = null)
   {
+    $theme = $this->domainService->getPeopleDomain()->getTheme();
+
+    if (!$theme) {
+      return [
+        'theme' => 'DEFAULT',
+        'colors' => [],
+        'background'  =>  $background,
+      ];
+    }
+
     return [
-      'theme' =>  $this->domainService->getPeopleDomain()->getTheme()->getTheme(),
-      'colors' =>  $this->domainService->getPeopleDomain()->getTheme()->getColors(),
+      'theme' =>  $theme->getTheme(),
+      'colors' =>  $theme->getColors(),
       'background'  =>  $background,
     ];
   }
