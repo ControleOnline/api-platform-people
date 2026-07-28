@@ -48,16 +48,6 @@ final class Version20260718195000 extends AbstractMigration
             $this->addSql('ALTER TABLE `people_domain` ADD CONSTRAINT `people_domain_people_domain_id_fk` FOREIGN KEY (`people_domain_id`) REFERENCES `people_domain` (`id`) ON DELETE SET NULL ON UPDATE CASCADE');
         }
 
-        $this->addSql('UPDATE `people_domain` front
-            LEFT JOIN (
-                SELECT `people_id`, MIN(`id`) AS `people_domain_id`
-                FROM `people_domain`
-                WHERE `domain_type` = \'API\'
-                GROUP BY `people_id`
-            ) api ON api.`people_id` = front.`people_id`
-            SET front.`people_domain_id` = api.`people_domain_id`
-            WHERE front.`domain_type` <> \'API\'
-              AND front.`people_domain_id` IS NULL');
     }
 
     public function down(Schema $schema): void
