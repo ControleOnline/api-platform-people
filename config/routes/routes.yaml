@@ -1,0 +1,3 @@
+controleonline_people:
+    resource: ../../src/Controller/
+    type: attribute
