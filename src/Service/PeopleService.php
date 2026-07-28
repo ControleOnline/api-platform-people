@@ -279,11 +279,17 @@ class PeopleService
     if (!$documentType) {
       $documentType = new DocumentType();
       $documentType->setDocumentType($document_type);
+      $documentType->setPeopleType($this->getPeopleTypeByDocumentType($document_type));
       $this->manager->persist($documentType);
       $this->manager->flush();
     }
 
     return $documentType;
+  }
+
+  private function getPeopleTypeByDocumentType(string $documentType): string
+  {
+    return strtoupper(trim($documentType)) === 'CNPJ' ? 'J' : 'F';
   }
 
   public function getDocument(string $document_number, ?string $document_type = null): ?Document

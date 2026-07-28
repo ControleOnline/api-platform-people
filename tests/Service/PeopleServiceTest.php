@@ -3,6 +3,7 @@
 namespace ControleOnline\Tests\Service;
 
 use ControleOnline\Entity\Document;
+use ControleOnline\Entity\DocumentType;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\User;
 use ControleOnline\Service\PeopleRoleService;
@@ -85,6 +86,104 @@ class PeopleServiceTest extends TestCase
             'client',
             $reflection->invoke($service, $requestStack->getCurrentRequest(), 'linkType')
         );
+    }
+
+    public function testDiscoveryDocumentTypeCreatesMissingCpfWithPeopleType(): void
+    {
+        $query = $this->getMockBuilder(Query::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getOneOrNullResult'])
+            ->getMock();
+        $query
+            ->expects(self::once())
+            ->method('getOneOrNullResult')
+            ->willReturn(null);
+
+        $queryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['select', 'from', 'andWhere', 'setParameter', 'setMaxResults', 'getQuery'])
+            ->getMock();
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('andWhere')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('setMaxResults')->willReturnSelf();
+        $queryBuilder->method('getQuery')->willReturn($query);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects(self::once())
+            ->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+        $entityManager
+            ->expects(self::once())
+            ->method('persist')
+            ->with(self::callback(static function (DocumentType $documentType): bool {
+                return $documentType->getDocumentType() === 'CPF'
+                    && $documentType->getPeopleType() === 'F';
+            }));
+        $entityManager->expects(self::once())->method('flush');
+
+        $service = new PeopleService(
+            $entityManager,
+            $this->createStub(TokenStorageInterface::class),
+            $this->createStub(PeopleRoleService::class),
+            new RequestStack()
+        );
+
+        $documentType = $service->discoveryDocumentType('CPF');
+
+        self::assertSame('CPF', $documentType->getDocumentType());
+        self::assertSame('F', $documentType->getPeopleType());
+    }
+
+    public function testDiscoveryDocumentTypeCreatesMissingCnpjWithPeopleType(): void
+    {
+        $query = $this->getMockBuilder(Query::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getOneOrNullResult'])
+            ->getMock();
+        $query
+            ->expects(self::once())
+            ->method('getOneOrNullResult')
+            ->willReturn(null);
+
+        $queryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['select', 'from', 'andWhere', 'setParameter', 'setMaxResults', 'getQuery'])
+            ->getMock();
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('andWhere')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('setMaxResults')->willReturnSelf();
+        $queryBuilder->method('getQuery')->willReturn($query);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects(self::once())
+            ->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+        $entityManager
+            ->expects(self::once())
+            ->method('persist')
+            ->with(self::callback(static function (DocumentType $documentType): bool {
+                return $documentType->getDocumentType() === 'CNPJ'
+                    && $documentType->getPeopleType() === 'J';
+            }));
+        $entityManager->expects(self::once())->method('flush');
+
+        $service = new PeopleService(
+            $entityManager,
+            $this->createStub(TokenStorageInterface::class),
+            $this->createStub(PeopleRoleService::class),
+            new RequestStack()
+        );
+
+        $documentType = $service->discoveryDocumentType('CNPJ');
+
+        self::assertSame('CNPJ', $documentType->getDocumentType());
+        self::assertSame('J', $documentType->getPeopleType());
     }
 
     public function testCheckLinkWithoutRequestFiltersUsesVisiblePeopleIds(): void

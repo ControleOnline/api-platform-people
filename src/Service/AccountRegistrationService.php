@@ -46,6 +46,8 @@ class AccountRegistrationService
                 }
             }
 
+            $isFirstTenantUser = $this->isFirstTenantUser();
+
             $people = $this->peopleService->discoveryPeople(
                 $peopleData['document'] ?? null,
                 $peopleData['email'],
@@ -71,7 +73,6 @@ class AccountRegistrationService
             }
 
             $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
-            $isFirstTenantUser = $this->isFirstTenantUser();
             $registersUser = is_array($peopleData['user'] ?? null);
 
             if (!$isFirstTenantUser || !$registersUser || $client !== $people) {
