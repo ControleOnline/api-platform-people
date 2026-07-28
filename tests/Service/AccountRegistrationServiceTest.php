@@ -52,7 +52,7 @@ class AccountRegistrationServiceTest extends TestCase
                 '52998224725',
                 'alemac@mac.com',
                 ['ddi' => '55', 'ddd' => '11', 'phone' => '999999999'],
-                'ALEMAC TESTE',
+                'ALEMAC',
                 'F'
             )
             ->willReturn($person);
@@ -103,7 +103,7 @@ class AccountRegistrationServiceTest extends TestCase
                 'phone' => [
                     'ddi' => '55',
                     'ddd' => '11',
-                    'phone' => '999999999',
+                    'phone' => '11999999999',
                 ],
                 'user' => [
                     'user' => 'alemac@mac.com',
@@ -113,6 +113,8 @@ class AccountRegistrationServiceTest extends TestCase
         ]);
 
         self::assertSame($person, $registeredPeople);
+        self::assertSame('ALEMAC', $person->getName());
+        self::assertSame('TESTE', $person->getAlias());
     }
 
     public function testRegisterFromPayloadDoesNotCreateOwnerWhenTenantAlreadyHasUsers(): void

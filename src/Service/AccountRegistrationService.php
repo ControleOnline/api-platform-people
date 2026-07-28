@@ -39,7 +39,9 @@ class AccountRegistrationService
                 }
             }
 
-            $phoneData = is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : [];
+            $phoneData = $this->normalizePhoneData(
+                is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : []
+            );
             foreach (['ddi', 'ddd', 'phone'] as $field) {
                 if (!isset($phoneData[$field])) {
                     throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
@@ -52,9 +54,10 @@ class AccountRegistrationService
                 $peopleData['document'] ?? null,
                 $peopleData['email'],
                 $phoneData,
-                trim($peopleData['name'] . ' ' . $peopleData['alias']),
+                trim((string) $peopleData['name']),
                 'F'
             );
+            $this->applyPeopleName($people, $peopleData);
 
             $client = $people;
 
@@ -63,10 +66,11 @@ class AccountRegistrationService
                 $company = $this->peopleService->discoveryPeople(
                     $companyData['document'] ?? null,
                     $companyData['email'] ?? null,
-                    is_array($companyData['phone'] ?? null) ? $companyData['phone'] : null,
+                    is_array($companyData['phone'] ?? null) ? $this->normalizePhoneData($companyData['phone']) : null,
                     $companyData['name'] ?? null,
                     'J'
                 );
+                $this->applyPeopleName($company, $companyData);
 
                 $this->peopleService->discoveryLink($company, $people, 'employee');
                 $client = $company;
@@ -117,6 +121,41 @@ class AccountRegistrationService
     private function isFirstTenantUser(): bool
     {
         return $this->manager->getRepository(User::class)->count([]) === 0;
+    }
+
+    private function normalizePhoneData(array $phoneData): array
+    {
+        foreach (['ddi', 'ddd', 'phone'] as $field) {
+            if (isset($phoneData[$field])) {
+                $phoneData[$field] = preg_replace('/\D+/', '', (string) $phoneData[$field]);
+            }
+        }
+
+        $ddd = (string) ($phoneData['ddd'] ?? '');
+        $phone = (string) ($phoneData['phone'] ?? '');
+
+        if ($ddd !== '' && strlen($phone) > 9 && str_starts_with($phone, $ddd)) {
+            $phoneData['phone'] = substr($phone, strlen($ddd));
+        }
+
+        return $phoneData;
+    }
+
+    private function applyPeopleName(People $people, array $peopleData): void
+    {
+        $name = trim((string) ($peopleData['name'] ?? ''));
+        $alias = trim((string) ($peopleData['alias'] ?? ''));
+
+        if ($name !== '') {
+            $people->setName($name);
+        }
+
+        if ($alias !== '') {
+            $people->setAlias($alias);
+        }
+
+        $this->manager->persist($people);
+        $this->manager->flush();
     }
 
     private function decodePayload(?string $content): array
