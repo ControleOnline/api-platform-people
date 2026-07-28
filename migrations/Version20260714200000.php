@@ -13,7 +13,7 @@ final class Version20260714200000 extends AbstractMigration
 
     public function getDescription(): string
     {
-        return 'Add employment_type_id to employee_profile and backfill category relations';
+        return 'Add employment_type_id to employee_profile.';
     }
 
     public function up(Schema $schema): void
@@ -25,8 +25,7 @@ final class Version20260714200000 extends AbstractMigration
         $this->ensureColumn('employee_profile', 'employment_type_id', 'INT DEFAULT NULL');
         $this->ensureIndex('employee_profile', 'employee_profile_employment_type_idx', 'employment_type_id');
 
-        if ($this->tableExists('category') && $this->tableExists('people_link')) {
-            $this->backfillEmploymentTypeRelation();
+        if ($this->tableExists('category')) {
             $this->ensureForeignKey(
                 'employee_profile',
                 'FK_EMPLOYEE_PROFILE_EMPLOYMENT_TYPE',
@@ -40,41 +39,6 @@ final class Version20260714200000 extends AbstractMigration
     public function down(Schema $schema): void
     {
         return;
-    }
-
-    private function backfillEmploymentTypeRelation(): void
-    {
-        $nameExpression = 'LEFT(TRIM(ep.employment_type), 100)';
-
-        $this->addSql(sprintf(
-            "INSERT INTO category (name, context, company_id)
-             SELECT DISTINCT %s, ?, pl.company_id
-             FROM employee_profile ep
-             INNER JOIN people_link pl ON pl.id = ep.people_link_id
-             WHERE ep.employment_type IS NOT NULL
-             AND TRIM(ep.employment_type) <> ''
-             AND NOT EXISTS (
-                SELECT 1 FROM category c
-                WHERE c.context = ?
-                AND c.company_id = pl.company_id
-                AND c.name = %s
-             )",
-            $nameExpression,
-            $nameExpression
-        ), [self::CATEGORY_CONTEXT_EMPLOYMENT_TYPE, self::CATEGORY_CONTEXT_EMPLOYMENT_TYPE]);
-
-        $this->addSql(sprintf(
-            "UPDATE employee_profile ep
-             INNER JOIN people_link pl ON pl.id = ep.people_link_id
-             INNER JOIN category c ON c.context = ?
-             AND c.company_id = pl.company_id
-             AND c.name = %s
-             SET ep.employment_type_id = c.id
-             WHERE ep.employment_type_id IS NULL
-             AND ep.employment_type IS NOT NULL
-             AND TRIM(ep.employment_type) <> ''",
-            $nameExpression
-        ), [self::CATEGORY_CONTEXT_EMPLOYMENT_TYPE]);
     }
 
     private function ensureColumn(string $tableName, string $columnName, string $definition): void
