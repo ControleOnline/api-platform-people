@@ -99,7 +99,8 @@ class PeopleMediaUploadController
                 'people_media',
                 $uploadedFile->getClientOriginalName(),
                 'image',
-                'png'
+                'png',
+                $this->isPublicMediaType($mediaType)
             );
 
             $peopleMedia = $this->manager
@@ -133,5 +134,16 @@ class PeopleMediaUploadController
                     : Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    private function isPublicMediaType(MediaType $mediaType): bool
+    {
+        return in_array(strtolower((string) $mediaType->getType()), [
+            'background',
+            'icon',
+            'logo',
+            'pin',
+            'stamp',
+        ], true);
     }
 }
