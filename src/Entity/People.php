@@ -140,6 +140,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     'link.linkType' => 'exact',
     'link.company' => 'exact',
     'link.people' => 'exact',
+    'company.linkType' => 'exact',
+    'company.people' => 'exact',
     'user' => 'exact',
     'document' => 'exact',
     'address' => 'exact',
