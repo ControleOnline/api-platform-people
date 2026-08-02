@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ControleOnline\Controller\PeopleMediaSaveController;
 use ControleOnline\Controller\PeopleMediaUploadController;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -24,6 +25,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/people_media',
             security: "is_granted('ROLE_HUMAN')"
+        ),
+        new Post(
+            uriTemplate: '/people_media',
+            controller: PeopleMediaSaveController::class,
+            security: "is_granted('ROLE_HUMAN')",
+            deserialize: false,
+            read: false
         ),
         new Put(
             uriTemplate: '/people_media/{id}',
