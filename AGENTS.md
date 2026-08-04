@@ -1,9 +1,6 @@
-## People Module
+## Ponto de entrada
 
-- Company public media must be resolved through `people_media` plus `media_types.type`.
-- Public company payloads must expose institutional media by type: `logo`, `icon`, `stamp`, `pin`, and `background` when applicable.
-- Do not add config URL fields to replace company media assets.
-
-## Qualidade de código
-
-- A barra comum de modularizacao, testes, smoke tests e limite de tamanho de componentes vive em `https://github.com/ControleOnline/agents-mcp/blob/master/skills/shared/code-quality.md`.
+- A documentação funcional e de regras deste modulo vive na wiki do proprio repositório e na wiki principal da API.
+- Regras transversais de qualidade, modularizacao e limites de componente vivem em `https://github.com/ControleOnline/agents-mcp/blob/master/skills/shared/code-quality.md`.
+- Quando houver detalhe especifico de implementacao, prefira comentar no codigo em ingles perto da regra.
+- Este arquivo deve ficar curto e servir apenas como ponte para as fontes oficiais.
