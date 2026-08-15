@@ -30,6 +30,9 @@ class PeopleLinkRepository extends ServiceEntityRepository
             ->andWhere('pl.enable = :enabled')->setParameter('enabled', true)
             ->andWhere('pl.linkType IN (:types)')->setParameter('types', PeopleLink::HUMAN_LINK);
 
-        return $qb->getQuery()->getOneOrNullResult() !== null;
+        return $qb
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult() !== null;
     }
 }

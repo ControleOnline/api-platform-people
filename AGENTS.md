@@ -1,41 +1,46 @@
-## Escopo
-- Modulo de pessoas e empresas.
-- Cobre `People`, documentos, emails, dominios, empresas, pacotes e fluxo base de criacao de conta.
+## Ponto de entrada
 
-## Quando usar
-- Prompts sobre pessoa, empresa, documentos, contatos, dominio, company context e vinculos principais de cadastro.
+- A documentação funcional e de regras deste modulo vive na **wiki do proprio repositório** e na wiki principal da API.
+- Regras transversais de qualidade, modularizacao e limites de componente vivem em `https://github.com/ControleOnline/agents-mcp/blob/master/skills/shared/code-quality.md`.
+- Quando houver detalhe especifico de implementacao, prefira comentar no codigo em ingles perto da regra.
+- Este arquivo deve ficar curto e servir apenas como ponte para as fontes oficiais.
 
-## Regras de vinculo
-- `people_link` e o catalogo oficial de relacionamento entre pessoa e empresa.
-- Roles humanas explicitas do modulo: `employee`, `owner`, `director`, `manager`, `salesman`, `after-sales`.
-- Roles comerciais explicitas do modulo: `client`, `provider`, `franchisee`.
-- `family` e `sellers-client` nao entram como role humana de API.
-- `ROLE_SUPER` so existe quando o vinculo direto com a empresa principal for `owner`.
+## Documentação (navegação humana)
 
-## Regras de acesso
-- A pessoa fisica so tem permissao operacional na empresa do vinculo direto.
-- Subidas de nivel na arvore de empresas servem apenas para validar a cadeia comercial ate a principal.
-- `client` nao concede permissao operacional humana; ele apenas habilita o acesso comercial da empresa ao painel.
-- `permission` retornado por company context deve refletir o link direto da pessoa com a empresa e a cadeia comercial valida.
-- O filtro principal de dados do modulo mora em `PeopleService::securityFilter()` e helpers derivados.
-- `People` nao pode expor por serializacao aninhada dados sensiveis de `User` para leitores mais amplos do que a politica direta de `User`.
-- Campos como `username`, `apiKey`, hash de recuperacao, credenciais ou identificadores equivalentes de `User` nao podem sair em grupos amplos como `people:read`.
-- Se `People` mantiver relacao com `User`, essa relacao so pode aparecer em grupo e operacao com autorizacao tao forte quanto a leitura direta de `User`.
-- Operacoes amplas ou publicas de `People`, incluindo `Get` com `PUBLIC_ACCESS`, nunca podem se tornar caminho lateral para leitura de credenciais ou segredos de `User`.
-- Listagens de `People` consumidas por `DefaultTable` React precisam de `CustomOrFilter`, `OrderFilter` e `DateFilter` alinhados com os campos declarados no store, com datas ordenando pelo valor persistido.
+Sempre comece pela **Home** da wiki e siga as categorias abaixo.
 
-## Regras de vendedores e comissao
-- O vinculo `sellers-client` em `people_link` e sensivel porque revela e altera a relacao comercial entre cliente e vendedor.
-- Fora do contexto `APP_TYPE=MANAGER`, o ecossistema pode identificar quem e o vendedor vinculado ao cliente, mas nao pode expor `comission` nem `minimum_comission`.
-- Operacoes de adicionar, editar, remover ou trocar vendedores vinculados ao cliente so podem ser liberadas no contexto `MANAGER`.
-- O backend nao pode confiar apenas em ocultacao de campos no front para proteger `people_link`.
-- Toda leitura e toda escrita de `people_link`, especialmente para `linkType=sellers-client`, precisa de `securityFilter` proprio no service equivalente da entidade ou protecao explicita de mesmo efeito cobrindo leitura e gravacao.
-- `ROLE_HUMAN` isolado nao e protecao suficiente para esse recurso.
+| Categoria | Destino |
+| --- | --- |
+| Home do módulo | https://github.com/ControleOnline/api-platform-people/wiki |
+| Wiki principal da API | https://github.com/ControleOnline/api-community/wiki |
+| Wiki principal do app | https://github.com/ControleOnline/app-community/wiki |
+| Visões do app (`APP_TYPE`) | https://github.com/ControleOnline/app-community/blob/master/MODOS_OPERACAO.md |
 
-## Responsabilidades
-- `people` e dono dos dados cadastrais e dos relacionamentos pessoa/empresa.
-- `PeopleRoleService` resolve roles e empresas acessiveis a partir de `people_link`.
-- `PeopleService` aplica o recorte de dados por empresa em `securityFilter`.
+### Por categoria — pessoas, vínculos e vendedores
 
-## Limites
-- Autenticacao, token e sessao pertencem a `users`.
+| Página | O que documenta |
+| --- | --- |
+| [Cliente × Vendedor — vínculo e permissões](https://github.com/ControleOnline/api-platform-people/wiki/Cliente-Vendedor-Vinculo-e-Permissoes) | SalesmanService, distribuição, people_link, comissões |
+| Página canônica do fluxo (CRM) | https://github.com/ControleOnline/ui-crm/wiki/Cliente-Vendedor-Vinculo-e-Permissoes |
+
+Cópia versionada no Git: `docs/technical/Cliente-Vendedor-Vinculo-e-Permissoes.md`
+
+### Visão deste módulo
+
+`api-platform-people` é o **backend de pessoas e vínculos** (`People`, `PeopleLink`) usado por CRM, MANAGER, POS e demais apps.
+
+No fluxo cliente × vendedor:
+
+- `SalesmanService` cria vínculo `sellers-client` quando o cliente ainda não tem vendedor;
+- `SalesmanDistributionService` escolhe vendedor (`random`, `round_robin`, `least_clients`, …);
+- `PeopleLinkService` é o ponto esperado de `securityFilter` / guards (incluindo `comission` / `minimum_comission`).
+
+A UI em `ui-crm` / `ui-customers` **não** substitui o enforcement de API.
+
+### Módulos relacionados (mesmo fluxo)
+
+| Módulo | Papel | Entrada da documentação |
+| --- | --- | --- |
+| `ui-crm` | Handoff comercial | https://github.com/ControleOnline/ui-crm/wiki |
+| `ui-customers` | Aba Vendedores no detalhe | https://github.com/ControleOnline/ui-customers/wiki |
+| `api-community` | Home da API | https://github.com/ControleOnline/api-community/wiki |

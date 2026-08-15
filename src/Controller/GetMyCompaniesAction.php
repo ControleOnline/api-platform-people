@@ -47,9 +47,10 @@ class GetMyCompaniesAction
        */
       $userPeople  = $currentUser->getPeople();
       $permissions = [];
+      $linkTypes = $this->resolveLinkTypes($request);
 
 
-      $getPeopleCompanies = $this->roles->getDirectLinksForPeople($userPeople, PeopleLink::HUMAN_LINK);
+      $getPeopleCompanies = $this->roles->getDirectLinksForPeople($userPeople, $linkTypes);
 
       /**
        * @var \ControleOnline\Entity\PeopleLink $peopleCompany
@@ -69,11 +70,16 @@ class GetMyCompaniesAction
           'manager' => 'manager_enabled',
           'salesman' => 'salesman_enabled',
           'after-sales' => 'after_sales_enabled',
+          'courier' => 'courier_enabled',
         ];
 
         $configs = [];
         $domains = $this->getPeopleDomains($people);
         $packages = $this->getPeoplePackages($people);
+        $publicLogo = $this->fileService->getPeopleMediaFileUrl($people, 'logo');
+        $publicIcon = $this->fileService->getPeopleMediaFileUrl($people, 'icon');
+        $publicStamp = $this->fileService->getPeopleMediaFileUrl($people, 'stamp');
+        $publicPin = $this->fileService->getPeopleMediaFileUrl($people, 'pin');
 
         $allConfigs = $this->em->getRepository(Config::class)->findBy([
           'people'      => $people->getId(),
@@ -104,7 +110,10 @@ class GetMyCompaniesAction
           'commercial_enabled' => $commercialEnabled,
           'panel_enabled' => $people->getEnabled() && $commercialEnabled,
           'alias'         => $people->getAlias(),
-          'logo'          => $this->fileService->getFileUrl($people),
+          'logo'          => $publicLogo,
+          'icon'          => $publicIcon,
+          'stamp'         => $publicStamp,
+          'pin'           => $publicPin,
           'document'      => $this->getDocument($people),
           'domains'       => $domains,
           'configs'       => $configs,
@@ -155,6 +164,45 @@ class GetMyCompaniesAction
       ]);
     }
   }
+
+  /**
+   * @return array<int, string>
+   */
+  private function resolveLinkTypes(Request $request): array
+  {
+    $linkTypes = $request->query->all('linkTypes');
+    if (is_array($linkTypes) && $linkTypes !== []) {
+      return $this->normalizeLinkTypes($linkTypes);
+    }
+
+    $linkType = $request->query->get('linkType');
+    if (is_string($linkType)) {
+      $normalizedLinkType = $this->normalizeLinkType($linkType);
+      if ($normalizedLinkType !== '') {
+        return [$normalizedLinkType];
+      }
+    }
+
+    return PeopleLink::HUMAN_LINK;
+  }
+
+  /**
+   * @param array<int, string> $linkTypes
+   * @return array<int, string>
+   */
+  private function normalizeLinkTypes(array $linkTypes): array
+  {
+    return array_values(array_unique(array_filter(array_map(
+      fn ($linkType) => $this->normalizeLinkType($linkType),
+      $linkTypes
+    ))));
+  }
+
+  private function normalizeLinkType(mixed $linkType): string
+  {
+    return strtolower(trim((string) $linkType));
+  }
+
   private function getPeoplePackages($people)
   {
 

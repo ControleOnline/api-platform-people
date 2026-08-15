@@ -127,6 +127,7 @@ class PeopleService
 
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
   {
+    $people = null;
 
     // Tenta encontrar por documento
     if (!empty($document))
@@ -232,26 +233,53 @@ class PeopleService
 
   public function getEmail(string $email): ?Email
   {
-    return $this->manager->getRepository(Email::class)->findOneBy(['email' => $email]);
+    $normalizedEmail = trim($email);
+    if ($normalizedEmail === '') {
+      return null;
+    }
+
+    return $this->manager->createQueryBuilder()
+      ->select('email')
+      ->from(Email::class, 'email')
+      ->andWhere('email.email = :email')
+      ->setParameter('email', $normalizedEmail)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
   public function getPhone(int $ddi, int $ddd, string $phone): ?Phone
   {
-    return $this->manager->getRepository(Phone::class)->findOneBy([
-      'ddi' => $ddi,
-      'ddd' => $ddd,
-      'phone' => $phone
-    ]);
+    return $this->manager->createQueryBuilder()
+      ->select('phone')
+      ->from(Phone::class, 'phone')
+      ->andWhere('phone.ddi = :ddi')
+      ->andWhere('phone.ddd = :ddd')
+      ->andWhere('phone.phone = :phone')
+      ->setParameter('ddi', $ddi)
+      ->setParameter('ddd', $ddd)
+      ->setParameter('phone', $phone)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
 
   public function discoveryDocumentType(string $document_type): DocumentType
   {
-    $documentType =  $this->manager->getRepository(DocumentType::class)->findOneBy(['documentType' => $document_type]);
+    $documentType = $this->manager->createQueryBuilder()
+      ->select('documentType')
+      ->from(DocumentType::class, 'documentType')
+      ->andWhere('documentType.documentType = :documentType')
+      ->setParameter('documentType', $document_type)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
 
     if (!$documentType) {
       $documentType = new DocumentType();
       $documentType->setDocumentType($document_type);
+      $documentType->setPeopleType($this->getPeopleTypeByDocumentType($document_type));
       $this->manager->persist($documentType);
       $this->manager->flush();
     }
@@ -259,15 +287,28 @@ class PeopleService
     return $documentType;
   }
 
+  private function getPeopleTypeByDocumentType(string $documentType): string
+  {
+    return strtoupper(trim($documentType)) === 'CNPJ' ? 'J' : 'F';
+  }
+
   public function getDocument(string $document_number, ?string $document_type = null): ?Document
   {
-    if (!$document_type)
+    if (!$document_type) {
       $document_type = $this->getDocumentTypeByDocumentLen($document_number);
-    return $this->manager->getRepository(Document::class)->findOneBy([
-      'document' => $document_number,
-      'documentType' =>
-      $this->discoveryDocumentType($document_type)
-    ]);
+    }
+
+    return $this->manager->createQueryBuilder()
+      ->select('document')
+      ->from(Document::class, 'document')
+      ->innerJoin('document.documentType', 'documentType')
+      ->andWhere('document.document = :documentNumber')
+      ->andWhere('documentType.documentType = :documentType')
+      ->setParameter('documentNumber', $document_number)
+      ->setParameter('documentType', $document_type)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
   }
 
   public function getPeopleTypeByDocumentLen(?string $document_number = null)
@@ -331,11 +372,7 @@ class PeopleService
     $request = $this->requestStack->getCurrentRequest();
     $link     = $request?->query->get('link', null);
     $company  = $request?->query->get('company', null);
-    $linkType = $request?->query->all('linkType');
-
-    if ($linkType === []) {
-      $linkType = $request?->query->get('linkType', null);
-    }
+    $linkType = $this->resolveQueryArrayOrScalar($request, 'linkType');
 
     $myPeople = $this->getMyPeople();
     $myCompanies = $this->getMyCompanies();
@@ -343,55 +380,65 @@ class PeopleService
       static fn(People $company): int => (int) $company->getId(),
       $myCompanies
     );
+    $requestedCompanyId = $company
+      ? (int) preg_replace('/\D/', '', (string) $company)
+      : null;
+
+    if (
+      $requestedCompanyId
+      && $this->isLoyaltyCpfSearchContext($request?->query->get('context', null), $linkType)
+    ) {
+      $mainCompanyId = $this->resolveMainCompanyId();
+      if (
+        $mainCompanyId !== null
+        && $requestedCompanyId === $mainCompanyId
+        && $myCompanyIds !== []
+        && !in_array($mainCompanyId, $myCompanyIds, true)
+      ) {
+        $myCompanyIds[] = $mainCompanyId;
+      }
+    }
 
     if (!$myPeople && $myCompanyIds === []) {
       $queryBuilder->andWhere('1 = 0');
       return;
     }
 
-    $aliases = $queryBuilder->getAllAliases();
-    $peopleLinkAlias = $this->getPeopleLinkAlias();
-    $commercialLinkAlias = $this->getCommercialAccessLinkAlias();
+    if (!$link && !$company && !$linkType) {
+      $visiblePeopleIds = $this->resolveVisiblePeopleIds($myPeople, $myCompanyIds);
+      if ($visiblePeopleIds === []) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
 
-    if (!in_array($peopleLinkAlias, $aliases, true)) {
-      $queryBuilder->leftJoin(
-        PeopleLink::class,
-        $peopleLinkAlias,
-        'WITH',
-        $this->getPeopleLinkJoinCondition($rootAlias, $peopleLinkAlias)
-      );
+      $queryBuilder->andWhere(sprintf('%s.id IN(:peopleVisibilityIds)', $rootAlias));
+      $queryBuilder->setParameter('peopleVisibilityIds', $visiblePeopleIds);
+      return;
     }
 
-    if (!in_array($commercialLinkAlias, $aliases, true)) {
+    $aliases = $queryBuilder->getAllAliases();
+    if (!in_array('PeopleLink', $aliases, true)) {
       $queryBuilder->leftJoin(
         PeopleLink::class,
-        $commercialLinkAlias,
+        'PeopleLink',
         'WITH',
-        $this->getCommercialAccessJoinCondition(
-          $peopleLinkAlias,
-          $commercialLinkAlias,
-        )
+        sprintf('(PeopleLink.company = %s.id OR PeopleLink.people = %s.id)', $rootAlias, $rootAlias)
       );
-      $queryBuilder->setParameter('commercialLinkEnabled', true);
-      $queryBuilder->setParameter('panelLinkTypes', PeopleLink::PANEL_LINK);
     }
 
     if ($linkType) {
       $linkTypes = is_array($linkType) ? $linkType : [$linkType];
-      $queryBuilder->andWhere(sprintf('%s.linkType IN(:linkType)', $peopleLinkAlias));
+      $queryBuilder->andWhere('PeopleLink.linkType IN(:linkType)');
       $queryBuilder->setParameter('linkType', $linkTypes);
     }
 
     if ($company) {
-      $requestedCompanyId = (int) preg_replace('/\D/', '', $company);
       if (!in_array($requestedCompanyId, $myCompanyIds, true)) {
         $queryBuilder->andWhere('1 = 0');
         return;
       }
 
-      $queryBuilder->andWhere(
-        sprintf('%s.company = :requestedCompany', $peopleLinkAlias)
-      );
+      $queryBuilder->andWhere('PeopleLink.company = :requestedCompany');
       $queryBuilder->setParameter('requestedCompany', $requestedCompanyId);
     }
 
@@ -399,26 +446,24 @@ class PeopleService
       $requestedLinkId = (int) preg_replace('/\D/', '', $link);
       $queryBuilder->andWhere(
         $queryBuilder->expr()->orX(
-          sprintf('%s.people = :requestedLink', $peopleLinkAlias),
+          'PeopleLink.people = :requestedLink',
           sprintf('%s.id = :requestedLink', $rootAlias)
         )
       );
       $queryBuilder->setParameter('requestedLink', $requestedLinkId);
     }
 
-    $visibilityConditions = $this->buildPeopleVisibilityConditions(
-      $myPeople,
-      $myCompanyIds,
-      $rootAlias,
-      $peopleLinkAlias,
-      $commercialLinkAlias,
-    );
-
+    $visibilityConditions = [];
     if ($myPeople) {
+      $visibilityConditions[] = sprintf('%s.id = :myPeopleId', $rootAlias);
+      $visibilityConditions[] = 'PeopleLink.people = :myPeopleId';
       $queryBuilder->setParameter('myPeopleId', (int) $myPeople->getId());
     }
 
     if ($myCompanyIds !== []) {
+      $visibilityConditions[] = 'PeopleLink.company IN(:myCompanies)';
+      $visibilityConditions[] = 'PeopleLink.people IN(:myCompanies)';
+      $visibilityConditions[] = sprintf('%s.id IN(:myCompanies)', $rootAlias);
       $queryBuilder->setParameter('myCompanies', $myCompanyIds);
     }
 
@@ -427,65 +472,91 @@ class PeopleService
     }
   }
 
-  private function getPeopleLinkAlias(): string
+  private function resolveVisiblePeopleIds(?People $myPeople, array $myCompanyIds): array
   {
-    return 'PeopleLink';
-  }
-
-  private function getCommercialAccessLinkAlias(): string
-  {
-    return 'PeopleCompanyLink';
-  }
-
-  private function getPeopleLinkJoinCondition(string $rootAlias, string $peopleLinkAlias): string
-  {
-    return sprintf(
-      '(%1$s.company = %2$s.id OR %1$s.people = %2$s.id)',
-      $peopleLinkAlias,
-      $rootAlias
-    );
-  }
-
-  private function getCommercialAccessJoinCondition(
-    string $peopleLinkAlias,
-    string $commercialLinkAlias,
-  ): string {
-    return sprintf(
-      '%1$s.people = %2$s.company AND %1$s.enable = :commercialLinkEnabled AND %1$s.linkType IN(:panelLinkTypes)',
-      $commercialLinkAlias,
-      $peopleLinkAlias
-    );
-  }
-
-  private function buildPeopleVisibilityConditions(
-    ?People $myPeople,
-    array $myCompanyIds,
-    string $rootAlias,
-    string $peopleLinkAlias,
-    string $commercialLinkAlias,
-  ): array {
-    $visibilityConditions = [];
+    $visiblePeopleIds = [];
 
     if ($myPeople) {
-      $visibilityConditions[] = sprintf('%s.id = :myPeopleId', $rootAlias);
-      $visibilityConditions[] = sprintf('%s.people = :myPeopleId', $peopleLinkAlias);
+      $visiblePeopleIds[] = (int) $myPeople->getId();
+    }
+
+    foreach ($myCompanyIds as $companyId) {
+      $visiblePeopleIds[] = (int) $companyId;
+    }
+
+    $visibilityConditions = [];
+    $visibilityQueryBuilder = $this->manager->createQueryBuilder()
+      ->select(
+        'DISTINCT IDENTITY(visibleLink.company) AS companyId',
+        'IDENTITY(visibleLink.people) AS peopleId'
+      )
+      ->from(PeopleLink::class, 'visibleLink');
+
+    if ($myPeople) {
+      $visibilityConditions[] = 'visibleLink.people = :visibleMyPeopleId';
+      $visibilityQueryBuilder->setParameter('visibleMyPeopleId', (int) $myPeople->getId());
     }
 
     if ($myCompanyIds !== []) {
-      $visibilityConditions[] = sprintf('%s.company IN(:myCompanies)', $peopleLinkAlias);
-      $visibilityConditions[] = sprintf('%s.people IN(:myCompanies)', $peopleLinkAlias);
-      $visibilityConditions[] = sprintf('%s.id IN(:myCompanies)', $rootAlias);
-
-      // Allow accessing contacts of commercially reachable companies from
-      // an already accessible company context, e.g. employee of company 11
-      // editing contact 30 linked to client company 31.
-      $visibilityConditions[] = sprintf(
-        '%s.company IN(:myCompanies)',
-        $commercialLinkAlias
-      );
+      $visibilityConditions[] = 'visibleLink.company IN(:visibleMyCompanies)';
+      $visibilityConditions[] = 'visibleLink.people IN(:visibleMyCompanies)';
+      $visibilityQueryBuilder->setParameter('visibleMyCompanies', $myCompanyIds);
     }
 
-    return $visibilityConditions;
+    if ($visibilityConditions !== []) {
+      $visibilityQueryBuilder->andWhere($visibilityQueryBuilder->expr()->orX(...$visibilityConditions));
+
+      foreach ($visibilityQueryBuilder->getQuery()->getArrayResult() as $visibleLink) {
+        foreach (['companyId', 'peopleId'] as $field) {
+          if (isset($visibleLink[$field])) {
+            $visiblePeopleIds[] = (int) $visibleLink[$field];
+          }
+        }
+      }
+    }
+
+    return array_values(array_unique(array_filter(
+      $visiblePeopleIds,
+      static fn(int $peopleId): bool => $peopleId > 0
+    )));
+  }
+
+  private function isLoyaltyCpfSearchContext(mixed $context, mixed $linkType): bool
+  {
+    if (trim((string) $context) !== 'loyalty-cpf') {
+      return false;
+    }
+
+    $linkTypes = is_array($linkType) ? $linkType : [$linkType];
+    $normalizedLinkTypes = array_values(array_unique(array_filter(array_map(
+      static fn(mixed $value): string => trim(strtolower((string) $value)),
+      $linkTypes
+    ))));
+
+    return in_array('client', $normalizedLinkTypes, true);
+  }
+
+  private function resolveMainCompanyId(): ?int
+  {
+    try {
+      return (int) $this->peopleRoleService->getMainCompany()->getId();
+    } catch (\Throwable) {
+      return null;
+    }
+  }
+
+  private function resolveQueryArrayOrScalar(mixed $request, string $key): mixed
+  {
+    if (!$request) {
+      return null;
+    }
+
+    $value = $request->query->get($key, null);
+    if ($value !== null) {
+      return $value;
+    }
+
+    return $request->query->all()[$key] ?? null;
   }
 
 

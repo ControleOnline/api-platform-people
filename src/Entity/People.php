@@ -22,13 +22,13 @@ use ControleOnline\Entity\Address;
 use ControleOnline\Entity\Config;
 use ControleOnline\Entity\Document;
 use ControleOnline\Entity\Email;
-use ControleOnline\Entity\File;
 use ControleOnline\Entity\Language;
 use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Entity\Phone;
 use ControleOnline\Entity\User;
 use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Entity\CompanyDocument;
+use ControleOnline\State\HydratedReadProvider;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
@@ -48,23 +48,52 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     ],
     security: "is_granted('ROLE_HUMAN')",
     operations: [
-        new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        new GetCollection(
+            provider: HydratedReadProvider::class,
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')"
+        ),
         new GetCollection(
             uriTemplate: '/people/company/default',
             controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
+            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
+            read: false,
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        new GetCollection(
+            uriTemplate: '/shop/franchises',
+            controller: \ControleOnline\Controller\GetPublicShopFranchisesAction::class,
+            read: false,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new GetCollection(
             uriTemplate: '/people/companies/my',
             controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
+            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
+            read: false,
+            security: "is_granted('ROLE_HUMAN')"
+        ),
+        // ALEMAC // 2026-06-16
+        // Endpoint customizado para o dropdown de proprietarios candidatos
+        // no cadastro de franquia da Lavego.
+        new GetCollection(
+            uriTemplate: '/people/franchise-owner-candidates',
+            controller: \ControleOnline\Controller\GetFranchiseOwnerCandidatesAction::class,
+            read: false,
             security: "is_granted('ROLE_HUMAN')"
         ),
         new Post(
             uriTemplate: '/create-account',
             controller: CreateAccountAction::class,
-            securityPostDenormalize: 'is_granted(\'PUBLIC_ACCESS\')',
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
+            deserialize: false,
+            read: false,
+            output: false,
+            status: 202,
         ),
-        new Get(security: "is_granted('PUBLIC_ACCESS')"),
+        new Get(
+            provider: HydratedReadProvider::class,
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
             security: "is_granted('ROLE_HUMAN')",
@@ -111,6 +140,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     'link.linkType' => 'exact',
     'link.company' => 'exact',
     'link.people' => 'exact',
+    'company.linkType' => 'exact',
+    'company.people' => 'exact',
     'user' => 'exact',
     'document' => 'exact',
     'address' => 'exact',
@@ -122,49 +153,34 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $otherInformations;
 
     #[ORM\Column(type: 'string', length: 1)]
-    #[Groups(['invoice:read','people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $peopleType = 'F';
-
-    #[ORM\ManyToOne(targetEntity: File::class, inversedBy: 'people')]
-    #[ORM\JoinColumn(name: 'image_id', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
-    private $image;
 
     #[ORM\OneToMany(targetEntity: Config::class, mappedBy: 'people')]
     private $config;
-
-    #[ORM\ManyToOne(targetEntity: File::class)]
-    #[ORM\JoinColumn(name: 'alternative_image', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
-    private $alternative_image;
-
-    #[ORM\ManyToOne(targetEntity: File::class)]
-    #[ORM\JoinColumn(name: 'background_image', referencedColumnName: 'id')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
-    private $background;
 
     #[ORM\ManyToOne(targetEntity: Language::class, inversedBy: 'people')]
     #[ORM\JoinColumn(name: 'language_id', referencedColumnName: 'id')]
@@ -177,35 +193,42 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read',  'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people:write', 'order_details:read'])]
     private $document;
 
     #[ORM\OneToMany(targetEntity: CompanyDocument::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read',  'people:write'])]
+    #[Groups(['people:read', 'people:write'])]
     private $company_document;
 
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write'])]
     private $address;
 
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $phone;
 
     #[ORM\OneToMany(targetEntity: Email::class, mappedBy: 'people')]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $email;
 
     #[ORM\OneToMany(targetEntity: ProductPeople::class, mappedBy: 'people')]
     #[Groups(['people:read'])]
     private $productPeople;
 
+    /**
+     * Media (avatar, logo, …) embutida em people_link:read para evitar N+1 de /people_media no front.
+     */
+    #[ORM\OneToMany(targetEntity: PeopleMedia::class, mappedBy: 'people')]
+    #[Groups(['people_link:read', 'people:read'])]
+    private $peopleMedia;
+
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
-    #[Groups(['invoice:read','people:read', 'people_link:read', 'people:write', 'order_details:read'])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $foundationDate = null;
 
     public function __construct()
@@ -217,10 +240,12 @@ class People
         $this->link = new ArrayCollection();
         $this->user = new ArrayCollection();
         $this->document = new ArrayCollection();
+        $this->company_document = new ArrayCollection();
         $this->address = new ArrayCollection();
         $this->email = new ArrayCollection();
         $this->phone = new ArrayCollection();
         $this->productPeople = new ArrayCollection();
+        $this->peopleMedia = new ArrayCollection();
         $this->otherInformations = json_encode(new stdClass());
     }
 
@@ -267,9 +292,19 @@ class People
         $this->name = $name;
         return $this;
     }
+
+    private function uppercaseText(?string $value): string
+    {
+        $normalized = (string) $value;
+
+        return function_exists('mb_strtoupper')
+            ? mb_strtoupper($normalized, 'UTF-8')
+            : strtoupper($normalized);
+    }
+
     public function getName(): string
     {
-        return strtoupper((string) $this->name);
+        return $this->uppercaseText($this->name);
     }
 
     public function setAlias($alias)
@@ -279,7 +314,7 @@ class People
     }
     public function getAlias()
     {
-        return strtoupper((string) $this->alias);
+        return $this->uppercaseText($this->alias);
     }
 
     public function setLanguage(Language $language = null)
@@ -476,36 +511,6 @@ class People
         return $this->config;
     }
 
-    public function getBackground()
-    {
-        return $this->background;
-    }
-    public function setBackground($background): self
-    {
-        $this->background = $background;
-        return $this;
-    }
-
-    public function getImage()
-    {
-        return $this->image;
-    }
-    public function setImage($image): self
-    {
-        $this->image = $image;
-        return $this;
-    }
-
-    public function getAlternativeImage()
-    {
-        return $this->alternative_image;
-    }
-    public function setAlternativeImage($alternative_image): self
-    {
-        $this->alternative_image = $alternative_image;
-        return $this;
-    }
-
     public function getCompanyDocument()
     {
         return $this->company_document;
@@ -520,6 +525,32 @@ class People
     public function removeCompanyDocument(CompanyDocument $doc)
     {
         $this->company_document->removeElement($doc);
+        return $this;
+    }
+
+    public function getPeopleMedia()
+    {
+        return $this->peopleMedia;
+    }
+
+    public function addPeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if (!$this->peopleMedia->contains($peopleMedia)) {
+            $this->peopleMedia[] = $peopleMedia;
+            $peopleMedia->setPeople($this);
+        }
+
+        return $this;
+    }
+
+    public function removePeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if ($this->peopleMedia->removeElement($peopleMedia)) {
+            if ($peopleMedia->getPeople() === $this) {
+                $peopleMedia->setPeople(null);
+            }
+        }
+
         return $this;
     }
 }

@@ -2,7 +2,6 @@
 
 namespace ControleOnline\Controller;
 
-use ControleOnline\Entity\People;
 use ControleOnline\Service\AccountRegistrationService;
 use ControleOnline\Service\HydratorService;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,17 +17,14 @@ class CreateAccountAction
   public function __invoke(Request $request)
   {
     try {
-      $client = $this->accountRegistrationService->registerFromContent(
+      $this->accountRegistrationService->registerFromContent(
         $request->getContent()
       );
 
-      return new JsonResponse(
-        $this->hydratorService->item(
-          People::class,
-          $client->getId(),
-          "people:read"
-        )
-      );
+      return new JsonResponse([
+        'success' => true,
+        'message' => 'Cadastro criado com sucesso. Confira seu e-mail para ativar a conta.',
+      ], 202);
     } catch (\Exception $e) {
 
       return new JsonResponse(
