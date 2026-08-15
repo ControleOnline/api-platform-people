@@ -220,6 +220,13 @@ class People
     #[Groups(['people:read'])]
     private $productPeople;
 
+    /**
+     * Media (avatar, logo, …) embutida em people_link:read para evitar N+1 de /people_media no front.
+     */
+    #[ORM\OneToMany(targetEntity: PeopleMedia::class, mappedBy: 'people')]
+    #[Groups(['people_link:read', 'people:read'])]
+    private $peopleMedia;
+
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME', nullable: false)]
     #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read'])]
     private $foundationDate = null;
@@ -238,6 +245,7 @@ class People
         $this->email = new ArrayCollection();
         $this->phone = new ArrayCollection();
         $this->productPeople = new ArrayCollection();
+        $this->peopleMedia = new ArrayCollection();
         $this->otherInformations = json_encode(new stdClass());
     }
 
@@ -517,6 +525,32 @@ class People
     public function removeCompanyDocument(CompanyDocument $doc)
     {
         $this->company_document->removeElement($doc);
+        return $this;
+    }
+
+    public function getPeopleMedia()
+    {
+        return $this->peopleMedia;
+    }
+
+    public function addPeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if (!$this->peopleMedia->contains($peopleMedia)) {
+            $this->peopleMedia[] = $peopleMedia;
+            $peopleMedia->setPeople($this);
+        }
+
+        return $this;
+    }
+
+    public function removePeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if ($this->peopleMedia->removeElement($peopleMedia)) {
+            if ($peopleMedia->getPeople() === $this) {
+                $peopleMedia->setPeople(null);
+            }
+        }
+
         return $this;
     }
 }
