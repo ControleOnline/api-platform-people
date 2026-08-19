@@ -7,7 +7,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ControleOnline\Repository\PeopleLinkRepository;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -22,6 +24,11 @@ use Doctrine\ORM\Mapping as ORM;
     security: "is_granted('ROLE_HUMAN')",
     operations: [
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        // Single-item read required for store hydration after write.
+        new Get(security: "is_granted('ROLE_HUMAN')"),
+        // Update commission fields (comission / minimum_comission) and link metadata.
+        // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
+        new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
