@@ -65,6 +65,12 @@ class PeopleLink
     public const EMPLOYEE_LINK = self::HUMAN_LINK;
     public const MANAGER_LINK  = self::ADMIN_LINK;
 
+    public const CLOSING_PERIODS = ['daily', 'weekly', 'biweekly', 'monthly'];
+
+    public const DEFAULT_CLOSING_PERIOD = 'monthly';
+
+    public const DEFAULT_PAYMENT_TERM_DAYS = 0;
+
     #[ORM\Column(type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
@@ -120,6 +126,27 @@ class PeopleLink
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $minimum_comission = 0;
+
+
+    /**
+     * Closing period for commission/royalty invoices aggregation.
+     * Allowed: daily, weekly, biweekly, monthly.
+     *
+     * @var string
+     */
+    #[ORM\Column(name: 'closing_period', type: 'string', length: 20, nullable: false, options: ['default' => 'monthly'])]
+    #[Groups(['people_link:read', 'people_link:write'])]
+    private $closing_period = self::DEFAULT_CLOSING_PERIOD;
+
+    /**
+     * Days after closing period end until invoice due date.
+     *
+     * @var int
+     */
+    #[ORM\Column(name: 'payment_term_days', type: 'integer', nullable: false, options: ['default' => 0])]
+    #[Groups(['people_link:read', 'people_link:write'])]
+    private $payment_term_days = self::DEFAULT_PAYMENT_TERM_DAYS;
+
 
     public function getId()
     {
@@ -224,6 +251,39 @@ class PeopleLink
     public function setLinkType($linkType): self
     {
         $this->linkType = $linkType;
+
+        return $this;
+    }
+
+
+    public function getClosingPeriod(): string
+    {
+        return (string) ($this->closing_period ?: self::DEFAULT_CLOSING_PERIOD);
+    }
+
+    public function setClosingPeriod(?string $closing_period): self
+    {
+        $value = strtolower(trim((string) ($closing_period ?? '')));
+        if ($value === '' || !in_array($value, self::CLOSING_PERIODS, true)) {
+            $value = self::DEFAULT_CLOSING_PERIOD;
+        }
+        $this->closing_period = $value;
+
+        return $this;
+    }
+
+    public function getPaymentTermDays(): int
+    {
+        return (int) ($this->payment_term_days ?? self::DEFAULT_PAYMENT_TERM_DAYS);
+    }
+
+    public function setPaymentTermDays($payment_term_days): self
+    {
+        $days = (int) $payment_term_days;
+        if ($days < 0) {
+            $days = 0;
+        }
+        $this->payment_term_days = $days;
 
         return $this;
     }
