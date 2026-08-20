@@ -17,4 +17,19 @@ class PeopleTest extends TestCase
         self::assertInstanceOf(Collection::class, $companyDocuments);
         self::assertCount(0, $companyDocuments);
     }
+
+    public function testSoftDeleteDefaultsFalseAndSetsDeletedAt(): void
+    {
+        $people = new People();
+        self::assertFalse($people->isDeleted());
+        self::assertNull($people->getDeletedAt());
+
+        $people->setDeleted(true);
+        self::assertTrue($people->isDeleted());
+        self::assertNotNull($people->getDeletedAt());
+
+        $people->setDeleted(false);
+        self::assertFalse($people->isDeleted());
+        self::assertNull($people->getDeletedAt());
+    }
 }
