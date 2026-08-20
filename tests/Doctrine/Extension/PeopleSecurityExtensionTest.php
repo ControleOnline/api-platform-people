@@ -15,8 +15,10 @@ class PeopleSecurityExtensionTest extends TestCase
     public function testAppliesSecurityFilterToPeopleCollection(): void
     {
         $peopleService = $this->createMock(PeopleService::class);
-        $queryBuilder = $this->createStub(QueryBuilder::class);
+        $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->method('getRootAliases')->willReturn(['people']);
+        $queryBuilder->expects(self::once())->method('andWhere')->with('people.deleted = :peopleSoftDeletedFalse')->willReturnSelf();
+        $queryBuilder->expects(self::once())->method('setParameter')->with('peopleSoftDeletedFalse', false)->willReturnSelf();
         $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
         $peopleService
@@ -29,6 +31,26 @@ class PeopleSecurityExtensionTest extends TestCase
             $queryBuilder,
             $queryNameGenerator,
             People::class
+        );
+    }
+
+    public function testSkipsSoftDeleteFilterWhenDeletedFilterPresent(): void
+    {
+        $peopleService = $this->createMock(PeopleService::class);
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->method('getRootAliases')->willReturn(['people']);
+        $queryBuilder->expects(self::never())->method('andWhere');
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
+
+        $peopleService->expects(self::once())->method('securityFilter');
+
+        $extension = new PeopleSecurityExtension($peopleService);
+        $extension->applyToCollection(
+            $queryBuilder,
+            $queryNameGenerator,
+            People::class,
+            null,
+            ['filters' => ['deleted' => 'true']]
         );
     }
 
