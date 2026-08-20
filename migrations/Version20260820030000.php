@@ -7,10 +7,6 @@ namespace DoctrineMigrations\People;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
-/**
- * Soft-delete for people (PF/PJ): deleted flag + deleted_at.
- * Physical DELETE is never used for operational removal.
- */
 final class Version20260820030000 extends AbstractMigration
 {
     public function getDescription(): string

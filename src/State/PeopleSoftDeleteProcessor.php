@@ -9,15 +9,10 @@ use ControleOnline\Entity\People;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-/**
- * Soft-delete People instead of physical DELETE (app-community#374).
- * DELETE /people/{id} sets deleted=true + deletedAt; never removes the row.
- */
 final class PeopleSoftDeleteProcessor implements ProcessorInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
