@@ -15,6 +15,7 @@ class AccountRegistrationService
         private PeopleService $peopleService,
         private DomainService $domainService,
         private AccountVerificationService $accountVerificationService,
+        private ?MarketingEventService $marketingEventService = null,
     ) {}
 
     public function registerFromContent(?string $content): People
@@ -107,6 +108,8 @@ class AccountRegistrationService
                 );
             }
 
+            $this->associateMarketingVisitor($payload, $client);
+
             $connection->commit();
             return $client;
         } catch (\Throwable $exception) {
@@ -156,6 +159,33 @@ class AccountRegistrationService
 
         $this->manager->persist($people);
         $this->manager->flush();
+    }
+
+
+    /**
+     * Link prior anonymous marketing events (visitor_id) to the newly created People.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function associateMarketingVisitor(array $payload, People $people): void
+    {
+        if ($this->marketingEventService === null) {
+            return;
+        }
+
+        $marketing = $payload['marketing'] ?? null;
+        if (!is_array($marketing)) {
+            return;
+        }
+
+        $visitorId = isset($marketing['visitor_id'])
+            ? trim((string) $marketing['visitor_id'])
+            : '';
+        if ($visitorId === '') {
+            return;
+        }
+
+        $this->marketingEventService->associateVisitorToPeople($visitorId, $people);
     }
 
     private function decodePayload(?string $content): array
