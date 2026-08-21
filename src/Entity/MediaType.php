@@ -41,11 +41,11 @@ class MediaType
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'smallint', options: ['unsigned' => true])]
-    #[Groups(['media_type:read', 'people_media:read'])]
+    #[Groups(['media_type:read', 'people_media:read', 'people_link:read'])]
     private int $id = 0;
 
     #[ORM\Column(name: 'type', type: 'string', length: 32, nullable: false)]
-    #[Groups(['media_type:read', 'people_media:read'])]
+    #[Groups(['media_type:read', 'people_media:read', 'people_link:read'])]
     private string $type = '';
 
     #[ORM\Column(
@@ -54,7 +54,7 @@ class MediaType
         length: 1,
         columnDefinition: "SET('F','J') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL"
     )]
-    #[Groups(['media_type:read', 'people_media:read'])]
+    #[Groups(['media_type:read', 'people_media:read', 'people_link:read'])]
     private string $peopleType = 'J';
 
     public function getId(): int

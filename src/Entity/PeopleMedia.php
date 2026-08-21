@@ -75,7 +75,7 @@ class PeopleMedia
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
-    #[Groups(['people_media:read'])]
+    #[Groups(['people_media:read', 'people_link:read'])]
     private int $id = 0;
 
     #[ORM\ManyToOne(targetEntity: People::class)]
@@ -85,12 +85,12 @@ class PeopleMedia
 
     #[ORM\ManyToOne(targetEntity: File::class)]
     #[ORM\JoinColumn(name: 'file_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['people_media:read', 'people_media:write'])]
+    #[Groups(['people_media:read', 'people_media:write', 'people_link:read'])]
     private ?File $file = null;
 
     #[ORM\ManyToOne(targetEntity: MediaType::class)]
     #[ORM\JoinColumn(name: 'media_type_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['people_media:read', 'people_media:write'])]
+    #[Groups(['people_media:read', 'people_media:write', 'people_link:read'])]
     private ?MediaType $mediaType = null;
 
     public function getId(): int
