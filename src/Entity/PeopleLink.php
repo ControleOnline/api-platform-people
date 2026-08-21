@@ -43,9 +43,9 @@ class PeopleLink
         'courier',
     ];
 
-    public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee'];
+    public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const PANEL_LINK = ['client', 'provider', 'franchisee'];
+    public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
     public const ADMIN_LINK = ['owner', 'director', 'manager'];
 
@@ -60,6 +60,7 @@ class PeopleLink
         'client' => 'ROLE_CLIENT',
         'provider' => 'ROLE_PROVIDER',
         'franchisee' => 'ROLE_FRANCHISEE',
+        'filial' => 'ROLE_FRANCHISEE',
     ];
 
     public const EMPLOYEE_LINK = self::HUMAN_LINK;
@@ -98,7 +99,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;
