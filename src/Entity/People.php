@@ -90,6 +90,15 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             output: false,
             status: 202,
         ),
+        new Post(
+            uriTemplate: '/users/create-account',
+            controller: CreateAccountAction::class,
+            security: 'is_granted(\'PUBLIC_ACCESS\')',
+            deserialize: false,
+            read: false,
+            output: false,
+            status: 202,
+        ),
         new Get(
             provider: HydratedReadProvider::class,
             security: "is_granted('PUBLIC_ACCESS')"
