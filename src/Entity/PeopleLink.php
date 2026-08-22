@@ -112,7 +112,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier','after-sales') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;
