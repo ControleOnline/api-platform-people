@@ -7,14 +7,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ControleOnline\Repository\PeopleLinkRepository;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
-<<<<<<< HEAD
-use ApiPlatform\Metadata\GetCollection;
-=======
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
->>>>>>> origin/task-438
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -29,8 +25,6 @@ use Doctrine\ORM\Mapping as ORM;
     security: "is_granted('ROLE_HUMAN')",
     operations: [
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
-<<<<<<< HEAD
-=======
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
         // Create people_link (My Companies auto-link + franchise owner link).
@@ -38,7 +32,6 @@ use Doctrine\ORM\Mapping as ORM;
         // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
         // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
         new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
->>>>>>> origin/task-438
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
