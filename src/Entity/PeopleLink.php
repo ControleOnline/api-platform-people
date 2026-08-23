@@ -7,7 +7,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ControleOnline\Repository\PeopleLinkRepository;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+<<<<<<< HEAD
 use ApiPlatform\Metadata\GetCollection;
+=======
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+>>>>>>> origin/task-438
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -22,6 +29,16 @@ use Doctrine\ORM\Mapping as ORM;
     security: "is_granted('ROLE_HUMAN')",
     operations: [
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+<<<<<<< HEAD
+=======
+        // Single-item read required for store hydration after write.
+        new Get(security: "is_granted('ROLE_HUMAN')"),
+        // Create people_link (My Companies auto-link + franchise owner link).
+        new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
+        // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
+        new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
+>>>>>>> origin/task-438
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -43,9 +60,9 @@ class PeopleLink
         'courier',
     ];
 
-    public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee'];
+    public const COMMERCIAL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const PANEL_LINK = ['client', 'provider', 'franchisee'];
+    public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
     public const ADMIN_LINK = ['owner', 'director', 'manager'];
 
@@ -60,6 +77,7 @@ class PeopleLink
         'client' => 'ROLE_CLIENT',
         'provider' => 'ROLE_PROVIDER',
         'franchisee' => 'ROLE_FRANCHISEE',
+        'filial' => 'ROLE_FRANCHISEE',
     ];
 
     public const EMPLOYEE_LINK = self::HUMAN_LINK;
@@ -104,7 +122,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier','after-sales') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;

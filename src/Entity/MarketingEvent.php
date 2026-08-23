@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'marketing_event_event_name_idx', columns: ['event_name'])]
 #[ORM\Index(name: 'marketing_event_event_at_idx', columns: ['event_at'])]
 #[ORM\Index(name: 'marketing_event_people_idx', columns: ['people_id'])]
-#[ORM\Index(name: 'marketing_event_idempotency_idx', columns: ['idempotency_key'], unique: true)]
+#[ORM\Index(name: 'marketing_event_idempotency_idx', columns: ['idempotency_key'])]
 #[ORM\Entity(repositoryClass: \ControleOnline\Repository\MarketingEventRepository::class)]
 #[ApiResource(
     formats: ['jsonld', 'json', 'html', 'jsonhal'],
