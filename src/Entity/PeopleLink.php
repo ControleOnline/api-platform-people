@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -26,6 +27,8 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
+        // Create people_link (My Companies auto-link + franchise owner link).
+        new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
         // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
         new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
