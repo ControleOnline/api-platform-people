@@ -218,7 +218,7 @@ class People
     private $link;
 
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'people')]
-    #[Groups(['people:read', 'people:write'])]
+    #[Groups(['people:write'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'people')]
