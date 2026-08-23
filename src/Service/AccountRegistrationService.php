@@ -6,6 +6,7 @@ use ControleOnline\Entity\People;
 use ControleOnline\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class AccountRegistrationService
 {
@@ -25,47 +26,84 @@ class AccountRegistrationService
 
     public function registerFromPayload(array $payload): People
     {
+        $peopleData = $payload['people'] ?? null;
+        if (!is_array($peopleData)) {
+            throw new BadRequestHttpException('people is required');
+        }
+
+        foreach (['name', 'alias', 'email', 'phone'] as $field) {
+            if (!isset($peopleData[$field])) {
+                throw new BadRequestHttpException('name, alias, email and phone are required');
+            }
+        }
+
+        $phoneData = $this->normalizePhoneData(
+            is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : []
+        );
+        foreach (['ddi', 'ddd', 'phone'] as $field) {
+            if (!isset($phoneData[$field])) {
+                throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
+            }
+        }
+
+        $personName = trim((string) $peopleData['name']);
+        $personEmail = trim((string) $peopleData['email']);
+        $personDocument = $this->normalizeDocument($peopleData['document'] ?? null);
+
+        if ($personName === '') {
+            throw new BadRequestHttpException('name is required');
+        }
+        if ($personEmail === '') {
+            throw new BadRequestHttpException('email is required');
+        }
+
+        $this->assertPersonIdentifiersAreAvailable($personDocument, $personEmail, $phoneData);
+
+        $companyData = is_array($payload['company'] ?? null) ? $payload['company'] : null;
+        if ($companyData !== null) {
+            $companyDocument = $this->normalizeDocument($companyData['document'] ?? null);
+            $companyEmail = trim((string) ($companyData['email'] ?? ''));
+            $companyPhone = $this->normalizePhoneData(
+                is_array($companyData['phone'] ?? null) ? $companyData['phone'] : []
+            );
+            $this->assertCompanyIdentifiersAreAvailable($companyDocument, $companyEmail, $companyPhone);
+        }
+
+        $registersUser = is_array($peopleData['user'] ?? null);
+        if ($registersUser) {
+            if (
+                !isset($peopleData['user']['user']) ||
+                !isset($peopleData['user']['password'])
+            ) {
+                throw new BadRequestHttpException('user.user and user.password are required');
+            }
+            $username = trim((string) $peopleData['user']['user']);
+            if ($username === '') {
+                throw new BadRequestHttpException('user.user is required');
+            }
+            $this->assertUsernameIsAvailable($username);
+        }
+
         $connection = $this->manager->getConnection();
         $connection->beginTransaction();
 
         try {
-            $peopleData = $payload['people'] ?? null;
-            if (!is_array($peopleData)) {
-                throw new BadRequestHttpException('people is required');
-            }
-
-            foreach (['name', 'alias', 'email', 'phone'] as $field) {
-                if (!isset($peopleData[$field])) {
-                    throw new BadRequestHttpException('name, alias, email and phone are required');
-                }
-            }
-
-            $phoneData = $this->normalizePhoneData(
-                is_array($peopleData['phone'] ?? null) ? $peopleData['phone'] : []
-            );
-            foreach (['ddi', 'ddd', 'phone'] as $field) {
-                if (!isset($phoneData[$field])) {
-                    throw new BadRequestHttpException('phone.ddi, phone.ddd and phone.number are required');
-                }
-            }
-
             $isFirstTenantUser = $this->isFirstTenantUser();
 
             $people = $this->peopleService->discoveryPeople(
-                $peopleData['document'] ?? null,
-                $peopleData['email'],
+                $personDocument,
+                $personEmail,
                 $phoneData,
-                trim((string) $peopleData['name']),
+                $personName,
                 'F'
             );
             $this->applyPeopleName($people, $peopleData);
 
             $client = $people;
 
-            if (is_array($payload['company'] ?? null)) {
-                $companyData = $payload['company'];
+            if ($companyData !== null) {
                 $company = $this->peopleService->discoveryPeople(
-                    $companyData['document'] ?? null,
+                    $this->normalizeDocument($companyData['document'] ?? null),
                     $companyData['email'] ?? null,
                     is_array($companyData['phone'] ?? null) ? $this->normalizePhoneData($companyData['phone']) : null,
                     $companyData['name'] ?? null,
@@ -78,20 +116,12 @@ class AccountRegistrationService
             }
 
             $mainCompany = $this->domainService->getPeopleDomain()->getPeople();
-            $registersUser = is_array($peopleData['user'] ?? null);
 
             if (!$isFirstTenantUser || !$registersUser || $client !== $people) {
                 $this->peopleService->discoveryLink($mainCompany, $client, 'client');
             }
 
             if ($registersUser) {
-                if (
-                    !isset($peopleData['user']['user']) ||
-                    !isset($peopleData['user']['password'])
-                ) {
-                    throw new BadRequestHttpException('user.user and user.password are required');
-                }
-
                 $user = $this->userService->createUser(
                     $people,
                     $peopleData['user']['user'],
@@ -144,6 +174,17 @@ class AccountRegistrationService
         return $phoneData;
     }
 
+    private function normalizeDocument(mixed $document): ?string
+    {
+        if ($document === null || $document === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) $document);
+
+        return $digits !== '' ? $digits : null;
+    }
+
     private function applyPeopleName(People $people, array $peopleData): void
     {
         $name = trim((string) ($peopleData['name'] ?? ''));
@@ -160,7 +201,6 @@ class AccountRegistrationService
         $this->manager->persist($people);
         $this->manager->flush();
     }
-
 
     /**
      * Link prior anonymous marketing events (visitor_id) to the newly created People.
@@ -197,5 +237,68 @@ class AccountRegistrationService
         $decoded = json_decode($content, true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    private function assertPersonIdentifiersAreAvailable(
+        ?string $document,
+        string $email,
+        array $phoneData
+    ): void {
+        if ($document && $this->peopleService->getDocument($document)) {
+            throw new ConflictHttpException('Este CPF já está cadastrado.');
+        }
+
+        if ($this->peopleService->getEmail($email)) {
+            throw new ConflictHttpException('Este e-mail já está cadastrado.');
+        }
+
+        $ddd = (string) ($phoneData['ddd'] ?? '');
+        $phone = (string) ($phoneData['phone'] ?? '');
+        $ddi = (string) ($phoneData['ddi'] ?? '55');
+
+        if (
+            $ddd !== '' &&
+            $phone !== '' &&
+            $this->peopleService->getPhone((int) $ddi, (int) $ddd, $phone)
+        ) {
+            throw new ConflictHttpException('Este telefone já está cadastrado.');
+        }
+    }
+
+    private function assertCompanyIdentifiersAreAvailable(
+        ?string $document,
+        string $email,
+        array $phoneData
+    ): void {
+        if ($document && $this->peopleService->getDocument($document, 'CNPJ')) {
+            throw new ConflictHttpException('Este CNPJ já está cadastrado.');
+        }
+
+        if ($email !== '' && $this->peopleService->getEmail($email)) {
+            throw new ConflictHttpException('Este e-mail já está cadastrado.');
+        }
+
+        $ddd = (string) ($phoneData['ddd'] ?? '');
+        $phone = (string) ($phoneData['phone'] ?? '');
+        $ddi = (string) ($phoneData['ddi'] ?? '55');
+
+        if (
+            $ddd !== '' &&
+            $phone !== '' &&
+            $this->peopleService->getPhone((int) $ddi, (int) $ddd, $phone)
+        ) {
+            throw new ConflictHttpException('Este telefone já está cadastrado.');
+        }
+    }
+
+    private function assertUsernameIsAvailable(string $username): void
+    {
+        $user = $this->manager->getRepository(User::class)->findOneBy([
+            'username' => $username,
+        ]);
+
+        if ($user instanceof User) {
+            throw new ConflictHttpException('Este usuário já está cadastrado.');
+        }
     }
 }
