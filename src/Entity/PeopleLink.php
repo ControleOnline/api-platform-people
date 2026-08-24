@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ControleOnline\State\PeopleLinkUpsertProcessor;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -28,7 +29,10 @@ use Doctrine\ORM\Mapping as ORM;
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
         // Create people_link (My Companies auto-link + franchise owner link).
-        new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        new Post(
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')",
+            processor: PeopleLinkUpsertProcessor::class,
+        ),
         // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
         // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
         new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
