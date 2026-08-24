@@ -41,4 +41,3 @@ class PeopleTest extends TestCase
         self::assertFalse($ref->hasProperty('background'));
     }
 }
-
