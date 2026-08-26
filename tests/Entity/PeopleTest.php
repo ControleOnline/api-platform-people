@@ -23,4 +23,14 @@ class PeopleTest extends TestCase
         self::assertFalse($people->isDeleted());
         self::assertNull($people->getDeletedAt());
     }
+
+    public function testNameAndAliasPreserveStoredCapitalization(): void
+    {
+        $people = new People();
+        $people->setName('Maria Silva');
+        $people->setAlias('Mari');
+
+        self::assertSame('Maria Silva', $people->getName());
+        self::assertSame('Mari', $people->getAlias());
+    }
 }
