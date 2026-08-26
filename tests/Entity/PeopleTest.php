@@ -40,4 +40,14 @@ class PeopleTest extends TestCase
         self::assertFalse($ref->hasProperty('alternative_image'));
         self::assertFalse($ref->hasProperty('background'));
     }
+
+    public function testNameAndAliasPreserveStoredCapitalization(): void
+    {
+        $people = new People();
+        $people->setName('Maria Silva');
+        $people->setAlias('Mari');
+
+        self::assertSame('Maria Silva', $people->getName());
+        self::assertSame('Mari', $people->getAlias());
+    }
 }
