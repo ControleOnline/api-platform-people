@@ -33,4 +33,14 @@ class PeopleTest extends TestCase
         self::assertSame('Maria Silva', $people->getName());
         self::assertSame('Mari', $people->getAlias());
     }
+
+    public function testNameAndAliasPreserveStoredCapitalization(): void
+    {
+        $people = new People();
+        $people->setName('Maria Silva');
+        $people->setAlias('Mari');
+
+        self::assertSame('Maria Silva', $people->getName());
+        self::assertSame('Mari', $people->getAlias());
+    }
 }
