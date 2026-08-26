@@ -30,7 +30,23 @@ class PeopleLinkService
         $rootAlias ??= $queryBuilder->getRootAliases()[0] ?? 'peopleLink';
 
         $this->applyRequestedFilters($queryBuilder, $rootAlias);
+        $this->applyActivePeopleFilter($queryBuilder, $rootAlias);
         $this->applyVisibilityFilter($queryBuilder, $rootAlias);
+    }
+
+    /**
+     * Hide people_links whose linked people is soft-deleted (operational removal).
+     * Employee/collaborator listings load via people_links; without this filter
+     * soft-deleted PF would still appear after DELETE /people/{id}.
+     */
+    private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
+    {
+        $peopleAlias = $rootAlias . '_people_active';
+        // Left join keeps links even if people relation is sparse; filter deleted=false|null.
+        if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
+            $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
+        }
+        $queryBuilder->andWhere(sprintf('(%s.id IS NULL OR %s.deleted = false)', $peopleAlias, $peopleAlias));
     }
 
     public function prePersist(PeopleLink $peopleLink): PeopleLink

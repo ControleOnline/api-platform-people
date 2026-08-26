@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
 use ControleOnline\State\PeopleLinkUpsertProcessor;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,6 +37,9 @@ use Doctrine\ORM\Mapping as ORM;
         // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
         // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
         new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
+        // Unlink collaborator / salesman / franchise (physical remove of people_link only).
+        // AuthZ enforced again in PeopleLinkService::preRemove via doctrine listeners / resource security.
+        new Delete(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
