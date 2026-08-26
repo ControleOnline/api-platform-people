@@ -349,18 +349,9 @@ class People
         return $this;
     }
 
-    private function uppercaseText(?string $value): string
-    {
-        $normalized = (string) $value;
-
-        return function_exists('mb_strtoupper')
-            ? mb_strtoupper($normalized, 'UTF-8')
-            : strtoupper($normalized);
-    }
-
     public function getName(): string
     {
-        // Preserve stored case — do not force uppercase on read (app-community#376).
+        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
         return (string) ($this->name ?? '');
     }
 
@@ -371,7 +362,7 @@ class People
     }
     public function getAlias()
     {
-        // Preserve stored case — do not force uppercase on read (app-community#376).
+        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
         return (string) ($this->alias ?? '');
     }
 
