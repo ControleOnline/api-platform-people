@@ -29,16 +29,21 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
-        // Create people_link (My Companies auto-link + franchise owner link).
+        // Create people_link (franchise / salesman sellers-client / My Companies auto-link).
+        // Collection previously exposed GET only → POST produced 405 Allow: GET
+        // (app-community#642 / app-community#650).
         new Post(
             securityPostDenormalize: "is_granted('ROLE_HUMAN')",
             processor: PeopleLinkUpsertProcessor::class,
         ),
-        // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
-        // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
-        new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
+        // Update commission / link metadata. Resource gate is ROLE_HUMAN;
+        // tenant AuthZ is enforced again in PeopleLinkService::preUpdate (MANAGER_LINK).
+        new Put(
+            security: "is_granted('ROLE_HUMAN')",
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')",
+        ),
         // Unlink collaborator / salesman / franchise (physical remove of people_link only).
-        // AuthZ enforced again in PeopleLinkService::preRemove via doctrine listeners / resource security.
+        // AuthZ enforced again in PeopleLinkService::preRemove.
         new Delete(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
