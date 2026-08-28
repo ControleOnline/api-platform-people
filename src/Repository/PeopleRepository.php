@@ -2,6 +2,7 @@
 
 namespace ControleOnline\Repository;
 
+use ControleOnline\Doctrine\PeopleActiveConstraint;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -97,6 +98,8 @@ class PeopleRepository extends ServiceEntityRepository
             ->setParameter('alias', 'owner')
             ->setParameter('enabled', true)
             ->setParameter('notDeleted', false);
+
+        PeopleActiveConstraint::apply($queryBuilder, 'people', false);
 
         return $queryBuilder->getQuery()->getResult();
     }

@@ -6,6 +6,7 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use ControleOnline\Doctrine\PeopleActiveConstraint;
 use ControleOnline\Entity\People;
 use ControleOnline\Service\PeopleService;
 use Doctrine\ORM\QueryBuilder;
@@ -65,7 +66,6 @@ class PeopleSecurityExtension implements QueryCollectionExtensionInterface, Quer
         }
 
         $alias = $queryBuilder->getRootAliases()[0] ?? 'o';
-        $queryBuilder->andWhere(sprintf('%s.deleted = :peopleSoftDeletedFalse', $alias));
-        $queryBuilder->setParameter('peopleSoftDeletedFalse', false);
+        PeopleActiveConstraint::apply($queryBuilder, $alias, false);
     }
 }
