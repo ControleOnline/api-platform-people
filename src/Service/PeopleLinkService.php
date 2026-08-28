@@ -41,6 +41,15 @@ class PeopleLinkService
      */
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
+        // Fail-safe: staging once had this filter without People::$deleted mapped → DQL 500.
+        try {
+            if (!$this->manager->getClassMetadata(People::class)->hasField('deleted')) {
+                return;
+            }
+        } catch (\Throwable) {
+            return;
+        }
+
         $peopleAlias = $rootAlias . '_people_active';
         // Left join keeps links even if people relation is sparse; filter deleted=false|null.
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
