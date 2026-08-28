@@ -64,15 +64,6 @@ class PeopleSecurityExtension implements QueryCollectionExtensionInterface, Quer
             return;
         }
 
-        try {
-            $em = $queryBuilder->getEntityManager();
-            if (!$em->getClassMetadata(People::class)->hasField('deleted')) {
-                return;
-            }
-        } catch (\Throwable) {
-            return;
-        }
-
         $alias = $queryBuilder->getRootAliases()[0] ?? 'o';
         $queryBuilder->andWhere(sprintf('%s.deleted = :peopleSoftDeletedFalse', $alias));
         $queryBuilder->setParameter('peopleSoftDeletedFalse', false);
