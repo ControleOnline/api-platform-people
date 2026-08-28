@@ -7,6 +7,8 @@ use ControleOnline\Doctrine\Extension\PeopleSecurityExtension;
 use ControleOnline\Entity\Order;
 use ControleOnline\Entity\People;
 use ControleOnline\Service\PeopleService;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +17,7 @@ class PeopleSecurityExtensionTest extends TestCase
     public function testAppliesSecurityFilterToPeopleCollection(): void
     {
         $peopleService = $this->createMock(PeopleService::class);
-        $queryBuilder = $this->createStub(QueryBuilder::class);
+        $queryBuilder = $this->queryBuilderWithoutDeletedField();
         $queryBuilder->method('getRootAliases')->willReturn(['people']);
         $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
@@ -67,5 +69,36 @@ class PeopleSecurityExtensionTest extends TestCase
             $queryNameGenerator,
             Order::class
         );
+    }
+
+    public function testCollectionDoesNotReferenceUnmappedDeleted(): void
+    {
+        $peopleService = $this->createMock(PeopleService::class);
+        $queryBuilder = $this->queryBuilderWithoutDeletedField();
+        $queryBuilder->method('getRootAliases')->willReturn(['people']);
+        $queryBuilder->expects(self::never())->method('andWhere');
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
+
+        $extension = new PeopleSecurityExtension($peopleService);
+        $extension->applyToCollection(
+            $queryBuilder,
+            $queryNameGenerator,
+            People::class
+        );
+    }
+
+    private function queryBuilderWithoutDeletedField(): QueryBuilder
+    {
+        $metadata = $this->createMock(ClassMetadata::class);
+        $metadata->method('hasField')->willReturn(false);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->with(People::class)->willReturn($metadata);
+
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->method('getEntityManager')->willReturn($entityManager);
+        $queryBuilder->method('andWhere')->willReturnSelf();
+
+        return $queryBuilder;
     }
 }

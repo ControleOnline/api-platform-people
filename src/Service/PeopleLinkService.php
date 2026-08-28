@@ -2,6 +2,7 @@
 
 namespace ControleOnline\Service;
 
+use ControleOnline\Doctrine\PeopleActiveConstraint;
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,11 +43,12 @@ class PeopleLinkService
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
         $peopleAlias = $rootAlias . '_people_active';
-        // Left join keeps links even if people relation is sparse; filter deleted=false|null.
+        // Left join keeps links even if people relation is sparse.
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
             $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
         }
-        $queryBuilder->andWhere(sprintf('(%s.id IS NULL OR %s.deleted = false)', $peopleAlias, $peopleAlias));
+        // Use mapped field only: People.deleted may be absent on staging/master.
+        PeopleActiveConstraint::apply($queryBuilder, $peopleAlias, true);
     }
 
     public function prePersist(PeopleLink $peopleLink): PeopleLink
