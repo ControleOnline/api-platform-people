@@ -1,17 +1,12 @@
 <?php
 
-/*
- * Contract imported from MODOS_OPERACAO.md
- * - People reads must be filtered through PeopleService::securityFilter() on collections.
- * - The public item route stays public, so the item hook is intentionally a no-op.
- */
-
 namespace ControleOnline\Doctrine\Extension;
 
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use ControleOnline\Doctrine\PeopleActiveConstraint;
 use ControleOnline\Entity\People;
 use ControleOnline\Service\PeopleService;
 use Doctrine\ORM\QueryBuilder;
@@ -31,6 +26,7 @@ class PeopleSecurityExtension implements QueryCollectionExtensionInterface, Quer
         array $context = []
     ): void {
         $this->applySecurityFilter($queryBuilder, $resourceClass);
+        $this->applySoftDeleteFilter($queryBuilder, $resourceClass, $context);
     }
 
     public function applyToItem(
@@ -41,7 +37,7 @@ class PeopleSecurityExtension implements QueryCollectionExtensionInterface, Quer
         ?Operation $operation = null,
         array $context = []
     ): void {
-        // `Get /people/{id}` is intentionally public today; keep the current contract.
+        // Get /people/{id} remains public; soft-deleted rows stay readable by id.
     }
 
     private function applySecurityFilter(QueryBuilder $queryBuilder, string $resourceClass): void
@@ -56,5 +52,20 @@ class PeopleSecurityExtension implements QueryCollectionExtensionInterface, Quer
             'api_platform',
             $queryBuilder->getRootAliases()[0] ?? null
         );
+    }
+
+    private function applySoftDeleteFilter(QueryBuilder $queryBuilder, string $resourceClass, array $context): void
+    {
+        if ($resourceClass !== People::class) {
+            return;
+        }
+
+        $filters = $context['filters'] ?? [];
+        if (array_key_exists('deleted', $filters)) {
+            return;
+        }
+
+        $alias = $queryBuilder->getRootAliases()[0] ?? 'o';
+        PeopleActiveConstraint::apply($queryBuilder, $alias, false);
     }
 }
