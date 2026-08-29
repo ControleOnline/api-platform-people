@@ -35,19 +35,12 @@ class PeopleLinkService
         $this->applyVisibilityFilter($queryBuilder, $rootAlias);
     }
 
-    /**
-     * Hide people_links whose linked people is soft-deleted (operational removal).
-     * Employee/collaborator listings load via people_links; without this filter
-     * soft-deleted PF would still appear after DELETE /people/{id}.
-     */
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
         $peopleAlias = $rootAlias . '_people_active';
-        // Left join keeps links even if people relation is sparse.
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
             $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
         }
-        // Use mapped field only: People.deleted may be absent on staging/master.
         PeopleActiveConstraint::apply($queryBuilder, $peopleAlias, true);
     }
 
@@ -126,6 +119,10 @@ class PeopleLinkService
 
     private function assertWriteAccess(PeopleLink $peopleLink): void
     {
+        if ($this->requestStack->getCurrentRequest() === null && $this->getMyPeople() === null) {
+            return;
+        }
+
         $canWrite = $this->isSalesmanClientLink($peopleLink)
             ? $this->canManagePeopleLink($peopleLink)
             : $this->canReadPeopleLink($peopleLink);
