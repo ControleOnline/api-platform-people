@@ -152,9 +152,17 @@ class PeopleLinkService
         }
 
         if ($linkType) {
-            $linkTypes = is_array($linkType) ? $linkType : [$linkType];
-            $queryBuilder->andWhere(sprintf('%s.linkType IN (:requestedLinkTypes)', $rootAlias));
-            $queryBuilder->setParameter('requestedLinkTypes', $linkTypes);
+            $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
+            // people_link.link_type is MySQL SET — FIND_IN_SET is the reliable predicate.
+            $ors = [];
+            foreach ($linkTypes as $i => $lt) {
+                $param = 'requestedLinkType' . $i;
+                $ors[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $param, $rootAlias);
+                $queryBuilder->setParameter($param, (string) $lt);
+            }
+            if ($ors !== []) {
+                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
+            }
         }
 
         if ($request->query->has('enable')) {
@@ -168,6 +176,12 @@ class PeopleLinkService
 
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
+        // ROLE_SUPER (owner of main company): full collection visibility.
+        // Needed so My Company Details can list franchisee links of any company_id.
+        if ($this->isSuperUser()) {
+            return;
+        }
+
         $currentPeople = $this->getMyPeople();
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
         $accessibleCompanies = $this->getMyCompanies();
@@ -175,6 +189,23 @@ class PeopleLinkService
             static fn(People $company): int => (int) $company->getId(),
             $accessibleCompanies
         );
+
+        // Explicit company= filter: expand via commercial chain (franqueadora → franquia)
+        // so managers of the parent can list franchisee people_links of that company.
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request instanceof Request && $request->query->has('company')) {
+            $requestedCompanyId = (int) $this->normalizeIdentifier($request->query->get('company'));
+            if (
+                $requestedCompanyId > 0
+                && !in_array($requestedCompanyId, $accessibleCompanyIds, true)
+                && $currentPeople instanceof People
+            ) {
+                $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+                if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                    $accessibleCompanyIds[] = $requestedCompanyId;
+                }
+            }
+        }
 
         if ($currentPeopleId === 0 && $accessibleCompanyIds === []) {
             $queryBuilder->andWhere('1 = 0');
@@ -206,6 +237,15 @@ class PeopleLinkService
         }
 
         $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
+    }
+
+    private function isSuperUser(): bool
+    {
+        return in_array(
+            'ROLE_SUPER',
+            $this->peopleRoleService->getGrantedRoles($this->getMyPeople()),
+            true
+        );
     }
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void
