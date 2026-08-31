@@ -153,9 +153,16 @@ class PeopleLinkService
 
         if ($linkType) {
             $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
-            // DQL-safe: Doctrine has no FIND_IN_SET. Equality/IN works for single-value SET rows.
-            $queryBuilder->andWhere(sprintf('%s.linkType IN (:requestedLinkTypes)', $rootAlias));
-            $queryBuilder->setParameter('requestedLinkTypes', array_map('strval', $linkTypes));
+            // MySQL SET column: equality per value (IN/FIND_IN_SET both problematic under DQL).
+            $ors = [];
+            foreach ($linkTypes as $i => $lt) {
+                $param = 'requestedLinkTypeEq' . $i;
+                $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $param);
+                $queryBuilder->setParameter($param, (string) $lt);
+            }
+            if ($ors !== []) {
+                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
+            }
         }
 
         if ($request->query->has('enable')) {
