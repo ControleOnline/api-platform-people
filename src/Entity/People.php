@@ -107,6 +107,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
+            read: false,
+            provider: PeopleItemProvider::class,
+            processor: PeopleCadastralUpdateProcessor::class,
             security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
