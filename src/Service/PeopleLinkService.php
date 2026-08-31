@@ -37,8 +37,9 @@ class PeopleLinkService
 
     /**
      * Hide people_links whose linked people is soft-deleted (operational removal).
-     * Employee/collaborator listings load via people_links; without this filter
-     * soft-deleted PF would still appear after DELETE /people/{id}.
+     * Do NOT filter by people.enable — Contatos must list disabled contacts so
+     * the UI can activate/deactivate them (app-community#687).
+     * On staging/master without People.deleted mapped, this is a no-op.
      */
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
@@ -47,8 +48,7 @@ class PeopleLinkService
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
             $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
         }
-        // Use mapped field only: People.deleted is not present on master/staging.
-        PeopleActiveConstraint::apply($queryBuilder, $peopleAlias, true);
+        PeopleActiveConstraint::applyNotDeleted($queryBuilder, $peopleAlias, true);
     }
 
     public function prePersist(PeopleLink $peopleLink): PeopleLink
