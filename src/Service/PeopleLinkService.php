@@ -37,8 +37,9 @@ class PeopleLinkService
 
     /**
      * Hide people_links whose linked people is soft-deleted (operational removal).
-     * Employee/collaborator listings load via people_links; without this filter
-     * soft-deleted PF would still appear after DELETE /people/{id}.
+     * Do NOT filter by people.enable — Contatos must list disabled contacts so
+     * the UI can activate/deactivate them (app-community#687).
+     * On staging/master without People.deleted mapped, this is a no-op.
      */
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
@@ -47,8 +48,7 @@ class PeopleLinkService
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
             $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
         }
-        // Use mapped field only: People.deleted may be absent on staging/master.
-        PeopleActiveConstraint::apply($queryBuilder, $peopleAlias, true);
+        PeopleActiveConstraint::applyNotDeleted($queryBuilder, $peopleAlias, true);
     }
 
     public function prePersist(PeopleLink $peopleLink): PeopleLink
@@ -79,10 +79,6 @@ class PeopleLinkService
             return false;
         }
 
-        if ($this->isSuperUser($currentPeople)) {
-            return true;
-        }
-
         $currentPeopleId = (int) $currentPeople->getId();
         $linkedPeopleId = (int) ($peopleLink->getPeople()?->getId() ?? 0);
         $linkedCompanyId = (int) ($peopleLink->getCompany()?->getId() ?? 0);
@@ -95,13 +91,6 @@ class PeopleLinkService
         }
 
         foreach ($this->resolveReadableCompanies($peopleLink) as $company) {
-            // Prefer direct people_link to the company (owner/employee/...) even when the
-            // company is outside the commercial panel chain (companyHasPanelAccess=false).
-            // Without this, creating collaborators on a standalone company always 403s
-            // (app-community#687 — "You are not allowed to manage this people link.").
-            if ($this->hasDirectLinkToCompany($company, $currentPeople, PeopleLink::HUMAN_LINK)) {
-                return true;
-            }
             if ($this->peopleRoleService->canAccessCompany($company, $currentPeople, PeopleLink::HUMAN_LINK)) {
                 return true;
             }
@@ -117,57 +106,13 @@ class PeopleLinkService
             return false;
         }
 
-        if ($this->isSuperUser($currentPeople)) {
-            return true;
-        }
-
         foreach ($this->resolveManageableCompanies($peopleLink) as $company) {
-            if ($this->hasDirectLinkToCompany($company, $currentPeople, PeopleLink::MANAGER_LINK)) {
-                return true;
-            }
             if ($this->peopleRoleService->canAccessCompany($company, $currentPeople, PeopleLink::MANAGER_LINK)) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Direct people_link to company, ignoring commercial panel chain filters.
-     *
-     * @param list<string> $linkTypes
-     */
-    private function hasDirectLinkToCompany(People $company, People $currentPeople, array $linkTypes): bool
-    {
-        $allowed = array_map(
-            static fn (string $type): string => strtolower(trim($type)),
-            $linkTypes
-        );
-
-        foreach ($this->manager->getRepository(PeopleLink::class)->findBy([
-            'people' => $currentPeople,
-            'company' => $company,
-        ]) as $link) {
-            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
-                continue;
-            }
-
-            $type = strtolower(trim((string) $link->getLinkType()));
-            if ($type !== '' && in_array($type, $allowed, true)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function isSuperUser(People $currentPeople): bool
-    {
-        $roles = $this->peopleRoleService->getGrantedRoles($currentPeople);
-
-        return in_array('ROLE_SUPER', $roles, true)
-            || in_array('super', $roles, true);
     }
 
     public function canViewSalesmanCommissions(PeopleLink $peopleLink): bool
@@ -207,9 +152,17 @@ class PeopleLinkService
         }
 
         if ($linkType) {
-            $linkTypes = is_array($linkType) ? $linkType : [$linkType];
-            $queryBuilder->andWhere(sprintf('%s.linkType IN (:requestedLinkTypes)', $rootAlias));
-            $queryBuilder->setParameter('requestedLinkTypes', $linkTypes);
+            $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
+            // people_link.link_type is MySQL SET — FIND_IN_SET is the reliable predicate.
+            $ors = [];
+            foreach ($linkTypes as $i => $lt) {
+                $param = 'requestedLinkType' . $i;
+                $ors[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $param, $rootAlias);
+                $queryBuilder->setParameter($param, (string) $lt);
+            }
+            if ($ors !== []) {
+                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
+            }
         }
 
         if ($request->query->has('enable')) {
@@ -223,6 +176,12 @@ class PeopleLinkService
 
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
+        // ROLE_SUPER (owner of main company): full collection visibility.
+        // Needed so My Company Details can list franchisee links of any company_id.
+        if ($this->isSuperUser()) {
+            return;
+        }
+
         $currentPeople = $this->getMyPeople();
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
         $accessibleCompanies = $this->getMyCompanies();
@@ -230,6 +189,23 @@ class PeopleLinkService
             static fn(People $company): int => (int) $company->getId(),
             $accessibleCompanies
         );
+
+        // Explicit company= filter: expand via commercial chain (franqueadora → franquia)
+        // so managers of the parent can list franchisee people_links of that company.
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request instanceof Request && $request->query->has('company')) {
+            $requestedCompanyId = (int) $this->normalizeIdentifier($request->query->get('company'));
+            if (
+                $requestedCompanyId > 0
+                && !in_array($requestedCompanyId, $accessibleCompanyIds, true)
+                && $currentPeople instanceof People
+            ) {
+                $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+                if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                    $accessibleCompanyIds[] = $requestedCompanyId;
+                }
+            }
+        }
 
         if ($currentPeopleId === 0 && $accessibleCompanyIds === []) {
             $queryBuilder->andWhere('1 = 0');
@@ -261,6 +237,15 @@ class PeopleLinkService
         }
 
         $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
+    }
+
+    private function isSuperUser(): bool
+    {
+        return in_array(
+            'ROLE_SUPER',
+            $this->peopleRoleService->getGrantedRoles($this->getMyPeople()),
+            true
+        );
     }
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void

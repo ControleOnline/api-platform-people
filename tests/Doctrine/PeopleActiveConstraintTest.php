@@ -76,4 +76,22 @@ class PeopleActiveConstraintTest extends TestCase
 
         return $queryBuilder;
     }
+
+    public function testApplyNotDeletedDoesNotFilterEnableWhenDeletedUnmapped(): void
+    {
+        $queryBuilder = $this->queryBuilderWithFields(['enable']);
+        $queryBuilder->expects(self::never())->method('andWhere');
+
+        PeopleActiveConstraint::applyNotDeleted($queryBuilder, 'p', true);
+    }
+
+    public function testApplyNotDeletedFiltersDeletedWhenMapped(): void
+    {
+        $queryBuilder = $this->queryBuilderWithFields(['enable', 'deleted']);
+        $queryBuilder->expects(self::once())
+            ->method('andWhere')
+            ->with('(p.id IS NULL OR p.deleted = false)');
+
+        PeopleActiveConstraint::applyNotDeleted($queryBuilder, 'p', true);
+    }
 }
