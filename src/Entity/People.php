@@ -30,6 +30,7 @@ use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Entity\CompanyDocument;
 use ControleOnline\State\HydratedReadProvider;
 use ControleOnline\State\PeopleItemProvider;
+use ControleOnline\State\PeopleCadastralUpdateProcessor;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
@@ -106,7 +107,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
+            // read:false — avoid Item not found before processor (Contatos #688)
+            read: false,
             provider: PeopleItemProvider::class,
+            processor: PeopleCadastralUpdateProcessor::class,
             security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
