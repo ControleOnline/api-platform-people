@@ -101,6 +101,8 @@ class PeopleRepository extends ServiceEntityRepository
 
         PeopleActiveConstraint::apply($queryBuilder, 'people', false);
 
+        PeopleActiveConstraint::apply($queryBuilder, 'people', false);
+
         return $queryBuilder->getQuery()->getResult();
     }
 
