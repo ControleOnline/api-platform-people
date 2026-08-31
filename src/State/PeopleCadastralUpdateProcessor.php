@@ -55,7 +55,47 @@ final class PeopleCadastralUpdateProcessor implements ProcessorInterface
             }
         }
         if (!$people instanceof People) {
-            throw new NotFoundHttpException(sprintf('Item not found for "/people/%d".', $id));
+            $exists = $this->em->getConnection()->fetchOne('SELECT id FROM people WHERE id = ?', [$id]);
+            if (!$exists) {
+                throw new NotFoundHttpException(sprintf('Item not found for "/people/%d".', $id));
+            }
+            // Row exists but ORM could not hydrate — apply UPDATE via SQL.
+            $payload = [];
+            $request = $context['request'] ?? null;
+            if (is_object($request) && method_exists($request, 'getContent')) {
+                $payload = json_decode((string) $request->getContent(), true) ?: [];
+            }
+            $sets = [];
+            $params = [];
+            if (isset($payload['name']) && is_string($payload['name'])) {
+                $sets[] = 'name = ?';
+                $params[] = trim($payload['name']);
+            }
+            if (isset($payload['alias']) && is_string($payload['alias'])) {
+                $sets[] = 'alias = ?';
+                $params[] = trim($payload['alias']);
+            }
+            if (array_key_exists('enable', $payload)) {
+                $sets[] = 'enable = ?';
+                $params[] = filter_var($payload['enable'], FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+            }
+            if (isset($payload['peopleType']) && is_string($payload['peopleType'])) {
+                $sets[] = 'people_type = ?';
+                $params[] = strtoupper(substr(trim($payload['peopleType']), 0, 1)) ?: 'F';
+            }
+            if ($sets) {
+                $params[] = $id;
+                $this->em->getConnection()->executeStatement(
+                    'UPDATE people SET ' . implode(', ', $sets) . ' WHERE id = ?',
+                    $params
+                );
+            }
+            $this->em->clear(People::class);
+            $people = $this->em->find(People::class, $id);
+            if (!$people instanceof People) {
+                // Return a minimal managed instance if still unreadable.
+                $people = $this->em->getReference(People::class, $id);
+            }
         }
 
         if ($data instanceof People) {
