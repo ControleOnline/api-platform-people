@@ -57,6 +57,7 @@ class PeopleLink
         'owner',
         'director',
         'manager',
+        'admin',
         'salesman',
         'after-sales',
         'courier',
@@ -66,13 +67,14 @@ class PeopleLink
 
     public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const ADMIN_LINK = ['owner', 'director', 'manager'];
+    public const ADMIN_LINK = ['owner', 'director', 'manager', 'admin'];
 
     public const API_ROLE_MAP = [
         'employee' => 'ROLE_EMPLOYEE',
         'owner' => 'ROLE_OWNER',
         'director' => 'ROLE_DIRECTOR',
         'manager' => 'ROLE_MANAGER',
+        'admin' => 'ROLE_ADMIN',
         'salesman' => 'ROLE_SALESMAN',
         'after-sales' => 'ROLE_AFTER_SALES',
         'courier' => 'ROLE_COURIER',

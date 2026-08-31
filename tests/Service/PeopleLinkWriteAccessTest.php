@@ -7,6 +7,7 @@ use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Service\PeopleLinkService;
 use ControleOnline\Service\PeopleRoleService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -28,8 +29,9 @@ final class PeopleLinkWriteAccessTest extends TestCase
 
         $roles = $this->createMock(PeopleRoleService::class);
         $roles->method('canAccessCompany')->willReturn(false);
+        $roles->method('getGrantedRoles')->willReturn([]);
 
-        $service = $this->makeService($caller, $roles);
+        $service = $this->makeService($caller, $roles, []);
 
         $this->expectException(AccessDeniedException::class);
         $service->prePersist($link);
@@ -51,8 +53,9 @@ final class PeopleLinkWriteAccessTest extends TestCase
                 return (int) $target->getId() === (int) $company->getId();
             }
         );
+        $roles->method('getGrantedRoles')->willReturn([]);
 
-        $service = $this->makeService($caller, $roles);
+        $service = $this->makeService($caller, $roles, []);
         $this->assertSame($link, $service->prePersist($link));
     }
 
@@ -67,12 +70,63 @@ final class PeopleLinkWriteAccessTest extends TestCase
 
         $roles = $this->createMock(PeopleRoleService::class);
         $roles->method('canAccessCompany')->willReturn(false);
+        $roles->method('getGrantedRoles')->willReturn([]);
 
-        $service = $this->makeService($caller, $roles);
+        $service = $this->makeService($caller, $roles, []);
         $this->assertSame($link, $service->prePersist($link));
     }
 
-    private function makeService(People $caller, PeopleRoleService $roles): PeopleLinkService
+    /**
+     * app-community#687 — company outside commercial panel chain still allows
+     * owner/manager with a direct people_link to create collaborators.
+     */
+    public function testAllowedViaDirectHumanLinkWhenPanelChainBlocks(): void
+    {
+        $caller = $this->people(1);
+        $company = $this->people(5);
+        $collaborator = $this->people(99);
+        $link = new PeopleLink();
+        $link->setCompany($company);
+        $link->setPeople($collaborator);
+        $link->setLinkType('employee');
+
+        $roles = $this->createMock(PeopleRoleService::class);
+        // Simulates companyHasPanelAccess=false → canAccessCompany false
+        $roles->method('canAccessCompany')->willReturn(false);
+        $roles->method('getGrantedRoles')->willReturn([]);
+
+        $direct = new PeopleLink();
+        $direct->setCompany($company);
+        $direct->setPeople($caller);
+        $direct->setLinkType('owner');
+        $direct->setEnabled(true);
+
+        $service = $this->makeService($caller, $roles, [$direct]);
+        $this->assertSame($link, $service->prePersist($link));
+    }
+
+    public function testAllowedForSuperUserWithoutDirectLink(): void
+    {
+        $caller = $this->people(1);
+        $company = $this->people(5);
+        $collaborator = $this->people(99);
+        $link = new PeopleLink();
+        $link->setCompany($company);
+        $link->setPeople($collaborator);
+        $link->setLinkType('employee');
+
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('canAccessCompany')->willReturn(false);
+        $roles->method('getGrantedRoles')->willReturn(['ROLE_SUPER']);
+
+        $service = $this->makeService($caller, $roles, []);
+        $this->assertSame($link, $service->prePersist($link));
+    }
+
+    /**
+     * @param list<PeopleLink> $directLinks
+     */
+    private function makeService(People $caller, PeopleRoleService $roles, array $directLinks): PeopleLinkService
     {
         $user = new class($caller) implements UserInterface {
             public function __construct(private People $people) {}
@@ -87,8 +141,14 @@ final class PeopleLinkWriteAccessTest extends TestCase
         $storage = $this->createMock(TokenStorageInterface::class);
         $storage->method('getToken')->willReturn($token);
 
+        $repo = $this->createMock(EntityRepository::class);
+        $repo->method('findBy')->willReturn($directLinks);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('getRepository')->with(PeopleLink::class)->willReturn($repo);
+
         return new PeopleLinkService(
-            $this->createMock(EntityManagerInterface::class),
+            $em,
             $storage,
             new RequestStack(),
             $roles,
