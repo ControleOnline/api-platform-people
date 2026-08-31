@@ -169,36 +169,38 @@ class PeopleLinkService
 
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
-        // ROLE_SUPER (owner of main company): full collection visibility.
-        // Needed so My Company Details can list franchisee links of any company_id.
+        // Explicit company-scoped list (My Company Details / Franquias):
+        // if the caller can access that company, do not apply the global OR wall.
+        $request = $this->requestStack->getCurrentRequest();
+        $requestedCompanyId = 0;
+        if ($request instanceof Request && $request->query->has('company')) {
+            $requestedCompanyId = (int) $this->normalizeIdentifier($request->query->get('company'));
+        }
+
         if ($this->isSuperUser()) {
             return;
         }
 
         $currentPeople = $this->getMyPeople();
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
+
+        if ($requestedCompanyId > 0 && $currentPeople instanceof People) {
+            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                // Scoped to company= already by applyRequestedFilters — enough AuthZ.
+                return;
+            }
+            // Also allow when the viewed company IS the current people (PJ login edge).
+            if ($requestedCompanyId === $currentPeopleId) {
+                return;
+            }
+        }
+
         $accessibleCompanies = $this->getMyCompanies();
         $accessibleCompanyIds = array_map(
             static fn(People $company): int => (int) $company->getId(),
             $accessibleCompanies
         );
-
-        // Explicit company= filter: expand via commercial chain (franqueadora → franquia)
-        // so managers of the parent can list franchisee people_links of that company.
-        $request = $this->requestStack->getCurrentRequest();
-        if ($request instanceof Request && $request->query->has('company')) {
-            $requestedCompanyId = (int) $this->normalizeIdentifier($request->query->get('company'));
-            if (
-                $requestedCompanyId > 0
-                && !in_array($requestedCompanyId, $accessibleCompanyIds, true)
-                && $currentPeople instanceof People
-            ) {
-                $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
-                if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
-                    $accessibleCompanyIds[] = $requestedCompanyId;
-                }
-            }
-        }
 
         if ($currentPeopleId === 0 && $accessibleCompanyIds === []) {
             $queryBuilder->andWhere('1 = 0');
@@ -234,12 +236,23 @@ class PeopleLinkService
 
     private function isSuperUser(): bool
     {
-        return in_array(
-            'ROLE_SUPER',
-            $this->peopleRoleService->getGrantedRoles($this->getMyPeople()),
-            true
-        );
+        $people = $this->getMyPeople();
+        if (in_array('ROLE_SUPER', $this->peopleRoleService->getGrantedRoles($people), true)) {
+            return true;
+        }
+
+        // Fallback: Symfony token roles (some stacks put ROLE_SUPER on the user).
+        $user = $this->security->getToken()?->getUser();
+        if (is_object($user) && method_exists($user, 'getRoles')) {
+            $roles = $user->getRoles();
+            if (is_array($roles) && (in_array('ROLE_SUPER', $roles, true) || in_array('ROLE_ADMIN', $roles, true))) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void
     {
