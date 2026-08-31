@@ -9,7 +9,10 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
+use ControleOnline\State\PeopleLinkUpsertProcessor;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Table(name: 'people_link')]
@@ -26,9 +29,18 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
+        // Create people_link (franchise / My Company Details + My Companies auto-link).
+        // Collection previously exposed GET only → POST produced 405 Allow: GET (app-community#642).
+        new Post(
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')",
+            processor: PeopleLinkUpsertProcessor::class,
+        ),
         // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
         // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
         new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
+        // Unlink collaborator / salesman / franchise (physical remove of people_link only).
+        // AuthZ enforced again in PeopleLinkService::preRemove via doctrine listeners / resource security.
+        new Delete(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -45,6 +57,7 @@ class PeopleLink
         'owner',
         'director',
         'manager',
+        'admin',
         'salesman',
         'after-sales',
         'courier',
@@ -54,13 +67,14 @@ class PeopleLink
 
     public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const ADMIN_LINK = ['owner', 'director', 'manager'];
+    public const ADMIN_LINK = ['owner', 'director', 'manager', 'admin'];
 
     public const API_ROLE_MAP = [
         'employee' => 'ROLE_EMPLOYEE',
         'owner' => 'ROLE_OWNER',
         'director' => 'ROLE_DIRECTOR',
         'manager' => 'ROLE_MANAGER',
+        'admin' => 'ROLE_ADMIN',
         'salesman' => 'ROLE_SALESMAN',
         'after-sales' => 'ROLE_AFTER_SALES',
         'courier' => 'ROLE_COURIER',
