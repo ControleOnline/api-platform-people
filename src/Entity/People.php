@@ -41,9 +41,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     normalizationContext: ['groups' => ['people:read']],
     denormalizationContext: [
         'groups' => ['people:write'],
-        // ALEMAC // 02/02/2026
-        // adaptação para clientes enviando ainda no formato antigo
-        // @todo // remover no futuro
         AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
     ],
     security: "is_granted('ROLE_HUMAN')",
@@ -55,7 +52,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new GetCollection(
             uriTemplate: '/people/company/default',
             controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
-            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
             read: false,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
@@ -68,13 +64,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         new GetCollection(
             uriTemplate: '/people/companies/my',
             controller: \ControleOnline\Controller\GetMyCompaniesAction::class,
-            // Custom payload; do not let ApiPlatform eager-load the whole People graph.
             read: false,
             security: "is_granted('ROLE_HUMAN')"
         ),
-        // ALEMAC // 2026-06-16
-        // Endpoint customizado para o dropdown de proprietarios candidatos
-        // no cadastro de franquia da Lavego.
         new GetCollection(
             uriTemplate: '/people/franchise-owner-candidates',
             controller: \ControleOnline\Controller\GetFranchiseOwnerCandidatesAction::class,
@@ -109,9 +101,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
                 'groups' => ['people:write'],
-                // ALEMAC // 02/02/2026
-                // adaptação para clientes enviando ainda no formato antigo
-                // @todo // remover no futuro
                 AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
             ]
         ),
@@ -162,7 +151,7 @@ class People
     #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $id;
 
     #[ORM\Column(type: 'boolean')]
@@ -170,14 +159,14 @@ class People
     private $enable = 0;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
     private $registerDate;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $alias = '';
 
     #[ORM\Column(name: 'other_informations', type: 'json', nullable: true)]
@@ -229,9 +218,6 @@ class People
     #[Groups(['people:read'])]
     private $productPeople;
 
-    /**
-     * Media (avatar, logo, …) embutida em people_link:read para evitar N+1 de /people_media no front.
-     */
     #[ORM\OneToMany(targetEntity: PeopleMedia::class, mappedBy: 'people')]
     #[Groups(['people_link:read', 'people:read'])]
     private $peopleMedia;
@@ -272,9 +258,6 @@ class People
     }
     public function setEnabled($enable)
     {
-        // ALEMAC // 02/02/2026
-        // adaptação para clientes enviando ainda no formato antigo
-        // @todo // remover no futuro
         if (is_numeric($enable)) {
             $enable = ((int) $enable) === 1;
         }
