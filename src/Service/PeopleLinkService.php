@@ -166,11 +166,13 @@ class PeopleLinkService
         }
 
         if ($request->query->has('enable')) {
+            $raw = $request->query->get('enable');
+            $enabled = filter_var($raw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($enabled === null) {
+                $enabled = in_array(strtolower((string) $raw), ['1', 'true', 'yes', 'on'], true);
+            }
             $queryBuilder->andWhere(sprintf('%s.enable = :requestedEnabled', $rootAlias));
-            $queryBuilder->setParameter(
-                'requestedEnabled',
-                filter_var($request->query->get('enable'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false
-            );
+            $queryBuilder->setParameter('requestedEnabled', $enabled ? 1 : 0);
         }
     }
 

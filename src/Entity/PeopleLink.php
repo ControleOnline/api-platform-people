@@ -51,8 +51,6 @@ use Doctrine\ORM\Mapping as ORM;
     'id' => 'exact',
     'company' => 'exact',
     'people' => 'exact',
-    'linkType' => 'exact',
-    'enable' => 'exact',
 ])]
 class PeopleLink
 {
