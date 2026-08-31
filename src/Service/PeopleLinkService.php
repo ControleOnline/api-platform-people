@@ -79,6 +79,10 @@ class PeopleLinkService
             return false;
         }
 
+        if ($this->isSuperUserForPeople($currentPeople)) {
+            return true;
+        }
+
         $currentPeopleId = (int) $currentPeople->getId();
         $linkedPeopleId = (int) ($peopleLink->getPeople()?->getId() ?? 0);
         $linkedCompanyId = (int) ($peopleLink->getCompany()?->getId() ?? 0);
@@ -91,6 +95,9 @@ class PeopleLinkService
         }
 
         foreach ($this->resolveReadableCompanies($peopleLink) as $company) {
+            if ($this->hasDirectLinkToCompany($company, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                return true;
+            }
             if ($this->peopleRoleService->canAccessCompany($company, $currentPeople, PeopleLink::HUMAN_LINK)) {
                 return true;
             }
@@ -106,13 +113,57 @@ class PeopleLinkService
             return false;
         }
 
+        if ($this->isSuperUserForPeople($currentPeople)) {
+            return true;
+        }
+
         foreach ($this->resolveManageableCompanies($peopleLink) as $company) {
+            if ($this->hasDirectLinkToCompany($company, $currentPeople, PeopleLink::MANAGER_LINK)) {
+                return true;
+            }
             if ($this->peopleRoleService->canAccessCompany($company, $currentPeople, PeopleLink::MANAGER_LINK)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Direct people_link to company, ignoring commercial panel chain filters.
+     *
+     * @param list<string> $linkTypes
+     */
+    private function hasDirectLinkToCompany(People $company, People $currentPeople, array $linkTypes): bool
+    {
+        $allowed = array_map(
+            static fn (string $type): string => strtolower(trim($type)),
+            $linkTypes
+        );
+
+        foreach ($this->manager->getRepository(PeopleLink::class)->findBy([
+            'people' => $currentPeople,
+            'company' => $company,
+        ]) as $link) {
+            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
+                continue;
+            }
+
+            $type = strtolower(trim((string) $link->getLinkType()));
+            if ($type !== '' && in_array($type, $allowed, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isSuperUserForPeople(People $currentPeople): bool
+    {
+        $roles = $this->peopleRoleService->getGrantedRoles($currentPeople);
+
+        return in_array('ROLE_SUPER', $roles, true)
+            || in_array('super', $roles, true);
     }
 
     public function canViewSalesmanCommissions(PeopleLink $peopleLink): bool
@@ -201,7 +252,13 @@ class PeopleLinkService
                 && $currentPeople instanceof People
             ) {
                 $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
-                if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                // canAccessCompany depends on companyHasPanelAccess (commercial chain).
+                // Owners of companies outside that chain still need to list Contatos
+                // (app-community#687 — people_links only returned self/owner link).
+                if (
+                    $this->hasDirectLinkToCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)
+                    || $this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)
+                ) {
                     $accessibleCompanyIds[] = $requestedCompanyId;
                 }
             }

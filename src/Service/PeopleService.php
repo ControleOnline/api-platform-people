@@ -35,6 +35,17 @@ class PeopleService
   {
     $language = $this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']);
     $people->setLanguage($language);
+
+    // Collaborator create (POST /people with company + linkType): ensure active so
+    // people_links listing (PeopleActiveConstraint) includes the new contact (#687).
+    $request = $this->requestStack->getCurrentRequest();
+    if ($request) {
+      $payload = json_decode($request->getContent() ?: '{}');
+      if (is_object($payload) && !empty($payload->linkType) && !empty($payload->company)) {
+        $people->setEnabled(true);
+      }
+    }
+
     return $people;
   }
 
