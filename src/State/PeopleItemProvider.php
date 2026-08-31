@@ -5,19 +5,20 @@ namespace ControleOnline\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use ControleOnline\Entity\People;
+use ControleOnline\Service\PeopleCompanyScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Load People by primary key, bypassing Doctrine filters and query extensions.
+ * Load People by PK after company-scope AuthZ (app-community#688).
  *
- * Staging: people listed via people_links (e.g. 105790/105794) returned 404 on
- * GET/PUT /people/{id} while association load still worked — item provider path
- * was filtered. Native PK lookup keeps Contatos edit working (#688).
+ * Soft-delete filter is the only one disabled, so enable=false contacts stay
+ * editable. Tenant/company filters stay on. No unscoped SQL fallback.
  */
 final class PeopleItemProvider implements ProviderInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly PeopleCompanyScopeGuard $scope,
     ) {
     }
 
@@ -28,41 +29,25 @@ final class PeopleItemProvider implements ProviderInterface
             return null;
         }
 
+        $this->scope->assertAccessible($id);
+
         $filters = $this->em->getFilters();
-        $disabled = [];
-        foreach (array_keys($filters->getEnabledFilters()) as $name) {
-            $filters->disable($name);
-            $disabled[] = $name;
+        $disabledSoftDelete = false;
+        if (method_exists($filters, 'isEnabled') && $filters->isEnabled('softdeleteable')) {
+            $filters->disable('softdeleteable');
+            $disabledSoftDelete = true;
         }
 
         try {
             $people = $this->em->find(People::class, $id);
-            if ($people instanceof People) {
-                return $people;
-            }
-
-            // Native fallback if unit-of-work/filters still interfere.
-            $exists = $this->em->getConnection()->fetchOne(
-                'SELECT id FROM people WHERE id = ?',
-                [$id]
-            );
-            if (!$exists) {
-                return null;
-            }
-
-            // Clear and retry find after confirming the row exists.
-            $this->em->clear(People::class);
-            $people = $this->em->find(People::class, $id);
 
             return $people instanceof People ? $people : null;
         } finally {
-            foreach ($disabled as $name) {
-                if (!$filters->isEnabled($name)) {
-                    try {
-                        $filters->enable($name);
-                    } catch (\Throwable) {
-                        // ignore re-enable failures
-                    }
+            if ($disabledSoftDelete && !$filters->isEnabled('softdeleteable')) {
+                try {
+                    $filters->enable('softdeleteable');
+                } catch (\Throwable) {
+                    // ignore re-enable failures in tests
                 }
             }
         }
