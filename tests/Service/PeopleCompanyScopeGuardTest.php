@@ -38,30 +38,38 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testDeniesWhenNoSharedCompany(): void
+    public function testDeniesWhenNoCompanyRelation(): void
     {
         $caller = $this->people(1);
         $roles = $this->createMock(PeopleRoleService::class);
         $roles->method('getCurrentPeople')->willReturn($caller);
 
-        $query = $this->createMock(AbstractQuery::class);
-        $query->method('getSingleScalarResult')->willReturn(0);
-
-        $qb = $this->createMock(QueryBuilder::class);
-        $qb->method('select')->willReturnSelf();
-        $qb->method('from')->willReturnSelf();
-        $qb->method('innerJoin')->willReturnSelf();
-        $qb->method('andWhere')->willReturnSelf();
-        $qb->method('setParameter')->willReturnSelf();
-        $qb->method('getQuery')->willReturn($query);
-
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('createQueryBuilder')->willReturn($qb);
+        $em->method('createQueryBuilder')->willReturnOnConsecutiveCalls(
+            $this->queryBuilderReturning(0),
+            $this->queryBuilderReturning(0),
+        );
 
         $guard = new PeopleCompanyScopeGuard($em, $roles);
 
         $this->expectException(AccessDeniedException::class);
         $guard->assertAccessible(105790);
+    }
+
+    public function testAllowsWhenTargetIsCallerCompany(): void
+    {
+        $caller = $this->people(1);
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('getCurrentPeople')->willReturn($caller);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('createQueryBuilder')->willReturn(
+            $this->queryBuilderReturning(1),
+        );
+
+        $guard = new PeopleCompanyScopeGuard($em, $roles);
+        $guard->assertAccessible(5);
+        $this->addToAssertionCount(1);
     }
 
     public function testAllowsWhenSharedCompanyExists(): void
@@ -70,8 +78,21 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $roles = $this->createMock(PeopleRoleService::class);
         $roles->method('getCurrentPeople')->willReturn($caller);
 
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('createQueryBuilder')->willReturnOnConsecutiveCalls(
+            $this->queryBuilderReturning(0),
+            $this->queryBuilderReturning(1),
+        );
+
+        $guard = new PeopleCompanyScopeGuard($em, $roles);
+        $guard->assertAccessible(105790);
+        $this->addToAssertionCount(1);
+    }
+
+    private function queryBuilderReturning(int $count): QueryBuilder
+    {
         $query = $this->createMock(AbstractQuery::class);
-        $query->method('getSingleScalarResult')->willReturn(1);
+        $query->method('getSingleScalarResult')->willReturn($count);
 
         $qb = $this->createMock(QueryBuilder::class);
         $qb->method('select')->willReturnSelf();
@@ -81,12 +102,7 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $qb->method('setParameter')->willReturnSelf();
         $qb->method('getQuery')->willReturn($query);
 
-        $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('createQueryBuilder')->willReturn($qb);
-
-        $guard = new PeopleCompanyScopeGuard($em, $roles);
-        $guard->assertAccessible(105790);
-        $this->addToAssertionCount(1);
+        return $qb;
     }
 
     private function people(int $id): People

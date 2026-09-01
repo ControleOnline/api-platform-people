@@ -8,11 +8,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
- * Company-scoped access for GET/PUT /people/{id} (app-community#688).
+ * Company-scoped access for GET/PUT /people/{id} (app-community#688 / #693).
  *
  * A ROLE_HUMAN caller may only load/update a People row when:
  * - it is the same person, or
- * - caller and target share at least one people_link.company.
+ * - the target is a company the caller belongs to (people_link.company), or
+ * - caller and target share at least one people_link.company
+ *   (coworkers, franchisee/filial/client linked to that company).
  *
  * Does not disable Doctrine filters. Does not fall back to unscoped SQL.
  */
@@ -40,7 +42,43 @@ final class PeopleCompanyScopeGuard
             return;
         }
 
-        $shared = $this->em->createQueryBuilder()
+        if ($this->countCallerCompanyMatch($callerId, $targetPeopleId) > 0) {
+            return;
+        }
+
+        if ($this->countSharedCompanyAsPeople($callerId, $targetPeopleId) > 0) {
+            return;
+        }
+
+        throw new AccessDeniedException('People is outside the caller company scope.');
+    }
+
+    /**
+     * Target People is the company side of a caller people_link
+     * (franchisor / current company IRI denormalized on people_link write).
+     */
+    private function countCallerCompanyMatch(int $callerId, int $targetPeopleId): int
+    {
+        $count = $this->em->createQueryBuilder()
+            ->select('COUNT(caller.id)')
+            ->from(PeopleLink::class, 'caller')
+            ->andWhere('IDENTITY(caller.people) = :caller')
+            ->andWhere('IDENTITY(caller.company) = :target')
+            ->setParameter('caller', $callerId)
+            ->setParameter('target', $targetPeopleId)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
+
+    /**
+     * Caller and target both appear as people of the same company
+     * (employee of franchisor vs franchisee PJ on people_link.people).
+     */
+    private function countSharedCompanyAsPeople(int $callerId, int $targetPeopleId): int
+    {
+        $count = $this->em->createQueryBuilder()
             ->select('COUNT(target.id)')
             ->from(PeopleLink::class, 'target')
             ->innerJoin(
@@ -56,10 +94,6 @@ final class PeopleCompanyScopeGuard
             ->getQuery()
             ->getSingleScalarResult();
 
-        if ((int) $shared > 0) {
-            return;
-        }
-
-        throw new AccessDeniedException('People is outside the caller company scope.');
+        return (int) $count;
     }
 }
