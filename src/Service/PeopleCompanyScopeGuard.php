@@ -8,10 +8,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
- * Company-scoped access for GET/PUT /people/{id} (app-community#688 / #693).
+ * Company-scoped access for GET/PUT /people/{id} and nested People IRIs
+ * (app-community#688 / #693 / #697).
  *
  * A ROLE_HUMAN caller may only load/update a People row when:
  * - it is the same person, or
+ * - PeopleRoleService::canAccessCompany allows the target (direct company
+ *   link or commercial chain — POST /categories denormalizes company IRI), or
  * - the target is a company the caller belongs to (people_link.company), or
  * - caller and target share at least one people_link.company
  *   (coworkers, franchisee/filial/client linked to that company).
@@ -39,6 +42,11 @@ final class PeopleCompanyScopeGuard
 
         $callerId = (int) $caller->getId();
         if ($callerId === $targetPeopleId) {
+            return;
+        }
+
+        $target = $this->em->find(People::class, $targetPeopleId);
+        if ($target instanceof People && $this->roles->canAccessCompany($target, $caller)) {
             return;
         }
 

@@ -56,6 +56,23 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $guard->assertAccessible(105790);
     }
 
+    public function testAllowsWhenCanAccessCompany(): void
+    {
+        $caller = $this->people(1);
+        $target = $this->people(5);
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('getCurrentPeople')->willReturn($caller);
+        $roles->expects(self::once())->method('canAccessCompany')->with($target, $caller)->willReturn(true);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('find')->with(People::class, 5)->willReturn($target);
+        $em->expects(self::never())->method('createQueryBuilder');
+
+        $guard = new PeopleCompanyScopeGuard($em, $roles);
+        $guard->assertAccessible(5);
+        $this->addToAssertionCount(1);
+    }
+
     public function testAllowsWhenTargetIsCallerCompany(): void
     {
         $caller = $this->people(1);
