@@ -9,7 +9,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Company-scoped access for GET/PUT /people/{id} and nested People IRIs
- * (app-community#688 / #693 / #697).
+ * (app-community#688 / #693 / #697 / #695).
  *
  * A ROLE_HUMAN caller may only load/update a People row when:
  * - it is the same person, or
@@ -17,7 +17,9 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  *   link or commercial chain — POST /categories denormalizes company IRI), or
  * - the target is a company the caller belongs to (people_link.company), or
  * - caller and target share at least one people_link.company
- *   (coworkers, franchisee/filial/client linked to that company).
+ *   (coworkers, franchisee/filial/client linked to that company), or
+ * - the target is people of a company the caller can access (salesman IRI
+ *   on POST people_link sellers-client / my-company-details Vendedores).
  *
  * Does not disable Doctrine filters. Does not fall back to unscoped SQL.
  */
@@ -55,6 +57,10 @@ final class PeopleCompanyScopeGuard
         }
 
         if ($this->countSharedCompanyAsPeople($callerId, $targetPeopleId) > 0) {
+            return;
+        }
+
+        if ($this->isTargetLinkedToAccessibleCompany($caller, $targetPeopleId)) {
             return;
         }
 
@@ -103,5 +109,30 @@ final class PeopleCompanyScopeGuard
             ->getSingleScalarResult();
 
         return (int) $count;
+    }
+
+    /**
+     * Target is the people side of a people_link whose company the caller
+     * can access (salesman / employee of current or parent company).
+     * Needed when POST people_link denormalizes company=/people/{sellerId}.
+     */
+    private function isTargetLinkedToAccessibleCompany(People $caller, int $targetPeopleId): bool
+    {
+        $links = $this->em->getRepository(PeopleLink::class)->findBy([
+            'people' => $targetPeopleId,
+        ]);
+
+        foreach ($links as $link) {
+            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
+                continue;
+            }
+
+            $company = $link->getCompany();
+            if ($company instanceof People && $this->roles->canAccessCompany($company, $caller)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
