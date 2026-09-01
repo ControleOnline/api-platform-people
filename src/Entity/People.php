@@ -109,7 +109,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
                 AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true
             ]
         ),
-        new Delete(security: "is_granted('ROLE_HUMAN')")
+        new Delete(
+            security: "is_granted('ROLE_HUMAN')",
+            processor: \ControleOnline\State\PeopleSoftDeleteProcessor::class,
+        )
     ],
     order: ['name' => 'ASC', 'id' => 'DESC']
 )]
@@ -131,12 +134,14 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
     'foundationDate',
     'registerDate',
     'peopleType',
-    'enable'
+    'enable',
+    'deleted'
 ])]
 #[ApiFilter(DateFilter::class, properties: ['foundationDate', 'registerDate'])]
 #[ApiFilter(SearchFilter::class, properties: [
     'id' => 'exact',
     'enable' => 'exact',
+    'deleted' => 'exact',
     'name' => 'partial',
     'alias' => 'partial',
     'peopleType' => 'exact',
@@ -162,6 +167,17 @@ class People
     #[ORM\Column(type: 'boolean')]
     #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
     private $enable = 0;
+
+    /**
+     * Soft-delete flag. Operational removal sets deleted=true; physical DELETE is not used.
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['people:read', 'people_link:read', 'people:write', 'order_details:read', 'contract:read', 'import:read', 'task:read'])]
+    private bool $deleted = false;
+
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[Groups(['people:read', 'people:write'])]
+    private ?DateTimeInterface $deletedAt = null;
 
     #[ORM\Column(type: 'string', length: 50)]
     #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
@@ -234,6 +250,8 @@ class People
     public function __construct()
     {
         $this->enable = 0;
+        $this->deleted = false;
+        $this->deletedAt = null;
         $this->registerDate = new DateTime('now');
         $this->company = new ArrayCollection();
         $this->config = new ArrayCollection();
@@ -274,6 +292,42 @@ class People
         return $this->setEnabled($enable);
     }
 
+    public function isDeleted(): bool
+    {
+        return (bool) $this->deleted;
+    }
+
+    public function getDeleted(): bool
+    {
+        return $this->isDeleted();
+    }
+
+    public function setDeleted(bool|int|string|null $deleted): self
+    {
+        if (is_numeric($deleted)) {
+            $deleted = ((int) $deleted) === 1;
+        }
+        $this->deleted = (bool) $deleted;
+        if ($this->deleted && $this->deletedAt === null) {
+            $this->deletedAt = new DateTime('now');
+        }
+        if (!$this->deleted) {
+            $this->deletedAt = null;
+        }
+        return $this;
+    }
+
+    public function getDeletedAt(): ?DateTimeInterface
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeInterface $deletedAt): self
+    {
+        $this->deletedAt = $deletedAt;
+        return $this;
+    }
+
     public function setPeopleType($people_type)
     {
         $this->peopleType = $people_type;
@@ -290,18 +344,10 @@ class People
         return $this;
     }
 
-    private function uppercaseText(?string $value): string
-    {
-        $normalized = (string) $value;
-
-        return function_exists('mb_strtoupper')
-            ? mb_strtoupper($normalized, 'UTF-8')
-            : strtoupper($normalized);
-    }
-
     public function getName(): string
     {
-        return $this->uppercaseText($this->name);
+        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
+        return (string) ($this->name ?? '');
     }
 
     public function setAlias($alias)
@@ -311,7 +357,8 @@ class People
     }
     public function getAlias()
     {
-        return $this->uppercaseText($this->alias);
+        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
+        return (string) ($this->alias ?? '');
     }
 
     public function setLanguage(Language $language = null)
@@ -522,32 +569,6 @@ class People
     public function removeCompanyDocument(CompanyDocument $doc)
     {
         $this->company_document->removeElement($doc);
-        return $this;
-    }
-
-    public function getPeopleMedia()
-    {
-        return $this->peopleMedia;
-    }
-
-    public function addPeopleMedia(PeopleMedia $peopleMedia): self
-    {
-        if (!$this->peopleMedia->contains($peopleMedia)) {
-            $this->peopleMedia[] = $peopleMedia;
-            $peopleMedia->setPeople($this);
-        }
-
-        return $this;
-    }
-
-    public function removePeopleMedia(PeopleMedia $peopleMedia): self
-    {
-        if ($this->peopleMedia->removeElement($peopleMedia)) {
-            if ($peopleMedia->getPeople() === $this) {
-                $peopleMedia->setPeople(null);
-            }
-        }
-
         return $this;
     }
 }

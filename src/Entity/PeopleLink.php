@@ -29,17 +29,21 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
-        // Create people_link (franchise / My Company Details + My Companies auto-link).
-        // Collection previously exposed GET only → POST produced 405 Allow: GET (app-community#642).
+        // Create people_link (franchise / salesman sellers-client / My Companies auto-link).
+        // Collection previously exposed GET only → POST produced 405 Allow: GET
+        // (app-community#642 / app-community#650).
         new Post(
             securityPostDenormalize: "is_granted('ROLE_HUMAN')",
             processor: PeopleLinkUpsertProcessor::class,
         ),
-        // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
-        // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
-        new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
+        // Update commission / link metadata. Resource gate is ROLE_HUMAN;
+        // tenant AuthZ is enforced again in PeopleLinkService::preUpdate (MANAGER_LINK).
+        new Put(
+            security: "is_granted('ROLE_HUMAN')",
+            securityPostDenormalize: "is_granted('ROLE_HUMAN')",
+        ),
         // Unlink collaborator / salesman / franchise (physical remove of people_link only).
-        // AuthZ enforced again in PeopleLinkService::preRemove via doctrine listeners / resource security.
+        // AuthZ enforced again in PeopleLinkService::preRemove.
         new Delete(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
@@ -47,8 +51,6 @@ use Doctrine\ORM\Mapping as ORM;
     'id' => 'exact',
     'company' => 'exact',
     'people' => 'exact',
-    'linkType' => 'exact',
-    'enable' => 'exact',
 ])]
 class PeopleLink
 {
@@ -57,7 +59,6 @@ class PeopleLink
         'owner',
         'director',
         'manager',
-        'admin',
         'salesman',
         'after-sales',
         'courier',
@@ -67,14 +68,13 @@ class PeopleLink
 
     public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const ADMIN_LINK = ['owner', 'director', 'manager', 'admin'];
+    public const ADMIN_LINK = ['owner', 'director', 'manager'];
 
     public const API_ROLE_MAP = [
         'employee' => 'ROLE_EMPLOYEE',
         'owner' => 'ROLE_OWNER',
         'director' => 'ROLE_DIRECTOR',
         'manager' => 'ROLE_MANAGER',
-        'admin' => 'ROLE_ADMIN',
         'salesman' => 'ROLE_SALESMAN',
         'after-sales' => 'ROLE_AFTER_SALES',
         'courier' => 'ROLE_COURIER',
@@ -126,7 +126,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier','after-sales') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;
