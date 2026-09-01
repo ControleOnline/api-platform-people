@@ -31,6 +31,7 @@ use ControleOnline\Entity\CompanyDocument;
 use ControleOnline\State\HydratedReadProvider;
 use ControleOnline\State\PeopleItemProvider;
 use ControleOnline\State\PeopleCadastralUpdateProcessor;
+use ControleOnline\State\PeopleSoftDeleteProcessor;
 use DateTime;
 use DateTimeInterface;
 use stdClass;
@@ -110,8 +111,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             ]
         ),
         new Delete(
-            security: "is_granted('ROLE_HUMAN')",
-            processor: \ControleOnline\State\PeopleSoftDeleteProcessor::class,
+            provider: PeopleItemProvider::class,
+            processor: PeopleSoftDeleteProcessor::class,
+            security: "is_granted('ROLE_HUMAN')"
         )
     ],
     order: ['name' => 'ASC', 'id' => 'DESC']
