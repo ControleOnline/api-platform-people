@@ -40,4 +40,18 @@ class PeopleTest extends TestCase
         self::assertFalse($ref->hasProperty('alternative_image'));
         self::assertFalse($ref->hasProperty('background'));
     }
+
+    public function testSoftDeleteDefaultsFalseAndSetsDeletedAt(): void
+    {
+        $people = new People();
+        self::assertFalse($people->isDeleted());
+        self::assertNull($people->getDeletedAt());
+        $people->setDeleted(true);
+        self::assertTrue($people->isDeleted());
+        self::assertNotNull($people->getDeletedAt());
+        $people->setDeleted(false);
+        self::assertFalse($people->isDeleted());
+        self::assertNull($people->getDeletedAt());
+    }
 }
+
