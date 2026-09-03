@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ControleOnline\Repository\DocumentTypeRepository;
+use ControleOnline\Entity\City;
+use ControleOnline\Entity\State;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource(
@@ -32,6 +34,20 @@ class DocumentType
     #[ORM\Column(name: 'document_type', type: 'string', length: 50, nullable: false)]
     #[Groups(['people:read', 'document:read', 'document_type:read', 'carrier:read'])]
     private string $documentType;
+
+    #[ORM\Column(name: 'owner_type', type: 'string', length: 20, nullable: false, options: ['default' => 'people'])]
+    #[Groups(['document:read', 'document_type:read', 'document_type:write'])]
+    private string $ownerType = 'people';
+
+    #[ORM\JoinColumn(name: 'state_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: State::class)]
+    #[Groups(['document:read', 'document_type:read', 'document_type:write'])]
+    private ?State $state = null;
+
+    #[ORM\JoinColumn(name: 'city_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: City::class)]
+    #[Groups(['document:read', 'document_type:read', 'document_type:write'])]
+    private ?City $city = null;
 
     #[ApiFilter(filterClass: SearchFilter::class, properties: ['peopleType' => 'exact'])]
 
@@ -58,6 +74,22 @@ class DocumentType
     {
         return $this->documentType;
     }
+
+    public function setOwnerType(string $ownerType): self
+    {
+        $ownerType = strtolower(trim($ownerType));
+        if (!in_array($ownerType, ['people', 'vehicle'], true)) {
+            throw new \InvalidArgumentException('ownerType must be people or vehicle.');
+        }
+        $this->ownerType = $ownerType;
+        return $this;
+    }
+
+    public function getOwnerType(): string { return $this->ownerType; }
+    public function setState(?State $state): self { $this->state = $state; return $this; }
+    public function getState(): ?State { return $this->state; }
+    public function setCity(?City $city): self { $this->city = $city; return $this; }
+    public function getCity(): ?City { return $this->city; }
 
     public function setPeopleType(string $peopleType): self
     {
