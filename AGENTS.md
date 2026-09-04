@@ -23,6 +23,7 @@ Sempre comece pela **Home** da wiki e siga as categorias abaixo.
 | [Cliente × Vendedor — vínculo e permissões](https://github.com/ControleOnline/api-platform-people/wiki/Cliente-Vendedor-Vinculo-e-Permissoes) | SalesmanService, distribuição, people_link, comissões |
 | [Document — metadata `$vehicle`](https://github.com/ControleOnline/api-platform-people/wiki/Document-Vehicle-Metadata-Compatibility) | Compatibilidade Doctrine; hotfix #88 webhook iFood |
 | Página canônica do fluxo (CRM) | https://github.com/ControleOnline/ui-crm/wiki/Cliente-Vendedor-Vinculo-e-Permissoes |
+| [People soft-delete schema](https://github.com/ControleOnline/api-platform-people/wiki/People-Soft-Delete-Schema) | Colunas deleted/deleted_at + link runbook API (#83) |
 
 Cópia versionada no Git: `docs/technical/Cliente-Vendedor-Vinculo-e-Permissoes.md`, `docs/technical/Document-Vehicle-Metadata-Compatibility.md`
 
