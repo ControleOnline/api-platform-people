@@ -29,6 +29,7 @@ use ControleOnline\Entity\User;
 use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Entity\CompanyDocument;
 use ControleOnline\State\HydratedReadProvider;
+use ControleOnline\State\PeopleItemProvider;
 use ControleOnline\State\PeopleSoftDeleteProcessor;
 use DateTime;
 use DateTimeInterface;
@@ -93,7 +94,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             status: 202,
         ),
         new Get(
-            provider: HydratedReadProvider::class,
+            provider: PeopleItemProvider::class,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
