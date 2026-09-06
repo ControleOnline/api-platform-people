@@ -21,6 +21,7 @@ Sempre comece pela **Home** da wiki e siga as categorias abaixo.
 | Página | O que documenta |
 | --- | --- |
 | [Cliente × Vendedor — vínculo e permissões](https://github.com/ControleOnline/api-platform-people/wiki/Cliente-Vendedor-Vinculo-e-Permissoes) | SalesmanService, distribuição, people_link, comissões |
+| [Cadastro de Pessoas, Contatos, Usuários e Vendedores](https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores) | Fluxo completo PF/PJ; canônica UI em ui-people wiki |
 | [Document — metadata `$vehicle`](https://github.com/ControleOnline/api-platform-people/wiki/Document-Vehicle-Metadata-Compatibility) | Compatibilidade Doctrine; hotfix #88 webhook iFood |
 | Página canônica do fluxo (CRM) | https://github.com/ControleOnline/ui-crm/wiki/Cliente-Vendedor-Vinculo-e-Permissoes |
 
