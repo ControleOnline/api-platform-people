@@ -45,3 +45,7 @@ A UI em `ui-crm` / `ui-customers` **não** substitui o enforcement de API.
 | `ui-crm` | Handoff comercial | https://github.com/ControleOnline/ui-crm/wiki |
 | `ui-customers` | Aba Vendedores no detalhe | https://github.com/ControleOnline/ui-customers/wiki |
 | `api-community` | Home da API | https://github.com/ControleOnline/api-community/wiki |
+
+## Fluxo cadastro de pessoas
+
+- Wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores

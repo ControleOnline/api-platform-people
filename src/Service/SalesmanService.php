@@ -1,4 +1,5 @@
 <?php
+// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 // fluxo: vendedor-cadastro | etapa: salesman-service | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Service;
