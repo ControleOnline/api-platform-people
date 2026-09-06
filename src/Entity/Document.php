@@ -76,13 +76,6 @@ class Document
     #[Groups(['people:read', 'document:read', 'carrier:read', 'document:write'])]
     private DocumentType $documentType;
 
-    /**
-     * Compatibility field for stale Doctrine ClassMetadata that still
-     * references Document::$vehicle (prod ReflectionException on webhook iFood).
-     * Not mapped — no vehicle column on `document`.
-     */
-    private mixed $vehicle = null;
-
     /** @var Collection<int, DocumentFile> */
     #[ORM\OneToMany(targetEntity: DocumentFile::class, mappedBy: 'document', orphanRemoval: true)]
     #[Groups(['people:read', 'document:read'])]
