@@ -9,6 +9,7 @@ use ControleOnline\Service\CommissionService;
 use ControleOnline\Service\Contract\PeriodicReceivableServiceInterface;
 use ControleOnline\Service\RoyaltiesService;
 use DateTimeImmutable;
+use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
