@@ -1,4 +1,5 @@
 <?php
+// fluxo: cliente-cadastro, funcionario-cadastro, fornecedor-cadastro, franquia-cadastro, vendedor-cadastro | etapa: people-links | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Entity;
 
