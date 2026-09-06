@@ -67,6 +67,10 @@ class PeopleLinkService
 
     public function canReadPeopleLink(PeopleLink $peopleLink): bool
     {
+        if ($this->isSuperRole()) {
+            return true;
+        }
+
         $currentPeople = $this->getMyPeople();
         if (!$currentPeople instanceof People) {
             return false;
@@ -94,6 +98,10 @@ class PeopleLinkService
 
     public function canManagePeopleLink(PeopleLink $peopleLink): bool
     {
+        if ($this->isSuperRole()) {
+            return true;
+        }
+
         $currentPeople = $this->getMyPeople();
         if (!$currentPeople instanceof People) {
             return false;
@@ -150,8 +158,22 @@ class PeopleLinkService
 
         if ($linkType) {
             $linkTypes = is_array($linkType) ? $linkType : [$linkType];
-            $queryBuilder->andWhere(sprintf('%s.linkType IN (:requestedLinkTypes)', $rootAlias));
-            $queryBuilder->setParameter('requestedLinkTypes', $linkTypes);
+            $linkTypes = array_values(array_filter(array_map(
+                static fn($type) => trim(strtolower((string) $type)),
+                $linkTypes
+            )));
+
+            // link_type is a MySQL SET. Exact IN fails for multi-member values
+            // (e.g. "franchisee,client"). FIND_IN_SET matches membership.
+            if ($linkTypes !== []) {
+                $orParts = [];
+                foreach ($linkTypes as $index => $type) {
+                    $param = 'requestedLinkType_' . $index;
+                    $orParts[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $param, $rootAlias);
+                    $queryBuilder->setParameter($param, $type);
+                }
+                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$orParts));
+            }
         }
 
         if ($request->query->has('enable')) {
@@ -165,6 +187,12 @@ class PeopleLinkService
 
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
+        // ROLE_SUPER (owner of main company): full collection visibility so
+        // My Company Details can list franchisee links of any company_id.
+        if ($this->isSuperRole()) {
+            return;
+        }
+
         $currentPeople = $this->getMyPeople();
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
         $accessibleCompanies = $this->getMyCompanies();
@@ -203,6 +231,11 @@ class PeopleLinkService
         }
 
         $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
+    }
+
+    private function isSuperRole(): bool
+    {
+        return in_array('ROLE_SUPER', $this->peopleRoleService->getGrantedRoles(), true);
     }
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void
