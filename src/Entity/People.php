@@ -1,4 +1,6 @@
 <?php
+// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
+// fluxo: cliente-cadastro, funcionario-cadastro, fornecedor-cadastro, minhas-empresas-cadastro, franquia-cadastro, vendedor-cadastro | etapa: people-core | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Entity;
 

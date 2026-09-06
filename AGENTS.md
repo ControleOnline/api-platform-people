@@ -21,9 +21,10 @@ Sempre comece pela **Home** da wiki e siga as categorias abaixo.
 | Página | O que documenta |
 | --- | --- |
 | [Cliente × Vendedor — vínculo e permissões](https://github.com/ControleOnline/api-platform-people/wiki/Cliente-Vendedor-Vinculo-e-Permissoes) | SalesmanService, distribuição, people_link, comissões |
+| [Document — metadata `$vehicle`](https://github.com/ControleOnline/api-platform-people/wiki/Document-Vehicle-Metadata-Compatibility) | Compatibilidade Doctrine; hotfix #88 webhook iFood |
 | Página canônica do fluxo (CRM) | https://github.com/ControleOnline/ui-crm/wiki/Cliente-Vendedor-Vinculo-e-Permissoes |
 
-Cópia versionada no Git: `docs/technical/Cliente-Vendedor-Vinculo-e-Permissoes.md`
+Cópia versionada no Git: `docs/technical/Cliente-Vendedor-Vinculo-e-Permissoes.md`, `docs/technical/Document-Vehicle-Metadata-Compatibility.md`
 
 ### Visão deste módulo
 
@@ -44,3 +45,7 @@ A UI em `ui-crm` / `ui-customers` **não** substitui o enforcement de API.
 | `ui-crm` | Handoff comercial | https://github.com/ControleOnline/ui-crm/wiki |
 | `ui-customers` | Aba Vendedores no detalhe | https://github.com/ControleOnline/ui-customers/wiki |
 | `api-community` | Home da API | https://github.com/ControleOnline/api-community/wiki |
+
+## Fluxo cadastro de pessoas
+
+- Wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
