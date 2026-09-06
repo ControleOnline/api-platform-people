@@ -67,7 +67,7 @@ class PeopleLinkService
 
     public function canReadPeopleLink(PeopleLink $peopleLink): bool
     {
-        if ($this->isSuperRole()) {
+        if ($this->isSuperUser()) {
             return true;
         }
 
@@ -98,7 +98,7 @@ class PeopleLinkService
 
     public function canManagePeopleLink(PeopleLink $peopleLink): bool
     {
-        if ($this->isSuperRole()) {
+        if ($this->isSuperUser()) {
             return true;
         }
 
@@ -157,44 +157,68 @@ class PeopleLinkService
         }
 
         if ($linkType) {
-            $linkTypes = is_array($linkType) ? $linkType : [$linkType];
+            $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
             $linkTypes = array_values(array_filter(array_map(
                 static fn($type) => trim(strtolower((string) $type)),
                 $linkTypes
             )));
 
-            // link_type is a MySQL SET. Exact IN fails for multi-member values
-            // (e.g. "franchisee,client"). FIND_IN_SET matches membership.
+            // MySQL SET: match exact single value OR membership via FIND_IN_SET
+            // (multi-member cells like "franchisee,client").
             if ($linkTypes !== []) {
-                $orParts = [];
-                foreach ($linkTypes as $index => $type) {
-                    $param = 'requestedLinkType_' . $index;
-                    $orParts[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $param, $rootAlias);
-                    $queryBuilder->setParameter($param, $type);
+                $ors = [];
+                foreach ($linkTypes as $i => $lt) {
+                    $paramEq = 'requestedLinkTypeEq' . $i;
+                    $paramSet = 'requestedLinkTypeSet' . $i;
+                    $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $paramEq);
+                    $ors[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $paramSet, $rootAlias);
+                    $queryBuilder->setParameter($paramEq, $lt);
+                    $queryBuilder->setParameter($paramSet, $lt);
                 }
-                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$orParts));
+                $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
             }
         }
 
         if ($request->query->has('enable')) {
+            $raw = $request->query->get('enable');
+            $enabled = filter_var($raw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($enabled === null) {
+                $enabled = in_array(strtolower((string) $raw), ['1', 'true', 'yes', 'on'], true);
+            }
             $queryBuilder->andWhere(sprintf('%s.enable = :requestedEnabled', $rootAlias));
-            $queryBuilder->setParameter(
-                'requestedEnabled',
-                filter_var($request->query->get('enable'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false
-            );
+            $queryBuilder->setParameter('requestedEnabled', $enabled ? 1 : 0);
         }
     }
 
     private function applyVisibilityFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
-        // ROLE_SUPER (owner of main company): full collection visibility so
-        // My Company Details can list franchisee links of any company_id.
-        if ($this->isSuperRole()) {
+        // Explicit company-scoped list (My Company Details / Franquias):
+        // if the caller can access that company, do not apply the global OR wall.
+        $request = $this->requestStack->getCurrentRequest();
+        $requestedCompanyId = 0;
+        if ($request instanceof Request && $request->query->has('company')) {
+            $requestedCompanyId = (int) $this->normalizeIdentifier($request->query->get('company'));
+        }
+
+        if ($this->isSuperUser()) {
             return;
         }
 
         $currentPeople = $this->getMyPeople();
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
+
+        if ($requestedCompanyId > 0 && $currentPeople instanceof People) {
+            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                // Scoped to company= already by applyRequestedFilters — enough AuthZ.
+                return;
+            }
+            // Also allow when the viewed company IS the current people (PJ login edge).
+            if ($requestedCompanyId === $currentPeopleId) {
+                return;
+            }
+        }
+
         $accessibleCompanies = $this->getMyCompanies();
         $accessibleCompanyIds = array_map(
             static fn(People $company): int => (int) $company->getId(),
@@ -233,9 +257,23 @@ class PeopleLinkService
         $queryBuilder->andWhere($queryBuilder->expr()->orX(...$visibilityConditions));
     }
 
-    private function isSuperRole(): bool
+    private function isSuperUser(): bool
     {
-        return in_array('ROLE_SUPER', $this->peopleRoleService->getGrantedRoles(), true);
+        $people = $this->getMyPeople();
+        if (in_array('ROLE_SUPER', $this->peopleRoleService->getGrantedRoles($people), true)) {
+            return true;
+        }
+
+        // Fallback: Symfony token roles (some stacks put ROLE_SUPER on the user).
+        $user = $this->security->getToken()?->getUser();
+        if (is_object($user) && method_exists($user, 'getRoles')) {
+            $roles = $user->getRoles();
+            if (is_array($roles) && (in_array('ROLE_SUPER', $roles, true) || in_array('ROLE_ADMIN', $roles, true))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void
