@@ -158,23 +158,15 @@ class PeopleLinkService
 
         if ($linkType) {
             $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
-            $linkTypes = array_values(array_filter(array_map(
-                static fn($type) => trim(strtolower((string) $type)),
-                $linkTypes
-            )));
-
-            // MySQL SET: match exact single value OR membership via FIND_IN_SET
-            // (multi-member cells like "franchisee,client").
-            if ($linkTypes !== []) {
-                $ors = [];
-                foreach ($linkTypes as $i => $lt) {
-                    $paramEq = 'requestedLinkTypeEq' . $i;
-                    $paramSet = 'requestedLinkTypeSet' . $i;
-                    $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $paramEq);
-                    $ors[] = sprintf('FIND_IN_SET(:%s, %s.linkType) > 0', $paramSet, $rootAlias);
-                    $queryBuilder->setParameter($paramEq, $lt);
-                    $queryBuilder->setParameter($paramSet, $lt);
-                }
+            // Equality only (same as dev). Avoid FIND_IN_SET in DQL — can 500
+            // when the string function is not registered on the deployed stack.
+            $ors = [];
+            foreach ($linkTypes as $i => $lt) {
+                $param = 'requestedLinkTypeEq' . $i;
+                $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $param);
+                $queryBuilder->setParameter($param, (string) $lt);
+            }
+            if ($ors !== []) {
                 $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
             }
         }
