@@ -330,7 +330,10 @@ class PeopleLinkService
     private function resolveReadableCompanies(PeopleLink $peopleLink): array
     {
         if ($this->isSalesmanClientLink($peopleLink)) {
-            return $this->getSalesmanCompanies($peopleLink->getCompany());
+            return $this->uniqueCompanies(array_merge(
+                $peopleLink->getCompany() instanceof People ? [$peopleLink->getCompany()] : [],
+                $this->getSalesmanCompanies($peopleLink->getCompany()),
+            ));
         }
 
         $companies = [];
@@ -348,7 +351,10 @@ class PeopleLinkService
     private function resolveManageableCompanies(PeopleLink $peopleLink): array
     {
         if ($this->isSalesmanClientLink($peopleLink)) {
-            return $this->getSalesmanCompanies($peopleLink->getCompany());
+            return $this->uniqueCompanies(array_merge(
+                $peopleLink->getCompany() instanceof People ? [$peopleLink->getCompany()] : [],
+                $this->getSalesmanCompanies($peopleLink->getCompany()),
+            ));
         }
 
         return $this->resolveReadableCompanies($peopleLink);

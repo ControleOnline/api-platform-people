@@ -4,6 +4,7 @@ namespace ControleOnline\Tests\Service;
 
 use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
+use ControleOnline\Entity\User;
 use ControleOnline\Service\PeopleLinkService;
 use ControleOnline\Service\PeopleRoleService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -79,14 +80,7 @@ class PeopleLinkServiceTest extends TestCase
             ->with(PeopleLink::class)
             ->willReturn($repository);
 
-        $user = new class($currentPeople) {
-            public function __construct(private People $people) {}
-
-            public function getPeople(): People
-            {
-                return $this->people;
-            }
-        };
+        $user = (new User())->setPeople($currentPeople);
 
         $token = $this->createMock(TokenInterface::class);
         $token->method('getUser')->willReturn($user);

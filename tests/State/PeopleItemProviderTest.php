@@ -7,6 +7,7 @@ use ControleOnline\Entity\People;
 use ControleOnline\Service\PeopleCompanyScopeGuard;
 use ControleOnline\State\PeopleItemProvider;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\FilterCollection;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -16,14 +17,8 @@ final class PeopleItemProviderTest extends TestCase
     {
         $people = $this->people(105790);
 
-        $filters = new class {
-            public function isEnabled(string $name): bool
-            {
-                return false;
-            }
-            public function disable(string $name): void {}
-            public function enable(string $name): void {}
-        };
+        $filters = $this->createMock(FilterCollection::class);
+        $filters->method('isEnabled')->willReturn(false);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getFilters')->willReturn($filters);
@@ -58,11 +53,8 @@ final class PeopleItemProviderTest extends TestCase
 
     public function testProvideReturnsNullWhenMissing(): void
     {
-        $filters = new class {
-            public function isEnabled(string $name): bool { return false; }
-            public function disable(string $name): void {}
-            public function enable(string $name): void {}
-        };
+        $filters = $this->createMock(FilterCollection::class);
+        $filters->method('isEnabled')->willReturn(false);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getFilters')->willReturn($filters);

@@ -156,7 +156,7 @@ class GetMyCompaniesActionTest extends TestCase
         self::assertSame(1, $payload['response']['count']);
         self::assertCount(1, $payload['response']['data']);
         self::assertSame(21, $payload['response']['data'][0]['id']);
-        self::assertSame('CENTRO', $payload['response']['data'][0]['alias']);
+        self::assertSame('Centro', $payload['response']['data'][0]['alias']);
         self::assertSame($logoUrl, $payload['response']['data'][0]['logo']);
         self::assertSame($iconUrl, $payload['response']['data'][0]['icon']);
         self::assertSame($stampUrl, $payload['response']['data'][0]['stamp']);

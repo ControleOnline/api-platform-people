@@ -84,8 +84,8 @@ final class PeopleLinkWriteAccessTest extends TestCase
 
         $roles = $this->createMock(PeopleRoleService::class);
         $roles->method('canAccessCompany')->willReturnCallback(
-            function (People $target) use ($client): bool {
-                return (int) $target->getId() === (int) $client->getId();
+            function (People $target) use ($seller, $client): bool {
+                return in_array((int) $target->getId(), [(int) $seller->getId(), (int) $client->getId()], true);
             }
         );
 

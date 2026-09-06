@@ -6,7 +6,7 @@ use ControleOnline\Entity\People;
 use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Service\PeopleCompanyScopeGuard;
 use ControleOnline\Service\PeopleRoleService;
-use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -154,7 +154,7 @@ final class PeopleCompanyScopeGuardTest extends TestCase
 
     private function queryBuilderReturning(int $count): QueryBuilder
     {
-        $query = $this->createMock(AbstractQuery::class);
+        $query = $this->createMock(Query::class);
         $query->method('getSingleScalarResult')->willReturn($count);
 
         $qb = $this->createMock(QueryBuilder::class);

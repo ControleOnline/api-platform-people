@@ -23,7 +23,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  *
  * Does not disable Doctrine filters. Does not fall back to unscoped SQL.
  */
-final class PeopleCompanyScopeGuard
+class PeopleCompanyScopeGuard
 {
     public function __construct(
         private readonly EntityManagerInterface $em,

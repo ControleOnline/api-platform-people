@@ -157,7 +157,7 @@ class GetPublicShopFranchisesActionTest extends TestCase
         self::assertSame(1, $payload['page']);
         self::assertSame(30, $payload['itemsPerPage']);
         self::assertCount(1, $payload['member']);
-        self::assertSame('CENTRO', $payload['member'][0]['alias']);
+        self::assertSame('Centro', $payload['member'][0]['alias']);
         self::assertSame([
             'id' => 321,
             'domain' => 'https://cdn.example.test',
