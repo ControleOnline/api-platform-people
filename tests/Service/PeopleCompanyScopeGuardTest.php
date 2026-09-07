@@ -3,10 +3,12 @@
 namespace ControleOnline\Tests\Service;
 
 use ControleOnline\Entity\People;
+use ControleOnline\Entity\PeopleLink;
 use ControleOnline\Service\PeopleCompanyScopeGuard;
 use ControleOnline\Service\PeopleRoleService;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -48,6 +50,9 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $em->method('createQueryBuilder')->willReturnOnConsecutiveCalls(
             $this->queryBuilderReturning(0),
             $this->queryBuilderReturning(0),
+        );
+        $em->method('getRepository')->with(PeopleLink::class)->willReturn(
+            $this->peopleLinkRepository([]),
         );
 
         $guard = new PeopleCompanyScopeGuard($em, $roles);
@@ -104,6 +109,47 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $guard = new PeopleCompanyScopeGuard($em, $roles);
         $guard->assertAccessible(105790);
         $this->addToAssertionCount(1);
+    }
+
+    public function testAllowsWhenTargetIsSalesmanOfAccessibleCompany(): void
+    {
+        $caller = $this->people(1);
+        $seller = $this->people(88);
+        $company = $this->people(5);
+
+        $link = new PeopleLink();
+        $link->setCompany($company);
+        $link->setPeople($seller);
+        $link->setLinkType('salesman');
+        $link->setEnabled(true);
+
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('getCurrentPeople')->willReturn($caller);
+        $roles->method('canAccessCompany')->willReturnCallback(
+            static fn (People $candidate): bool => (int) $candidate->getId() === 5
+        );
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('find')->with(People::class, 88)->willReturn($seller);
+        $em->method('createQueryBuilder')->willReturnOnConsecutiveCalls(
+            $this->queryBuilderReturning(0),
+            $this->queryBuilderReturning(0),
+        );
+        $em->method('getRepository')->with(PeopleLink::class)->willReturn(
+            $this->peopleLinkRepository([$link]),
+        );
+
+        $guard = new PeopleCompanyScopeGuard($em, $roles);
+        $guard->assertAccessible(88);
+        $this->addToAssertionCount(1);
+    }
+
+    private function peopleLinkRepository(array $links): EntityRepository
+    {
+        $repo = $this->createMock(EntityRepository::class);
+        $repo->method('findBy')->willReturn($links);
+
+        return $repo;
     }
 
     private function queryBuilderReturning(int $count): QueryBuilder
