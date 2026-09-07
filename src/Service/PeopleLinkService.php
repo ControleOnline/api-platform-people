@@ -200,14 +200,22 @@ class PeopleLinkService
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
 
         if ($requestedCompanyId > 0 && $currentPeople instanceof People) {
-            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
-            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
-                // Scoped to company= already by applyRequestedFilters — enough AuthZ.
-                return;
-            }
-            // Also allow when the viewed company IS the current people (PJ login edge).
+            // My Company Details / Franquias: company= already scopes the list.
+            // Accept HUMAN, ADMIN, or any company returned by getMyCompanies().
             if ($requestedCompanyId === $currentPeopleId) {
                 return;
+            }
+            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                return;
+            }
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::ADMIN_LINK)) {
+                return;
+            }
+            foreach ($this->getMyCompanies() as $accessible) {
+                if ((int) $accessible->getId() === $requestedCompanyId) {
+                    return;
+                }
             }
         }
 
