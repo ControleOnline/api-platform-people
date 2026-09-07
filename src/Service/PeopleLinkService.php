@@ -158,13 +158,21 @@ class PeopleLinkService
 
         if ($linkType) {
             $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
-            // Equality only (same as dev). Avoid FIND_IN_SET in DQL — can 500
-            // when the string function is not registered on the deployed stack.
+            $linkTypes = array_values(array_filter(array_map(
+                static fn($type) => strtolower(trim((string) $type)),
+                $linkTypes
+            )));
+            // MySQL SET: plain DQL equality often returns 0 rows even when the
+            // JSON payload shows linkType=franchisee (task-641 evidence).
+            // Use LIKE membership on the stored SET string instead.
             $ors = [];
             foreach ($linkTypes as $i => $lt) {
-                $param = 'requestedLinkTypeEq' . $i;
-                $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $param);
-                $queryBuilder->setParameter($param, (string) $lt);
+                if ($lt === '') {
+                    continue;
+                }
+                $param = 'requestedLinkTypeLike' . $i;
+                $ors[] = sprintf('LOWER(%s.linkType) LIKE :%s', $rootAlias, $param);
+                $queryBuilder->setParameter($param, '%' . $lt . '%');
             }
             if ($ors !== []) {
                 $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
@@ -200,14 +208,22 @@ class PeopleLinkService
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
 
         if ($requestedCompanyId > 0 && $currentPeople instanceof People) {
-            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
-            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
-                // Scoped to company= already by applyRequestedFilters — enough AuthZ.
-                return;
-            }
-            // Also allow when the viewed company IS the current people (PJ login edge).
+            // My Company Details / Franquias: company= already scopes the list.
+            // Accept HUMAN, ADMIN, or any company returned by getMyCompanies().
             if ($requestedCompanyId === $currentPeopleId) {
                 return;
+            }
+            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                return;
+            }
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::ADMIN_LINK)) {
+                return;
+            }
+            foreach ($this->getMyCompanies() as $accessible) {
+                if ((int) $accessible->getId() === $requestedCompanyId) {
+                    return;
+                }
             }
         }
 
