@@ -47,8 +47,7 @@ use Doctrine\ORM\Mapping as ORM;
     'id' => 'exact',
     'company' => 'exact',
     'people' => 'exact',
-    'linkType' => 'exact',
-    'enable' => 'exact',
+    // linkType + enable: handled only in PeopleLinkService (SET + OR semantics).
 ])]
 class PeopleLink
 {
