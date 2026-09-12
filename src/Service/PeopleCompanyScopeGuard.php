@@ -142,4 +142,27 @@ final class PeopleCompanyScopeGuard
 
         return false;
     }
+
+    private function findPeopleIncludingInactive(int $peopleId): ?People
+    {
+        $filters = $this->em->getFilters();
+        $disabled = false;
+        if (method_exists($filters, 'isEnabled') && $filters->isEnabled('softdeleteable')) {
+            $filters->disable('softdeleteable');
+            $disabled = true;
+        }
+
+        try {
+            $people = $this->em->find(People::class, $peopleId);
+
+            return $people instanceof People ? $people : null;
+        } finally {
+            if ($disabled && !$filters->isEnabled('softdeleteable')) {
+                try {
+                    $filters->enable('softdeleteable');
+                } catch (\Throwable) {
+                }
+            }
+        }
+    }
 }
