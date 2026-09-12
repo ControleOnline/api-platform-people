@@ -42,13 +42,6 @@ final class PeopleCompanyScopeGuard
             throw new AccessDeniedException('Authentication required to access people.');
         }
 
-        // ROLE_SUPER / main-company owner bypass — needed to re-enable self
-        // after enable=false and to recover locked contacts (#687).
-        $granted = $this->roles->getGrantedRoles($caller);
-        if (in_array('ROLE_SUPER', $granted, true) || in_array('super', $granted, true)) {
-            return;
-        }
-
         $callerId = (int) $caller->getId();
         if ($callerId === $targetPeopleId) {
             return;
