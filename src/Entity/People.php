@@ -98,11 +98,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
-        // Same provider as Get: disable softdeleteable + company-scope AuthZ so
-        // enable=false contacts remain loadable for update (app-community#687).
-        // Without this, default ItemProvider often yields 404 Not Found on PUT.
         new Put(
-            provider: PeopleItemProvider::class,
             security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
@@ -111,7 +107,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             ]
         ),
         new Delete(
-            provider: PeopleItemProvider::class,
             processor: PeopleSoftDeleteProcessor::class,
             security: "is_granted('ROLE_HUMAN')"
         )
