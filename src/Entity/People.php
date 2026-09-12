@@ -98,7 +98,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
+        // Same provider as Get so enable=false / soft-deleted rows still load
+        // for update (app-community#687). Default ItemProvider → null → 404.
         new Put(
+            provider: PeopleItemProvider::class,
             security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
@@ -107,6 +110,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             ]
         ),
         new Delete(
+            provider: PeopleItemProvider::class,
             processor: PeopleSoftDeleteProcessor::class,
             security: "is_granted('ROLE_HUMAN')"
         )

@@ -42,12 +42,18 @@ final class PeopleCompanyScopeGuard
             throw new AccessDeniedException('Authentication required to access people.');
         }
 
+        // ROLE_SUPER may re-enable locked contacts (including self after enable=false).
+        $granted = $this->roles->getGrantedRoles($caller);
+        if (in_array('ROLE_SUPER', $granted, true) || in_array('super', $granted, true)) {
+            return;
+        }
+
         $callerId = (int) $caller->getId();
         if ($callerId === $targetPeopleId) {
             return;
         }
 
-        $target = $this->em->find(People::class, $targetPeopleId);
+        $target = $this->findPeopleIncludingInactive($targetPeopleId);
         if ($target instanceof People && $this->roles->canAccessCompany($target, $caller)) {
             return;
         }
@@ -123,10 +129,11 @@ final class PeopleCompanyScopeGuard
         ]);
 
         foreach ($links as $link) {
-            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
+            if (!$link instanceof PeopleLink) {
                 continue;
             }
 
+            // Include disabled links so enable=false contacts remain updatable.
             $company = $link->getCompany();
             if ($company instanceof People && $this->roles->canAccessCompany($company, $caller)) {
                 return true;
