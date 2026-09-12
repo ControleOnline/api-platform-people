@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ControleOnline\Controller\GetPeopleDomainOverviewAction;
+use ControleOnline\Controller\GetPeopleDomainAdsenseCheckAction;
 use ControleOnline\Repository\PeopleDomainRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -27,6 +28,12 @@ use Symfony\Component\Serializer\Attribute\SerializedName;
         new Get(
             uriTemplate: '/people_domains/{id}/overview',
             controller: GetPeopleDomainOverviewAction::class,
+            read: false,
+            security: 'is_granted(\'ROLE_HUMAN\')'
+        ),
+        new Get(
+            uriTemplate: '/people_domains/{id}/adsense-check',
+            controller: GetPeopleDomainAdsenseCheckAction::class,
             read: false,
             security: 'is_granted(\'ROLE_HUMAN\')'
         ),
