@@ -12,6 +12,12 @@ services:
     ControleOnline\Controller\:
         resource: '../../src/Controller'
         tags: ['controller.service_arguments']
+    http_client.adsense:
+        class: Symfony\Contracts\HttpClient\HttpClientInterface
+        factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
+    ControleOnline\Service\AdsenseSiteChecker:
+        arguments:
+            $httpClient: '@http_client.adsense'
     ControleOnline\Command\:
         resource: '../../src/Command'
         tags: ['console.command']
