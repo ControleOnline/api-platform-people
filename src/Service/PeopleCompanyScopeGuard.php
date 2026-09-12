@@ -47,7 +47,7 @@ final class PeopleCompanyScopeGuard
             return;
         }
 
-        $target = $this->em->find(People::class, $targetPeopleId);
+        $target = $this->findPeopleIncludingInactive($targetPeopleId);
         if ($target instanceof People && $this->roles->canAccessCompany($target, $caller)) {
             return;
         }
@@ -123,10 +123,12 @@ final class PeopleCompanyScopeGuard
         ]);
 
         foreach ($links as $link) {
-            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
+            if (!$link instanceof PeopleLink) {
                 continue;
             }
 
+            // Include disabled links: contact may have enable=false on People
+            // while the people_link was also toggled; still need PUT to re-enable.
             $company = $link->getCompany();
             if ($company instanceof People && $this->roles->canAccessCompany($company, $caller)) {
                 return true;
@@ -134,5 +136,28 @@ final class PeopleCompanyScopeGuard
         }
 
         return false;
+    }
+
+    private function findPeopleIncludingInactive(int $peopleId): ?People
+    {
+        $filters = $this->em->getFilters();
+        $disabled = false;
+        if (method_exists($filters, 'isEnabled') && $filters->isEnabled('softdeleteable')) {
+            $filters->disable('softdeleteable');
+            $disabled = true;
+        }
+
+        try {
+            $people = $this->em->find(People::class, $peopleId);
+
+            return $people instanceof People ? $people : null;
+        } finally {
+            if ($disabled && !$filters->isEnabled('softdeleteable')) {
+                try {
+                    $filters->enable('softdeleteable');
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }
