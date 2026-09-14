@@ -78,8 +78,10 @@ final class PeopleCompanyScopeGuard
             ->from(PeopleLink::class, 'caller')
             ->andWhere('IDENTITY(caller.people) = :caller')
             ->andWhere('IDENTITY(caller.company) = :target')
+            ->andWhere('caller.enable = :enabled')
             ->setParameter('caller', $callerId)
             ->setParameter('target', $targetPeopleId)
+            ->setParameter('enabled', true)
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -103,8 +105,11 @@ final class PeopleCompanyScopeGuard
             )
             ->andWhere('IDENTITY(target.people) = :target')
             ->andWhere('IDENTITY(caller.people) = :caller')
+            ->andWhere('target.enable = :enabled')
+            ->andWhere('caller.enable = :enabled')
             ->setParameter('target', $targetPeopleId)
             ->setParameter('caller', $callerId)
+            ->setParameter('enabled', true)
             ->getQuery()
             ->getSingleScalarResult();
 
