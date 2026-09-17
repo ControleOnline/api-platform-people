@@ -75,7 +75,7 @@ class PeopleRoleService
 
             if (
                 $this->isMainCompany($company)
-                && $link->getLinkType() === 'owner'
+                && in_array($link->getLinkType(), PeopleLink::ADMIN_LINK, true)
             ) {
                 $roles[] = 'ROLE_SUPER';
             }
@@ -192,12 +192,10 @@ class PeopleRoleService
             }
 
             $permissions[] = (string) $link->getLinkType();
-            if (
-                $this->isMainCompany($linkedCompany)
-                && $link->getLinkType() === 'owner'
-            ) {
-                $permissions[] = 'super';
-            }
+        }
+
+        if ($this->isSuperAdmin($people)) {
+            $permissions[] = 'super';
         }
 
         $permissions = array_merge(
@@ -212,6 +210,19 @@ class PeopleRoleService
         }
 
         return $this->companyPermissionsCache[$cacheKey] = $permissions;
+    }
+
+    public function isSuperAdmin(?People $people = null): bool
+    {
+        return in_array('ROLE_SUPER', $this->getGrantedRoles($people), true);
+    }
+
+    public function canAdministerCompany(People $company, ?People $people = null): bool
+    {
+        return array_intersect(
+            [...PeopleLink::ADMIN_LINK, 'super'],
+            $this->getCompanyPermissions($company, $people)
+        ) !== [];
     }
 
     public function getAllRoles(People $people): array
