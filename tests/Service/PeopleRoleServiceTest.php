@@ -91,6 +91,43 @@ class PeopleRoleServiceTest extends TestCase
         self::assertSame(['owner', 'super'], $this->sortValues($service->getCompanyPermissions($mainCompany, $person)));
     }
 
+    public function testMainCompanyManagerGetsSuperRole(): void
+    {
+        $person = $this->createPeople(16);
+        $mainCompany = $this->createPeople(99);
+
+        $service = $this->buildService([
+            16 => [$this->createLink($mainCompany, $person, 'manager')],
+            99 => [],
+        ], $mainCompany);
+
+        self::assertSame(['ROLE_MANAGER', 'ROLE_SUPER'], $this->sortValues($service->getGrantedRoles($person)));
+        self::assertSame(['manager', 'super'], $this->sortValues($service->getCompanyPermissions($mainCompany, $person)));
+    }
+
+    public function testMainCompanyAdministratorCanAdministerEveryCompany(): void
+    {
+        $person = $this->createPeople(17);
+        $company = $this->createPeople(27);
+        $mainCompany = $this->createPeople(99);
+
+        $service = $this->buildService([
+            17 => [$this->createLink($mainCompany, $person, 'manager')],
+            27 => [$this->createLink($mainCompany, $company, 'client')],
+            99 => [],
+        ], $mainCompany);
+
+        self::assertSame(['client', 'super'], $this->sortValues($service->getCompanyPermissions($company, $person)));
+        self::assertTrue($service->canAdministerCompany($company, $person));
+    }
+
+    public function testOnlyOwnerAndManagerAreTenantAdministrators(): void
+    {
+        self::assertSame(['owner', 'manager'], PeopleLink::ADMIN_LINK);
+        self::assertNotContains('director', PeopleLink::ADMIN_LINK);
+        self::assertNotContains('employee', PeopleLink::ADMIN_LINK);
+    }
+
     public function testCompanyWithoutCommercialChainDoesNotGrantOperationalRole(): void
     {
         $person = $this->createPeople(13);

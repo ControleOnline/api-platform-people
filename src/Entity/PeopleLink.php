@@ -65,7 +65,7 @@ class PeopleLink
 
     public const PANEL_LINK = ['client', 'provider', 'franchisee', 'filial'];
 
-    public const ADMIN_LINK = ['owner', 'director', 'manager'];
+    public const ADMIN_LINK = ['owner', 'manager'];
 
     public const API_ROLE_MAP = [
         'employee' => 'ROLE_EMPLOYEE',
