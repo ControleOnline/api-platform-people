@@ -37,4 +37,5 @@ class PeopleTest extends TestCase
         self::assertSame('Maria Silva', $people->getName());
         self::assertSame('Mari', $people->getAlias());
     }
+
 }

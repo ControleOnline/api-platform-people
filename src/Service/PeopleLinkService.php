@@ -1,5 +1,4 @@
 <?php
-// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 
 namespace ControleOnline\Service;
 
@@ -36,19 +35,12 @@ class PeopleLinkService
         $this->applyVisibilityFilter($queryBuilder, $rootAlias);
     }
 
-    /**
-     * Hide people_links whose linked people is soft-deleted (operational removal).
-     * Employee/collaborator listings load via people_links; without this filter
-     * soft-deleted PF would still appear after DELETE /people/{id}.
-     */
     private function applyActivePeopleFilter(QueryBuilder $queryBuilder, string $rootAlias): void
     {
         $peopleAlias = $rootAlias . '_people_active';
-        // Left join keeps links even if people relation is sparse.
         if (!in_array($peopleAlias, $queryBuilder->getAllAliases(), true)) {
             $queryBuilder->leftJoin(sprintf('%s.people', $rootAlias), $peopleAlias);
         }
-        // Use mapped field only: People.deleted is not present on master/staging.
         PeopleActiveConstraint::apply($queryBuilder, $peopleAlias, true);
     }
 
@@ -75,6 +67,10 @@ class PeopleLinkService
 
     public function canReadPeopleLink(PeopleLink $peopleLink): bool
     {
+        if ($this->isSuperUser()) {
+            return true;
+        }
+
         $currentPeople = $this->getMyPeople();
         if (!$currentPeople instanceof People) {
             return false;
@@ -102,6 +98,10 @@ class PeopleLinkService
 
     public function canManagePeopleLink(PeopleLink $peopleLink): bool
     {
+        if ($this->isSuperUser()) {
+            return true;
+        }
+
         $currentPeople = $this->getMyPeople();
         if (!$currentPeople instanceof People) {
             return false;
@@ -127,6 +127,10 @@ class PeopleLinkService
 
     private function assertWriteAccess(PeopleLink $peopleLink): void
     {
+        if ($this->requestStack->getCurrentRequest() === null && $this->getMyPeople() === null) {
+            return;
+        }
+
         $canWrite = $this->isSalesmanClientLink($peopleLink)
             ? $this->canManagePeopleLink($peopleLink)
             : $this->canReadPeopleLink($peopleLink);
@@ -154,12 +158,21 @@ class PeopleLinkService
 
         if ($linkType) {
             $linkTypes = is_array($linkType) ? array_values($linkType) : [$linkType];
-            // MySQL SET column: equality per value (IN/FIND_IN_SET both problematic under DQL).
+            $linkTypes = array_values(array_filter(array_map(
+                static fn($type) => strtolower(trim((string) $type)),
+                $linkTypes
+            )));
+            // MySQL SET: plain DQL equality often returns 0 rows even when the
+            // JSON payload shows linkType=franchisee (task-641 evidence).
+            // Use LIKE membership on the stored SET string instead.
             $ors = [];
             foreach ($linkTypes as $i => $lt) {
-                $param = 'requestedLinkTypeEq' . $i;
-                $ors[] = sprintf('%s.linkType = :%s', $rootAlias, $param);
-                $queryBuilder->setParameter($param, (string) $lt);
+                if ($lt === '') {
+                    continue;
+                }
+                $param = 'requestedLinkTypeLike' . $i;
+                $ors[] = sprintf('LOWER(%s.linkType) LIKE :%s', $rootAlias, $param);
+                $queryBuilder->setParameter($param, '%' . $lt . '%');
             }
             if ($ors !== []) {
                 $queryBuilder->andWhere($queryBuilder->expr()->orX(...$ors));
@@ -195,14 +208,22 @@ class PeopleLinkService
         $currentPeopleId = (int) ($currentPeople?->getId() ?? 0);
 
         if ($requestedCompanyId > 0 && $currentPeople instanceof People) {
-            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
-            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
-                // Scoped to company= already by applyRequestedFilters — enough AuthZ.
-                return;
-            }
-            // Also allow when the viewed company IS the current people (PJ login edge).
+            // My Company Details / Franquias: company= already scopes the list.
+            // Accept HUMAN, ADMIN, or any company returned by getMyCompanies().
             if ($requestedCompanyId === $currentPeopleId) {
                 return;
+            }
+            $companyRef = $this->manager->getReference(People::class, $requestedCompanyId);
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::HUMAN_LINK)) {
+                return;
+            }
+            if ($this->peopleRoleService->canAccessCompany($companyRef, $currentPeople, PeopleLink::ADMIN_LINK)) {
+                return;
+            }
+            foreach ($this->getMyCompanies() as $accessible) {
+                if ((int) $accessible->getId() === $requestedCompanyId) {
+                    return;
+                }
             }
         }
 
@@ -262,7 +283,6 @@ class PeopleLinkService
 
         return false;
     }
-
 
     private function applyScalarFilter(QueryBuilder $queryBuilder, string $rootAlias, string $field, mixed $value): void
     {

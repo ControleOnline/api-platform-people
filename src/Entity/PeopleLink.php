@@ -1,6 +1,4 @@
 <?php
-// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
-// fluxo: cliente-cadastro, funcionario-cadastro, fornecedor-cadastro, franquia-cadastro, vendedor-cadastro | etapa: people-links | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Entity;
 
@@ -31,21 +29,17 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         // Single-item read required for store hydration after write.
         new Get(security: "is_granted('ROLE_HUMAN')"),
-        // Create people_link (franchise / salesman sellers-client / My Companies auto-link).
-        // Collection previously exposed GET only → POST produced 405 Allow: GET
-        // (app-community#642 / app-community#650).
+        // Create people_link (franchise / My Company Details + My Companies auto-link).
+        // Collection previously exposed GET only → POST produced 405 Allow: GET (app-community#642).
         new Post(
             securityPostDenormalize: "is_granted('ROLE_HUMAN')",
             processor: PeopleLinkUpsertProcessor::class,
         ),
-        // Update commission / link metadata. Resource gate is ROLE_HUMAN;
-        // tenant AuthZ is enforced again in PeopleLinkService::preUpdate (MANAGER_LINK).
-        new Put(
-            security: "is_granted('ROLE_HUMAN')",
-            securityPostDenormalize: "is_granted('ROLE_HUMAN')",
-        ),
+        // Update commission fields (comission / minimum_comission / closing_period / payment_term_days) and link metadata.
+        // ROLE_SUPER (superadmin) or ROLE_OWNER (owner of franchisor) may write.
+        new Put(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
         // Unlink collaborator / salesman / franchise (physical remove of people_link only).
-        // AuthZ enforced again in PeopleLinkService::preRemove.
+        // AuthZ enforced again in PeopleLinkService::preRemove via doctrine listeners / resource security.
         new Delete(security: "is_granted('ROLE_SUPER') or is_granted('ROLE_OWNER')"),
     ]
 )]
@@ -53,6 +47,7 @@ use Doctrine\ORM\Mapping as ORM;
     'id' => 'exact',
     'company' => 'exact',
     'people' => 'exact',
+    // linkType + enable: handled only in PeopleLinkService (SET + OR semantics).
 ])]
 class PeopleLink
 {
@@ -128,7 +123,7 @@ class PeopleLink
      * @var string
      *
      */
-    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier','after-sales') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
+    #[ORM\Column(name: 'link_type', type: 'string', columnDefinition: "SET('prospect','employee','client','provider','franchisee','filial','professor','family','salesman','owner','sellers-client','director','manager','admin','courier') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci", nullable: true)]
     #[Groups(['people_link:read', 'people_link:write'])]
 
     private $linkType;

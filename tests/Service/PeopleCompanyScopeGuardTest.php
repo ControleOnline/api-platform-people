@@ -94,6 +94,27 @@ final class PeopleCompanyScopeGuardTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function testDoesNotAuthorizeThroughDisabledCallerCompanyLink(): void
+    {
+        $caller = $this->people(1);
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('getCurrentPeople')->willReturn($caller);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('createQueryBuilder')->willReturnOnConsecutiveCalls(
+            $this->queryBuilderReturning(0),
+            $this->queryBuilderReturning(0),
+        );
+        $em->method('getRepository')->with(PeopleLink::class)->willReturn(
+            $this->peopleLinkRepository([]),
+        );
+
+        $guard = new PeopleCompanyScopeGuard($em, $roles);
+
+        $this->expectException(AccessDeniedException::class);
+        $guard->assertAccessible(5);
+    }
+
     public function testAllowsWhenSharedCompanyExists(): void
     {
         $caller = $this->people(1);

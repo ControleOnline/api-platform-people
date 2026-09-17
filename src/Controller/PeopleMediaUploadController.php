@@ -80,12 +80,12 @@ class PeopleMediaUploadController
             $clientMimeType = strtolower((string) $uploadedFile->getClientMimeType());
             $detectedMimeType = strtolower((string) $uploadedFile->getMimeType());
 
-            $isPngFile =
-                $originalExtension === 'png'
-                && ($clientMimeType === 'image/png' || $detectedMimeType === 'image/png');
-
-            if (!$isPngFile) {
-                throw new BadRequestHttpException('only png images are allowed');
+            $allowedExtensions = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+            $isImageMime =
+                str_starts_with($clientMimeType, 'image/')
+                || str_starts_with($detectedMimeType, 'image/');
+            if (!in_array($originalExtension, $allowedExtensions, true) && !$isImageMime) {
+                throw new BadRequestHttpException('only image files are allowed (png, jpg, jpeg, webp, gif)');
             }
 
             $content = file_get_contents($uploadedFile->getPathname());
@@ -93,14 +93,20 @@ class PeopleMediaUploadController
                 throw new BadRequestHttpException('failed to read uploaded file');
             }
 
+            $extension = $originalExtension !== ''
+                ? $originalExtension
+                : (str_contains($clientMimeType, 'jpeg') || str_contains($clientMimeType, 'jpg')
+                    ? 'jpg'
+                    : (str_contains($clientMimeType, 'png') ? 'png' : 'jpg'));
+
             $fileEntity = $this->fileService->addFile(
                 $people,
                 $content,
                 'people_media',
                 $uploadedFile->getClientOriginalName(),
                 'image',
-                'png',
-                $this->isPublicMediaType($mediaType)
+                $extension,
+                true
             );
 
             $peopleMedia = $this->manager
