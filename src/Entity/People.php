@@ -53,7 +53,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         ),
         new GetCollection(
             uriTemplate: '/people/company/default',
-            controller: \ControleOnline\Controller\GetDefaultCompanyAction::class,
+            controller: \ControleOnline\Controller\GetMainCompanyAction::class,
             read: false,
             security: "is_granted('PUBLIC_ACCESS')"
         ),
