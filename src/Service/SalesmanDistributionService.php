@@ -1,5 +1,4 @@
 <?php
-// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 
 namespace ControleOnline\Service;
 
