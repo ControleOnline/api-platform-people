@@ -75,7 +75,7 @@ class PeopleRoleService
 
             if (
                 $this->isMainCompany($company)
-                && in_array($link->getLinkType(), PeopleLink::ADMIN_LINK, true)
+                && $link->getLinkType() === 'owner'
             ) {
                 $roles[] = 'ROLE_SUPER';
             }
@@ -158,63 +158,8 @@ class PeopleRoleService
 
     public function canAccessCompany(People $company, ?People $people = null, ?array $linkTypes = null): bool
     {
-        $people ??= $this->getCurrentPeople();
-        if (!$people instanceof People) {
-            return false;
-        }
-
-        $accessibleCompanies = $this->getAccessibleCompaniesForPeople($people, $linkTypes);
-        $accessibleIds = array_map(
-            static fn(People $accessibleCompany): int => (int) $accessibleCompany->getId(),
-            $accessibleCompanies
-        );
-
-        $companyId = (int) $company->getId();
-        if ($companyId !== 0 && in_array($companyId, $accessibleIds, true)) {
-            return true;
-        }
-
-        // Commercial chain: user linked to a parent (e.g. franqueadora) may manage
-        // people_links of client/provider/franchisee companies under that parent.
-        // Without this, POST people_link employee on client-details returns 403.
-        if ($accessibleIds === []) {
-            return false;
-        }
-
-        return $this->isCompanyInAccessibleCommercialChain($company, $accessibleIds);
-    }
-
-    /**
-     * True when $company is reachable as PANEL_LINK (client/provider/franchisee/filial)
-     * under any company the user already can access.
-     */
-    private function isCompanyInAccessibleCommercialChain(People $company, array $accessibleIds, array $visited = []): bool
-    {
-        $companyId = (int) $company->getId();
-        if ($companyId === 0 || isset($visited[$companyId])) {
-            return false;
-        }
-        $visited[$companyId] = true;
-
-        foreach ($this->manager->getRepository(PeopleLink::class)->findBy(['people' => $company]) as $link) {
-            if (!$link instanceof PeopleLink || !$link->getEnabled()) {
-                continue;
-            }
-            if (!in_array($link->getLinkType(), PeopleLink::PANEL_LINK, true)) {
-                continue;
-            }
-
-            $parent = $link->getCompany();
-            if (!$parent instanceof People || !$parent->getEnabled()) {
-                continue;
-            }
-
-            $parentId = (int) $parent->getId();
-            if ($parentId !== 0 && in_array($parentId, $accessibleIds, true)) {
-                return true;
-            }
-
-            if ($this->isCompanyInAccessibleCommercialChain($parent, $accessibleIds, $visited)) {
+        foreach ($this->getAccessibleCompaniesForPeople($people, $linkTypes) as $accessibleCompany) {
+            if ((int) $accessibleCompany->getId() === (int) $company->getId()) {
                 return true;
             }
         }
@@ -247,10 +192,12 @@ class PeopleRoleService
             }
 
             $permissions[] = (string) $link->getLinkType();
-        }
-
-        if ($this->isSuperAdmin($people)) {
-            $permissions[] = 'super';
+            if (
+                $this->isMainCompany($linkedCompany)
+                && $link->getLinkType() === 'owner'
+            ) {
+                $permissions[] = 'super';
+            }
         }
 
         $permissions = array_merge(
@@ -265,19 +212,6 @@ class PeopleRoleService
         }
 
         return $this->companyPermissionsCache[$cacheKey] = $permissions;
-    }
-
-    public function isSuperAdmin(?People $people = null): bool
-    {
-        return in_array('ROLE_SUPER', $this->getGrantedRoles($people), true);
-    }
-
-    public function canAdministerCompany(People $company, ?People $people = null): bool
-    {
-        return array_intersect(
-            [...PeopleLink::ADMIN_LINK, 'super'],
-            $this->getCompanyPermissions($company, $people)
-        ) !== [];
     }
 
     public function getAllRoles(People $people): array

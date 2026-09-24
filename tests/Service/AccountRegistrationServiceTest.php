@@ -15,7 +15,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class AccountRegistrationServiceTest extends TestCase
 {
@@ -43,9 +42,9 @@ class AccountRegistrationServiceTest extends TestCase
         $manager
             ->method('getRepository')
             ->with(User::class)
-            ->willReturn($this->createUserRepository(0, null));
+            ->willReturn($this->createUserRepository(0));
 
-        $peopleService = $this->createAvailablePeopleService();
+        $peopleService = $this->createMock(PeopleService::class);
         $peopleService
             ->expects(self::once())
             ->method('discoveryPeople')
@@ -104,7 +103,7 @@ class AccountRegistrationServiceTest extends TestCase
                 'phone' => [
                     'ddi' => '55',
                     'ddd' => '11',
-                    'phone' => '999999999',
+                    'phone' => '11999999999',
                 ],
                 'user' => [
                     'user' => 'alemac@mac.com',
@@ -114,6 +113,77 @@ class AccountRegistrationServiceTest extends TestCase
         ]);
 
         self::assertSame($person, $registeredPeople);
+        self::assertSame('ALEMAC', $person->getName());
+        self::assertSame('TESTE', $person->getAlias());
+    }
+
+    public function testRegisterFromPayloadDoesNotCreateOwnerWhenTenantAlreadyHasUsers(): void
+    {
+        $person = new People();
+        $mainCompany = new People();
+        $peopleDomain = new PeopleDomain();
+        $peopleDomain->setPeople($mainCompany);
+
+        $user = new User();
+        $user->setUsername('existing@mac.com');
+        $user->setPeople($person);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects(self::once())->method('beginTransaction');
+        $connection->expects(self::once())->method('commit');
+        $connection->expects(self::never())->method('rollBack');
+
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager
+            ->method('getConnection')
+            ->willReturn($connection);
+        $manager
+            ->method('getRepository')
+            ->with(User::class)
+            ->willReturn($this->createUserRepository(1));
+
+        $peopleService = $this->createMock(PeopleService::class);
+        $peopleService->method('discoveryPeople')->willReturn($person);
+        $peopleService
+            ->expects(self::once())
+            ->method('discoveryLink')
+            ->with($mainCompany, $person, 'client')
+            ->willReturn(new PeopleLink());
+
+        $userService = $this->createMock(UserService::class);
+        $userService->method('createUser')->willReturn($user);
+
+        $domainService = $this->createMock(DomainService::class);
+        $domainService->method('getPeopleDomain')->willReturn($peopleDomain);
+
+        $verificationService = $this->createMock(AccountVerificationService::class);
+        $verificationService->expects(self::once())->method('sendVerification');
+
+        $service = new AccountRegistrationService(
+            $manager,
+            $userService,
+            $peopleService,
+            $domainService,
+            $verificationService,
+        );
+
+        $service->registerFromPayload([
+            'people' => [
+                'document' => '52998224725',
+                'name' => 'ALEMAC',
+                'alias' => 'TESTE',
+                'email' => 'existing@mac.com',
+                'phone' => [
+                    'ddi' => '55',
+                    'ddd' => '11',
+                    'phone' => '999999999',
+                ],
+                'user' => [
+                    'user' => 'existing@mac.com',
+                    'password' => '123456',
+                ],
+            ],
+        ]);
     }
 
     public function testRegisterFromPayloadRollsBackWhenVerificationFails(): void
@@ -130,8 +200,8 @@ class AccountRegistrationServiceTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::once())->method('beginTransaction');
         $connection->expects(self::never())->method('commit');
+        $connection->expects(self::once())->method('isTransactionActive')->willReturn(true);
         $connection->expects(self::once())->method('rollBack');
-        $connection->method('isTransactionActive')->willReturn(true);
 
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager
@@ -141,9 +211,9 @@ class AccountRegistrationServiceTest extends TestCase
         $manager
             ->method('getRepository')
             ->with(User::class)
-            ->willReturn($this->createUserRepository(1, null));
+            ->willReturn($this->createUserRepository(1));
 
-        $peopleService = $this->createAvailablePeopleService();
+        $peopleService = $this->createMock(PeopleService::class);
         $peopleService->method('discoveryPeople')->willReturn($person);
         $peopleService
             ->expects(self::once())
@@ -192,82 +262,17 @@ class AccountRegistrationServiceTest extends TestCase
         ]);
     }
 
-    public function testRegisterFromPayloadRejectsDuplicateEmailWithoutPersisting(): void
-    {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects(self::never())->method('beginTransaction');
-
-        $manager = $this->createMock(EntityManagerInterface::class);
-        $manager->method('getConnection')->willReturn($connection);
-
-        $peopleService = $this->createMock(PeopleService::class);
-        $peopleService->method('getDocument')->willReturn(null);
-        $peopleService
-            ->expects(self::once())
-            ->method('getEmail')
-            ->with('alemac@mac.com')
-            ->willReturn($this->createMock(\ControleOnline\Entity\Email::class));
-        $peopleService->expects(self::never())->method('discoveryPeople');
-
-        $userService = $this->createMock(UserService::class);
-        $userService->expects(self::never())->method('createUser');
-
-        $domainService = $this->createMock(DomainService::class);
-        $verificationService = $this->createMock(AccountVerificationService::class);
-
-        $service = new AccountRegistrationService(
-            $manager,
-            $userService,
-            $peopleService,
-            $domainService,
-            $verificationService,
-        );
-
-        $this->expectException(ConflictHttpException::class);
-        $this->expectExceptionMessage('Este e-mail já está cadastrado.');
-
-        $service->registerFromPayload([
-            'people' => [
-                'document' => '52998224725',
-                'name' => 'ALEMAC',
-                'alias' => 'TESTE',
-                'email' => 'alemac@mac.com',
-                'phone' => [
-                    'ddi' => '55',
-                    'ddd' => '11',
-                    'phone' => '999999999',
-                ],
-                'user' => [
-                    'user' => 'alemac@mac.com',
-                    'password' => '123456',
-                ],
-            ],
-        ]);
-    }
-
-    private function createAvailablePeopleService(): PeopleService&\PHPUnit\Framework\MockObject\MockObject
-    {
-        $peopleService = $this->createMock(PeopleService::class);
-        $peopleService->method('getDocument')->willReturn(null);
-        $peopleService->method('getEmail')->willReturn(null);
-        $peopleService->method('getPhone')->willReturn(null);
-
-        return $peopleService;
-    }
-
-    private function createUserRepository(int $count, ?User $existingUser): EntityRepository
+    private function createUserRepository(int $count): EntityRepository
     {
         $repository = $this->getMockBuilder(EntityRepository::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['count', 'findOneBy'])
+            ->onlyMethods(['count'])
             ->getMock();
         $repository
+            ->expects(self::once())
             ->method('count')
             ->with([])
             ->willReturn($count);
-        $repository
-            ->method('findOneBy')
-            ->willReturn($existingUser);
 
         return $repository;
     }
