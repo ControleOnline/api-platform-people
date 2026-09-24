@@ -1,6 +1,4 @@
 <?php
-// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
-// fluxo: cliente-cadastro, funcionario-cadastro, fornecedor-cadastro, minhas-empresas-cadastro, franquia-cadastro, vendedor-cadastro | etapa: people-core | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Entity;
 
@@ -32,7 +30,6 @@ use ControleOnline\Repository\PeopleRepository;
 use ControleOnline\Entity\CompanyDocument;
 use ControleOnline\State\HydratedReadProvider;
 use ControleOnline\State\PeopleItemProvider;
-use ControleOnline\State\PeopleCadastralUpdateProcessor;
 use ControleOnline\State\PeopleSoftDeleteProcessor;
 use DateTime;
 use DateTimeInterface;
@@ -102,9 +99,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
         ),
         new Post(securityPostDenormalize: "is_granted('ROLE_HUMAN')"),
         new Put(
-            read: false,
-            provider: PeopleItemProvider::class,
-            processor: PeopleCadastralUpdateProcessor::class,
             security: "is_granted('ROLE_HUMAN')",
             validationContext: ['groups' => ['people:write']],
             denormalizationContext: [
@@ -113,7 +107,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
             ]
         ),
         new Delete(
-            provider: PeopleItemProvider::class,
             processor: PeopleSoftDeleteProcessor::class,
             security: "is_granted('ROLE_HUMAN')"
         )
@@ -348,10 +341,18 @@ class People
         return $this;
     }
 
+    private function uppercaseText(?string $value): string
+    {
+        $normalized = (string) $value;
+
+        return function_exists('mb_strtoupper')
+            ? mb_strtoupper($normalized, 'UTF-8')
+            : strtoupper($normalized);
+    }
+
     public function getName(): string
     {
-        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
-        return (string) ($this->name ?? '');
+        return $this->uppercaseText($this->name);
     }
 
     public function setAlias($alias)
@@ -361,8 +362,7 @@ class People
     }
     public function getAlias()
     {
-        // Preserve stored case — do not force uppercase on read (app-community#626 / #376).
-        return (string) ($this->alias ?? '');
+        return $this->uppercaseText($this->alias);
     }
 
     public function setLanguage(Language $language = null)
@@ -573,6 +573,32 @@ class People
     public function removeCompanyDocument(CompanyDocument $doc)
     {
         $this->company_document->removeElement($doc);
+        return $this;
+    }
+
+    public function getPeopleMedia()
+    {
+        return $this->peopleMedia;
+    }
+
+    public function addPeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if (!$this->peopleMedia->contains($peopleMedia)) {
+            $this->peopleMedia[] = $peopleMedia;
+            $peopleMedia->setPeople($this);
+        }
+
+        return $this;
+    }
+
+    public function removePeopleMedia(PeopleMedia $peopleMedia): self
+    {
+        if ($this->peopleMedia->removeElement($peopleMedia)) {
+            if ($peopleMedia->getPeople() === $this) {
+                $peopleMedia->setPeople(null);
+            }
+        }
+
         return $this;
     }
 }
