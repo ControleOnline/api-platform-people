@@ -1,0 +1,14 @@
+{
+  "version": "1.0.2",
+  "rc": 1,
+  "branch": "rc/1.0.2-rc.1",
+  "baseMaster": "cefd09a997e7f52b0e1aae79b077cab55729a384",
+  "tasks": [
+    167
+  ],
+  "repositories": {
+    "ControleOnline/api-platform-people": "d7f354eede31cc3166a2a8c7dd039042d3472f17"
+  },
+  "frozen": true,
+  "notes": "#167 vendor paths + remove modules deploy"
+}
