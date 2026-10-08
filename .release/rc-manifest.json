@@ -1,7 +1,7 @@
 {
   "version": "1.0.3",
-  "rc": 1,
-  "branch": "rc/1.0.3-rc.1",
+  "rc": 3,
+  "branch": "rc/1.0.3-rc.3",
   "baseMaster": "328f76fbb4889a25cc3926c23a515a11f24b08d4",
   "tasks": [38],
   "repositories": {
