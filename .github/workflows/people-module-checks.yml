@@ -1,0 +1,30 @@
+name: People Module Checks
+
+on:
+  push:
+    branches:
+      - 'task-*'
+      - dev
+  pull_request:
+
+jobs:
+  people-module:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: dom, mbstring, xmlwriter, filter, json, libxml, tokenizer
+
+      - name: Validate composer files
+        run: composer validate --no-check-publish
+
+      - name: Install test dependencies
+        run: composer install --no-interaction --prefer-dist --ignore-platform-reqs
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit

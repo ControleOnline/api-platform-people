@@ -72,7 +72,47 @@ final class PeopleLinkWriteAccessTest extends TestCase
         $this->assertSame($link, $service->prePersist($link));
     }
 
-    private function makeService(People $caller, PeopleRoleService $roles): PeopleLinkService
+    public function testAllowedWhenManagerWritesSellersClientLink(): void
+    {
+        $caller = $this->people(1);
+        $seller = $this->people(40);
+        $client = $this->people(70);
+        $link = new PeopleLink();
+        $link->setCompany($seller);
+        $link->setPeople($client);
+        $link->setLinkType('sellers-client');
+
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('canAccessCompany')->willReturnCallback(
+            function (People $target) use ($client): bool {
+                return (int) $target->getId() === (int) $client->getId();
+            }
+        );
+
+        $service = $this->makeService($caller, $roles);
+        $this->assertSame($link, $service->prePersist($link));
+        $this->assertSame($link, $service->preUpdate($link));
+    }
+
+    public function testDeniedWhenCallerCannotManageSellersClientLink(): void
+    {
+        $caller = $this->people(1);
+        $seller = $this->people(40);
+        $client = $this->people(70);
+        $link = new PeopleLink();
+        $link->setCompany($seller);
+        $link->setPeople($client);
+        $link->setLinkType('sellers-client');
+
+        $roles = $this->createMock(PeopleRoleService::class);
+        $roles->method('canAccessCompany')->willReturn(false);
+
+        $service = $this->makeService($caller, $roles);
+        $this->expectException(AccessDeniedException::class);
+        $service->prePersist($link);
+    }
+
+        private function makeService(People $caller, PeopleRoleService $roles): PeopleLinkService
     {
         $user = new class($caller) implements UserInterface {
             public function __construct(private People $people) {}
