@@ -42,7 +42,7 @@ use Symfony\Component\Serializer\Attribute\SerializedName;
     denormalizationContext: ['groups' => ['people_domain:write']]
 )]
 #[ApiFilter(filterClass: OrderFilter::class, properties: ['domain' => 'ASC', 'id' => 'DESC'])]
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact', 'people' => 'exact', 'domain' => 'partial', 'domainType' => 'exact', 'theme' => 'exact', 'apiPeopleDomain' => 'exact'])]
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['id' => 'exact', 'people' => 'exact', 'domain' => 'partial', 'domainType' => 'exact', 'appType' => 'exact', 'theme' => 'exact', 'apiPeopleDomain' => 'exact'])]
 #[ORM\Table(name: 'people_domain')]
 #[ORM\Entity(repositoryClass: PeopleDomainRepository::class)]
 class PeopleDomain
@@ -95,9 +95,19 @@ class PeopleDomain
     #[SerializedName('domainType')]
     private $domain_type;
 
+    /**
+     * Operational app type for this domain (ADMIN, MANAGER, POS, ...).
+     * @var string
+     */
+    #[ORM\Column(name: 'app_type', type: 'string', length: 64, nullable: false, options: ['default' => 'MANAGER'])]
+    #[Groups(['people_domain:read', 'people_domain:write'])]
+    #[SerializedName('appType')]
+    private $app_type;
+
     public function __construct()
     {
         $this->domain_type = 'ERP';
+        $this->app_type = 'MANAGER';
     }
 
     /**
@@ -187,6 +197,30 @@ class PeopleDomain
     public function getDomainType()
     {
         return $this->domain_type;
+    }
+
+
+    /**
+     * Set app_type
+     *
+     * @param string $app_type
+     * @return PeopleDomain
+     */
+    public function setAppType($app_type)
+    {
+        $this->app_type = $app_type;
+
+        return $this;
+    }
+
+    /**
+     * Get app_type
+     *
+     * @return string
+     */
+    public function getAppType()
+    {
+        return $this->app_type;
     }
 
     /**

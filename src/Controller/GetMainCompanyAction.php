@@ -66,6 +66,7 @@ class GetMainCompanyAction
           'alias'      => $this->company->getAlias(),
           'configs'    => $configs,
           'domainType' => $this->domainService->getPeopleDomain()->getDomainType(),
+          'appType'    => $this->domainService->getPeopleDomain()->getAppType(),
           'permissions' => $permissions,
           'theme'       => $this->getTheme($publicBackground),
           'logo'        => $publicLogo,
