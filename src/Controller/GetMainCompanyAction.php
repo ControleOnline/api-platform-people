@@ -11,7 +11,7 @@ use ControleOnline\Service\DomainService;
 use ControleOnline\Service\FileService;
 use ControleOnline\Service\PeopleRoleService;
 
-class GetDefaultCompanyAction
+class GetMainCompanyAction
 {
   private $company;
 
@@ -32,7 +32,7 @@ class GetDefaultCompanyAction
     try {
 
 
-      $defaultCompany = [];
+      $mainCompany = [];
       $configs = [];
       $allConfigs = [];
       $token = $this->security->getToken();
@@ -61,11 +61,12 @@ class GetDefaultCompanyAction
           $configs[$config->getConfigKey()] = $config->getConfigValue();
         }
 
-        $defaultCompany = [
+        $mainCompany = [
           'id'         => $this->company->getId(),
           'alias'      => $this->company->getAlias(),
           'configs'    => $configs,
           'domainType' => $this->domainService->getPeopleDomain()->getDomainType(),
+          'appType'    => $this->domainService->getPeopleDomain()->getAppType(),
           'permissions' => $permissions,
           'theme'       => $this->getTheme($publicBackground),
           'logo'        => $publicLogo,
@@ -77,7 +78,7 @@ class GetDefaultCompanyAction
 
       return new JsonResponse([
         'response' => [
-          'data'    => $defaultCompany,
+          'data'    => $mainCompany,
           'count'   => 1,
           'error'   => '',
           'success' => true

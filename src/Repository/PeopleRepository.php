@@ -84,6 +84,7 @@ class PeopleRepository extends ServiceEntityRepository
                 'employeeLink.people = people.id'
             )
             ->where('people.enable = :enabled')
+            ->andWhere('people.deleted = :notDeleted')
             ->andWhere('people.peopleType = :peopleType')
             ->andWhere('people.alias = :alias')
             ->andWhere('employeeLink.linkType = :employeeLinkType')
@@ -95,7 +96,10 @@ class PeopleRepository extends ServiceEntityRepository
             ->setParameter('employeeLinkType', 'employee')
             ->setParameter('peopleType', 'F')
             ->setParameter('alias', 'owner')
-            ->setParameter('enabled', true);
+            ->setParameter('enabled', true)
+            ->setParameter('notDeleted', false);
+
+        PeopleActiveConstraint::apply($queryBuilder, 'people', false);
 
         PeopleActiveConstraint::apply($queryBuilder, 'people', false);
 

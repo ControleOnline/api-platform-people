@@ -21,14 +21,16 @@ final class Version20260820030000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $people = $schema->getTable('people');
-        if (!$people->hasColumn('deleted')) {
+        // The legacy people table contains MySQL enum/set columns. DBAL 4 can
+        // fail while introspecting those columns, even though these statements
+        // only add ordinary columns. Query information_schema instead.
+        if (!$this->columnExists('people', 'deleted')) {
             $this->addSql('ALTER TABLE people ADD COLUMN deleted TINYINT(1) NOT NULL DEFAULT 0');
         }
-        if (!$people->hasColumn('deleted_at')) {
+        if (!$this->columnExists('people', 'deleted_at')) {
             $this->addSql('ALTER TABLE people ADD COLUMN deleted_at DATETIME DEFAULT NULL');
         }
-        if (!$people->hasIndex('idx_people_deleted')) {
+        if (!$this->indexExists('people', 'idx_people_deleted')) {
             $this->addSql('CREATE INDEX idx_people_deleted ON people (deleted)');
         }
     }
@@ -36,5 +38,25 @@ final class Version20260820030000 extends AbstractMigration
     public function down(Schema $schema): void
     {
         return;
+    }
+
+    private function columnExists(string $tableName, string $columnName): bool
+    {
+        return (bool) $this->connection->fetchOne(
+            'SELECT 1 FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
+             LIMIT 1',
+            [$tableName, $columnName]
+        );
+    }
+
+    private function indexExists(string $tableName, string $indexName): bool
+    {
+        return (bool) $this->connection->fetchOne(
+            'SELECT 1 FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?
+             LIMIT 1',
+            [$tableName, $indexName]
+        );
     }
 }
