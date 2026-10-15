@@ -176,14 +176,4 @@ class Document
         $this->documentFiles->removeElement($documentFile);
         return $this;
     }
-    public function getVehicle(): mixed
-    {
-        return $this->vehicle;
-    }
-
-    public function setVehicle(mixed $vehicle): self
-    {
-        $this->vehicle = $vehicle;
-        return $this;
-    }
 }
