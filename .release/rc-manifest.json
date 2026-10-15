@@ -1,11 +1,11 @@
 {
-  "version": "1.0.3",
-  "rc": 4,
-  "branch": "rc/1.0.3-rc.4",
-  "baseMaster": "328f76fbb4889a25cc3926c23a515a11f24b08d4",
-  "tasks": [38],
+  "version": "1.0.4",
+  "rc": 1,
+  "branch": "rc/1.0.4-rc.1",
+  "baseMaster": "3f2b2854208d5dbb038548834b9eeb1abd022bce",
+  "tasks": [1075],
   "repositories": {
-    "ControleOnline/api-platform-people": "e332afcce4a27bce87cefc5670bd4aa4869f3125"
+    "ControleOnline/api-platform-people": "10b8ee83cdb035f8ffcfb2ad6acb295bd049d7f4"
   },
   "frozen": true
 }

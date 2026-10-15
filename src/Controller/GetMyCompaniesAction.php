@@ -1,4 +1,5 @@
 <?php
+// fluxo: minhas-empresas-cadastro, franquia-cadastro | etapa: company-context | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Controller;
 

@@ -1,4 +1,6 @@
 <?php
+// Technical wiki: https://github.com/ControleOnline/api-platform-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
+// fluxo: cliente-cadastro, funcionario-cadastro, fornecedor-cadastro, minhas-empresas-cadastro, franquia-cadastro | etapa: people-service | wiki: https://github.com/ControleOnline/api-community/wiki/Venda-Producao
 
 namespace ControleOnline\Service;
 
@@ -35,6 +37,19 @@ class PeopleService
   {
     $language = $this->manager->getRepository(Language::class)->findOneBy(['language' => 'pt-br']);
     $people->setLanguage($language);
+
+    // Collaborator / contact create (POST /people with company + linkType):
+    // default enable=0 hides the person from people_links listing which filters
+    // active people only (PeopleActiveConstraint). Force enable for this flow
+    // so Contatos shows the new contact after save (app-community#687).
+    $request = $this->requestStack->getCurrentRequest();
+    if ($request) {
+      $payload = json_decode($request->getContent() ?: '{}');
+      if (is_object($payload) && !empty($payload->linkType) && !empty($payload->company)) {
+        $people->setEnabled(true);
+      }
+    }
+
     return $people;
   }
 
