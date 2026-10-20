@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 
 use ControleOnline\Repository\DocumentRepository;
+use ControleOnline\Entity\DeliveryCourierVehicle;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,7 +36,7 @@ use Doctrine\ORM\Mapping as ORM;
     denormalizationContext: ['groups' => ['document:write']]
 )]
 
-#[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact'])]
+#[ApiFilter(filterClass: SearchFilter::class, properties: ['people' => 'exact', 'vehicle' => 'exact'])]
 #[ORM\Table(name: 'document')]
 #[ORM\Index(name: 'type_2', columns: ['document_type_id'])]
 #[ORM\Index(name: 'file_id', columns: ['file_id'])]
@@ -54,10 +55,15 @@ class Document
     #[Groups(['people:read', 'document:read', 'carrier:read', 'provider:read', 'document:write'])]
     private int $document;
 
-    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'people_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     #[ORM\ManyToOne(targetEntity: People::class, inversedBy: 'document')]
     #[Groups(['document:read', 'document:write'])]
-    private People $people;
+    private ?People $people = null;
+
+    #[ORM\JoinColumn(name: 'vehicle_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: DeliveryCourierVehicle::class)]
+    #[Groups(['document:read', 'document:write'])]
+    private ?DeliveryCourierVehicle $vehicle = null;
 
     /** @deprecated Prefer documentFiles collection for multiple attachments */
     #[ORM\JoinColumn(name: 'file_id', referencedColumnName: 'id', nullable: true)]
@@ -69,13 +75,6 @@ class Document
     #[ORM\ManyToOne(targetEntity: DocumentType::class)]
     #[Groups(['people:read', 'document:read', 'carrier:read', 'document:write'])]
     private DocumentType $documentType;
-
-    /**
-     * Compatibility field for stale Doctrine ClassMetadata that still
-     * references Document::$vehicle (prod ReflectionException on webhook iFood).
-     * Not mapped — no vehicle column on `document`.
-     */
-    private mixed $vehicle = null;
 
     /** @var Collection<int, DocumentFile> */
     #[ORM\OneToMany(targetEntity: DocumentFile::class, mappedBy: 'document', orphanRemoval: true)]
@@ -121,15 +120,26 @@ class Document
         return $this->file;
     }
 
-    public function setPeople(People $people): self
+    public function setPeople(?People $people): self
     {
         $this->people = $people;
         return $this;
     }
 
-    public function getPeople(): People
+    public function getPeople(): ?People
     {
         return $this->people;
+    }
+
+    public function setVehicle(?DeliveryCourierVehicle $vehicle): self
+    {
+        $this->vehicle = $vehicle;
+        return $this;
+    }
+
+    public function getVehicle(): ?DeliveryCourierVehicle
+    {
+        return $this->vehicle;
     }
 
     public function setDocumentType(DocumentType $documentType): self
@@ -164,16 +174,6 @@ class Document
     public function removeDocumentFile(DocumentFile $documentFile): self
     {
         $this->documentFiles->removeElement($documentFile);
-        return $this;
-    }
-    public function getVehicle(): mixed
-    {
-        return $this->vehicle;
-    }
-
-    public function setVehicle(mixed $vehicle): self
-    {
-        $this->vehicle = $vehicle;
         return $this;
     }
 }

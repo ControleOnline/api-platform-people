@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * POST /people_links is idempotent on (company, people, linkType).
  * Creating a contact via POST /people already creates the link in postPersist;
- * the front may also POST people_links → UNIQUE (company_id, people_id [, link_type]).
+ * the front may also POST people_links → UNIQUE franchisee_id (company_id, people_id, link_type).
  */
 final class PeopleLinkUpsertProcessor implements ProcessorInterface
 {
@@ -43,9 +43,12 @@ final class PeopleLinkUpsertProcessor implements ProcessorInterface
                     $this->em->detach($data);
                 }
 
+                // AuthZ on the persisted row
                 $this->peopleLinkService->preUpdate($existing);
 
                 $existing->setEnabled($data->getEnabled());
+                // Optional write fields from payload (do not reset commissions to 0 unintentionally
+                // unless the payload explicitly carries values — keep existing when new defaults).
                 if ($data->getComission() != 0 || $existing->getComission() == 0) {
                     $existing->setComission($data->getComission());
                 }
