@@ -434,13 +434,14 @@ class PeopleService
         return;
       }
 
-      $queryBuilder->andWhere(sprintf(
-        'EXISTS (SELECT 1 FROM %s lookupDocument JOIN lookupDocument.documentType lookupDocumentType WHERE lookupDocument.people = %s.id AND lookupDocument.document = :lookupCpf AND lookupDocumentType.documentType = :lookupCpfType)',
-        Document::class,
-        $rootAlias
-      ));
-      $queryBuilder->setParameter('lookupCpf', $cpf);
-      $queryBuilder->setParameter('lookupCpfType', 'CPF');
+      $lookupPeopleId = $this->getDocument($cpf, 'CPF')?->getPeople()?->getId();
+      if (!$lookupPeopleId) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
+
+      $queryBuilder->andWhere(sprintf('%s.id = :lookupPeopleId', $rootAlias));
+      $queryBuilder->setParameter('lookupPeopleId', (int) $lookupPeopleId);
       return;
     }
 
