@@ -22,6 +22,8 @@ use Exception;
 
 class PeopleService
 {
+  public const CHECKOUT_CPF_LOOKUP_CONTEXT = 'checkout-cpf-lookup';
+
   private $request;
 
   public function __construct(
@@ -416,6 +418,29 @@ class PeopleService
 
     if (!$myPeople && $myCompanyIds === []) {
       $queryBuilder->andWhere('1 = 0');
+      return;
+    }
+
+    // Checkout CPF lookup: exact CPF match across the base (no link visibility),
+    // allowed only for a company the user belongs to.
+    if (trim((string) $request?->query->get('context', '')) === self::CHECKOUT_CPF_LOOKUP_CONTEXT) {
+      $cpf = preg_replace('/\D/', '', (string) $request?->query->get('search', ''));
+      if (
+        strlen($cpf) !== 11
+        || !$requestedCompanyId
+        || !in_array($requestedCompanyId, $myCompanyIds, true)
+      ) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
+
+      $queryBuilder->andWhere(sprintf(
+        'EXISTS (SELECT 1 FROM %s lookupDocument JOIN lookupDocument.documentType lookupDocumentType WHERE lookupDocument.people = %s.id AND lookupDocument.document = :lookupCpf AND lookupDocumentType.documentType = :lookupCpfType)',
+        Document::class,
+        $rootAlias
+      ));
+      $queryBuilder->setParameter('lookupCpf', $cpf);
+      $queryBuilder->setParameter('lookupCpfType', 'CPF');
       return;
     }
 

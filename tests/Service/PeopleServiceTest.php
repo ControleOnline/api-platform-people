@@ -12,6 +12,7 @@ use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -267,6 +268,56 @@ class PeopleServiceTest extends TestCase
             ->method('leftJoin');
 
         $service->checkLink($rootQueryBuilder, null, 'api_platform', 'resource');
+    }
+
+    #[DataProvider('checkoutCpfLookupProvider')]
+    public function testCheckLinkCheckoutCpfLookupBypassesVisibilityOnlyForOwnCompany(string $search, string $company, bool $allowed): void
+    {
+        $myPeople = $this->createPeople(7);
+        $companyPeople = $this->createPeople(2);
+
+        $token = $this->createMock(TokenInterface::class);
+        $token->method('getUser')->willReturn((new User())->setPeople($myPeople));
+        $security = $this->createMock(TokenStorageInterface::class);
+        $security->method('getToken')->willReturn($token);
+
+        $peopleRoleService = $this->createMock(PeopleRoleService::class);
+        $peopleRoleService->method('getAccessibleCompaniesForPeople')->willReturn([$companyPeople]);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('createQueryBuilder');
+
+        $requestStack = new RequestStack();
+        $requestStack->push(new Request([
+            'context' => 'checkout-cpf-lookup',
+            'search' => $search,
+            'company' => $company,
+        ]));
+
+        $service = new PeopleService($entityManager, $security, $peopleRoleService, $requestStack);
+
+        $queryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['andWhere', 'setParameter', 'leftJoin'])
+            ->getMock();
+        $queryBuilder->expects(self::never())->method('leftJoin');
+        $queryBuilder->expects(self::once())->method('andWhere')
+            ->with($allowed ? self::stringContains('lookupDocument.document = :lookupCpf') : '1 = 0')
+            ->willReturnSelf();
+        $queryBuilder->expects($allowed ? self::exactly(2) : self::never())
+            ->method('setParameter')->willReturnSelf();
+
+        $service->checkLink($queryBuilder, null, 'api_platform', 'resource');
+    }
+
+    public static function checkoutCpfLookupProvider(): array
+    {
+        return [
+            'full cpf, own company' => ['529.982.247-25', '/people/2', true],
+            'partial cpf' => ['52998', '/people/2', false],
+            'foreign company' => ['52998224725', '/people/99', false],
+            'missing company' => ['52998224725', '', false],
+        ];
     }
 
     private function createPeople(int $id): People
