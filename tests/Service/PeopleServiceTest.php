@@ -321,6 +321,46 @@ class PeopleServiceTest extends TestCase
         $service->checkLink($queryBuilder, null, 'api_platform', 'resource');
     }
 
+    public function testCheckLinkCheckoutCpfLookupUsesCpfParamKeepingLeadingZero(): void
+    {
+        $companyPeople = $this->createPeople(3);
+        $token = $this->createMock(TokenInterface::class);
+        $token->method('getUser')->willReturn((new User())->setPeople($this->createPeople(7)));
+        $security = $this->createMock(TokenStorageInterface::class);
+        $security->method('getToken')->willReturn($token);
+        $peopleRoleService = $this->createMock(PeopleRoleService::class);
+        $peopleRoleService->method('getAccessibleCompaniesForPeople')->willReturn([$companyPeople]);
+
+        $requestStack = new RequestStack();
+        $requestStack->push(new Request([
+            'context' => 'checkout-cpf-lookup',
+            'cpf' => '015.157.489-87',
+            'search' => 'ignored',
+            'company' => '/people/3',
+        ]));
+
+        $document = $this->createMock(Document::class);
+        $document->method('getPeople')->willReturn($this->createPeople(105803));
+
+        $service = $this->getMockBuilder(PeopleService::class)
+            ->setConstructorArgs([$this->createMock(EntityManagerInterface::class), $security, $peopleRoleService, $requestStack])
+            ->onlyMethods(['getDocument'])
+            ->getMock();
+        $service->expects(self::once())->method('getDocument')
+            ->with('01515748987', 'CPF')->willReturn($document);
+
+        $queryBuilder = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['andWhere', 'setParameter'])
+            ->getMock();
+        $queryBuilder->expects(self::once())->method('andWhere')
+            ->with('resource.id = :lookupPeopleId')->willReturnSelf();
+        $queryBuilder->expects(self::once())->method('setParameter')
+            ->with('lookupPeopleId', 105803)->willReturnSelf();
+
+        $service->checkLink($queryBuilder, null, 'api_platform', 'resource');
+    }
+
     public static function checkoutCpfLookupProvider(): array
     {
         return [

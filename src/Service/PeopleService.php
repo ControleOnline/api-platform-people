@@ -424,7 +424,13 @@ class PeopleService
     // Checkout CPF lookup: exact CPF match across the base (no link visibility),
     // allowed only for a company the user belongs to.
     if (trim((string) $request?->query->get('context', '')) === self::CHECKOUT_CPF_LOOKUP_CONTEXT) {
-      $cpf = preg_replace('/\D/', '', (string) $request?->query->get('search', ''));
+      // Dedicated `cpf` param: `search` is also consumed by CustomOrFilter (LIKE), which
+      // fails for CPFs with leading zero (document.document is bigint). Falls back to `search`.
+      $cpfParam = (string) $request?->query->get('cpf', '');
+      if (trim($cpfParam) === '') {
+        $cpfParam = (string) $request?->query->get('search', '');
+      }
+      $cpf = preg_replace('/\D/', '', $cpfParam);
       if (
         strlen($cpf) !== 11
         || !$requestedCompanyId
