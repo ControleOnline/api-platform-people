@@ -11,8 +11,19 @@ jobs:
   people-module:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: people
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: people
+      - uses: actions/checkout@v4
+        with:
+          repository: ControleOnline/api-platform-common
+          ref: v1.0.6
+          path: common
 
       - uses: shivammathur/setup-php@v2
         with:

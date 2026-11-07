@@ -22,6 +22,8 @@ use Exception;
 
 class PeopleService
 {
+  public const CHECKOUT_CPF_LOOKUP_CONTEXT = 'checkout-cpf-lookup';
+
   private $request;
 
   public function __construct(
@@ -416,6 +418,33 @@ class PeopleService
 
     if (!$myPeople && $myCompanyIds === []) {
       $queryBuilder->andWhere('1 = 0');
+      return;
+    }
+
+    // Checkout CPF lookup: exact CPF match across the base (no link visibility),
+    // allowed only for a company the user belongs to.
+    if (trim((string) $request?->query->get('context', '')) === self::CHECKOUT_CPF_LOOKUP_CONTEXT) {
+      // `cpf` is preferred: the generic `search` param is also applied by CustomOrFilter as
+      // LIKE '%value%' on the bigint document column, which never matches a CPF starting with 0.
+      $cpf = preg_replace('/\D/', '', (string) ($request?->query->get('cpf') ?: $request?->query->get('search', '')));
+      $cpf = $cpf !== '' ? str_pad($cpf, 11, '0', STR_PAD_LEFT) : $cpf;
+      if (
+        strlen($cpf) !== 11
+        || !$requestedCompanyId
+        || !in_array($requestedCompanyId, $myCompanyIds, true)
+      ) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
+
+      $lookupPeopleId = $this->getDocument($cpf, 'CPF')?->getPeople()?->getId();
+      if (!$lookupPeopleId) {
+        $queryBuilder->andWhere('1 = 0');
+        return;
+      }
+
+      $queryBuilder->andWhere(sprintf('%s.id = :lookupPeopleId', $rootAlias));
+      $queryBuilder->setParameter('lookupPeopleId', (int) $lookupPeopleId);
       return;
     }
 
