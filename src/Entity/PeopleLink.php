@@ -49,6 +49,10 @@ use Doctrine\ORM\Mapping as ORM;
     'people' => 'exact',
     // linkType + enable: handled only in PeopleLinkService (SET + OR semantics).
 ])]
+#[ApiFilter(\ApiPlatform\Serializer\Filter\PropertyFilter::class, arguments: [
+    'parameterName' => 'listFields',
+    'whitelist' => ['id', 'enable', 'linkType', 'people' => ['id', 'name', 'alias'], 'company' => ['id']],
+])]
 class PeopleLink
 {
     public const HUMAN_LINK = [
