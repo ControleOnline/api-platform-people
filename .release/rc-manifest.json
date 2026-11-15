@@ -1,17 +1,13 @@
 {
-  "version": "1.0.14",
+  "version": "1.0.15",
   "rc": 1,
-  "branch": "rc/1.0.14-rc.1",
-  "baseMaster": "173c066852c3153c435e6f5333a0b4547e07eb4c",
+  "branch": "rc/1.0.15-rc.1",
+  "baseMaster": "f59d7012fce69d6d5136b15c9825728b0fff6664",
   "tasks": [
     59
   ],
   "frozen": true,
   "repositories": {
-    "ControleOnline/api-platform-people": "d2db7654c56dcba46507184a2d7d75e927b52b57"
-  },
-  "validation": {
-    "preserved": "Published v1.0.13 (not in master) merged so consumers keep it.",
-    "fix": "Idempotent Version20261015010000 (#59)."
+    "ControleOnline/api-platform-people": "61b70eab2e3053572631f80e12afce8fe4034bee"
   }
 }
