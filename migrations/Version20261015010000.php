@@ -19,7 +19,11 @@ final class Version20261015010000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE people_domain ADD app_type VARCHAR(64) NOT NULL DEFAULT 'MANAGER'");
+        // Idempotent: some databases already have the column (added outside this migration);
+        // failing here blocked every later migration of the chain.
+        if (!$schema->getTable('people_domain')->hasColumn('app_type')) {
+            $this->addSql("ALTER TABLE people_domain ADD app_type VARCHAR(64) NOT NULL DEFAULT 'MANAGER'");
+        }
 
         $rules = [
             ["domain LIKE 'admin.%' OR domain LIKE '%.admin.%' OR domain = 'admin.controleonline.com'", 'ADMIN'],
