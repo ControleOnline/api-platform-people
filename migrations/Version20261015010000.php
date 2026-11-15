@@ -21,7 +21,11 @@ final class Version20261015010000 extends AbstractMigration
     {
         // Idempotent: some databases already have the column (added outside this migration);
         // failing here blocked every later migration of the chain.
-        if (!$schema->getTable('people_domain')->hasColumn('app_type')) {
+        // Plain information_schema lookup: Doctrine schema introspection fails on some column types here.
+        $exists = (int) $this->connection->fetchOne(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'people_domain' AND COLUMN_NAME = 'app_type'"
+        );
+        if ($exists === 0) {
             $this->addSql("ALTER TABLE people_domain ADD app_type VARCHAR(64) NOT NULL DEFAULT 'MANAGER'");
         }
 
