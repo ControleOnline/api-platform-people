@@ -184,7 +184,7 @@ class People
     private ?DateTimeInterface $deletedAt = null;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'order_invoice_invoice:read'])]
+    #[Groups(['invoice_tax:read', 'invoice:read', 'invoice_list:read', 'people:read', 'product_people:read', 'people_link:read', 'people:write', 'order_product_queue:read', 'orders-queue:read', 'order:read', 'order_details:read', 'order_invoice:read', 'contract:read', 'import:read', 'task:read', 'task_interaction:read', 'order_invoice_invoice:read'])]
     private $name = '';
 
     #[ORM\Column(type: 'datetime', columnDefinition: 'DATETIME')]
