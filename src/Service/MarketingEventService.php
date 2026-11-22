@@ -59,6 +59,7 @@ class MarketingEventService
         $event->setUtmTerm($this->optionalString($payload, 'utm_term', self::MAX_UTM_LEN));
         $event->setUtmContent($this->optionalString($payload, 'utm_content', self::MAX_UTM_LEN));
         $event->setReferrer($this->optionalString($payload, 'referrer', self::MAX_URL_LEN));
+        $event->setGclid($this->optionalString($payload, 'gclid', 255));
         $event->setEmail($this->normalizeEmail($payload['email'] ?? null));
         $event->setPayloadHash($this->hashPayload($payload));
 
