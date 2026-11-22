@@ -23,6 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'marketing_event_event_at_idx', columns: ['event_at'])]
 #[ORM\Index(name: 'marketing_event_people_idx', columns: ['people_id'])]
 #[ORM\Index(name: 'marketing_event_idempotency_idx', columns: ['idempotency_key'])]
+#[ORM\Index(name: 'marketing_event_gclid_idx', columns: ['gclid'])]
 #[ORM\Entity(repositoryClass: \ControleOnline\Repository\MarketingEventRepository::class)]
 #[ApiResource(
     formats: ['jsonld', 'json', 'html', 'jsonhal'],
@@ -119,6 +120,11 @@ class MarketingEvent
     #[ORM\Column(name: 'referrer', type: 'string', length: 2048, nullable: true)]
     #[Groups(['marketing_event:read', 'marketing_event:write'])]
     private ?string $referrer = null;
+
+    /** Google Click Identifier used to tie an Order back to a Google Ads conversion. */
+    #[ORM\Column(name: 'gclid', type: 'string', length: 255, nullable: true)]
+    #[Groups(['marketing_event:read', 'marketing_event:write'])]
+    private ?string $gclid = null;
 
     #[ORM\Column(name: 'email', type: 'string', length: 255, nullable: true)]
     #[Groups(['marketing_event:read', 'marketing_event:write'])]
@@ -272,6 +278,17 @@ class MarketingEvent
     public function setReferrer(?string $referrer): self
     {
         $this->referrer = $referrer;
+        return $this;
+    }
+
+    public function getGclid(): ?string
+    {
+        return $this->gclid;
+    }
+
+    public function setGclid(?string $gclid): self
+    {
+        $this->gclid = $gclid;
         return $this;
     }
 
