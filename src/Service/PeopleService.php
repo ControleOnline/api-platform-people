@@ -73,73 +73,152 @@ class PeopleService
   }
 
 
-  public function importFromCSV(array $rowData, People $provider)
+  public const IMPORT_CSV_HEADERS = [
+    'Empresa',
+    'CNPJ',
+    'Segmento',
+    'Responsavel',
+    'Telefones',
+    'Emails',
+    'Endereco',
+    'Bairro',
+    'Cidade',
+    'Estado',
+    'CEP',
+    'Numero',
+    'Complemento',
+  ];
+
+  /**
+   * Imports one CSV row (keyed by IMPORT_CSV_HEADERS; positional rows are accepted
+   * too) and links the resulting people to $provider with $linkType.
+   * Company (Empresa/CNPJ) is the main people; Responsavel becomes its employee.
+   * Without Empresa, Responsavel itself is the imported people.
+   */
+  public function importFromCSV(array $rowData, People $provider, string $linkType = 'client'): People
   {
+    $row = $this->normalizeImportRow($rowData);
 
-    [
-      $company,
-      $document,
-      $segment,
-      $contact,
-      $phones,
-      $emails,
-      $address,
-      $city,
-      $uf,
-      $CEP,
-      $number,
-      $Complement,
-      $linkType,
-    ] = $rowData;
+    $companyName = $row['Empresa'];
+    $contactName = $row['Responsavel'];
+    $document = preg_replace('/\D/', '', $row['CNPJ']);
+    $emails = $this->splitImportEmails($row['Emails']);
+    $phones = $this->splitImportPhones($row['Telefones']);
 
-    $document = preg_replace('/\D/', '', $document);
+    if ($companyName === '' && $contactName === '' && $document === '') {
+      throw new Exception('Informe Empresa, CNPJ ou Responsavel.');
+    }
 
-    $companyPeople = $this->discoveryPeople(
-      $document,
+    $mainName = $companyName !== '' ? $companyName : $contactName;
+    $peopleType = $document !== ''
+      ? $this->getPeopleTypeByDocumentLen($document)
+      : ($companyName !== '' ? 'J' : 'F');
+
+    $realPeople = $this->discoveryPeople(
+      $document !== '' ? $document : null,
       $emails[0] ?? null,
-      [],
-      $company,
-      'J'
+      $phones[0] ?? [],
+      $mainName,
+      $peopleType
     );
 
-    foreach ($emails as $email) {
-      $this->addEmail($companyPeople, $email);
+    foreach (array_slice($emails, 1) as $email) {
+      $this->tryImportStep(fn() => $this->addEmail($realPeople, $email));
     }
 
-    foreach ($phones as $phone) {
-
-      $phone = preg_replace('/\D/', '', $phone);
-
-      if (strlen($phone) >= 10) {
-
-        $ddd = substr($phone, 0, 2);
-        $numberPhone = substr($phone, 2);
-
-        $this->addPhone($companyPeople, [
-          'ddi' => 55,
-          'ddd' => $ddd,
-          'phone' => $numberPhone
-        ]);
-      }
+    foreach (array_slice($phones, 1) as $phone) {
+      $this->tryImportStep(fn() => $this->addPhone($realPeople, $phone));
     }
 
-    if ($contact) {
-      $contactPeople = $this->discoveryPeople(
-        null,
-        null,
-        [],
-        $contact,
-        'F'
+    if ($companyName !== '' && $contactName !== '') {
+      $contactPeople = $this->findLinkedPeopleByName($realPeople, $contactName, 'employee')
+        ?? $this->discoveryPeople(null, null, [], $contactName, 'F');
+      $this->discoveryLink($realPeople, $contactPeople, 'employee');
+    }
+
+    $this->discoveryLink($provider, $realPeople, $linkType);
+
+    return $realPeople;
+  }
+
+  /** @return array<string, string> */
+  public function normalizeImportRow(array $rowData): array
+  {
+    if (array_is_list($rowData)) {
+      $rowData = array_combine(
+        self::IMPORT_CSV_HEADERS,
+        array_pad(array_slice($rowData, 0, count(self::IMPORT_CSV_HEADERS)), count(self::IMPORT_CSV_HEADERS), null)
       );
     }
 
+    $row = [];
+    foreach (self::IMPORT_CSV_HEADERS as $header) {
+      $row[$header] = trim((string) ($rowData[$header] ?? ''));
+    }
 
-    $realPeople = $companyPeople ?: $contactPeople;
-    $this->discoveryLink($companyPeople, $realPeople, 'employee');
-    $this->discoveryLink($provider, $realPeople, $linkType);
+    return $row;
+  }
 
+  /** @return list<string> */
+  public function splitImportEmails(string $value): array
+  {
+    $emails = [];
+    foreach (preg_split('/[\s,;]+/', mb_strtolower($value)) ?: [] as $email) {
+      if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $emails[$email] = $email;
+      }
+    }
 
-    return $realPeople;
+    return array_values($emails);
+  }
+
+  /** @return list<array{ddi:int, ddd:int, phone:string}> */
+  public function splitImportPhones(string $value): array
+  {
+    $phones = [];
+    foreach (preg_split('/[,;\/|]+/', $value) ?: [] as $raw) {
+      $digits = preg_replace('/\D/', '', $raw);
+      if (strlen($digits) >= 12 && str_starts_with($digits, '55')) {
+        $digits = substr($digits, 2);
+      }
+      if (strlen($digits) < 10 || strlen($digits) > 11) {
+        continue;
+      }
+      $phones[$digits] = [
+        'ddi' => 55,
+        'ddd' => (int) substr($digits, 0, 2),
+        'phone' => substr($digits, 2),
+      ];
+    }
+
+    return array_values($phones);
+  }
+
+  private function findLinkedPeopleByName(People $company, string $name, string $linkType): ?People
+  {
+    $link = $this->manager->getRepository(PeopleLink::class)
+      ->createQueryBuilder('pl')
+      ->join('pl.people', 'p')
+      ->andWhere('pl.company = :company')
+      ->andWhere('pl.linkType = :linkType')
+      ->andWhere('p.name = :name')
+      ->setParameter('company', $company)
+      ->setParameter('linkType', $linkType)
+      ->setParameter('name', $name)
+      ->setMaxResults(1)
+      ->getQuery()
+      ->getOneOrNullResult();
+
+    return $link?->getPeople();
+  }
+
+  // Secondary e-mails/phones already owned by someone else must not reject the whole row.
+  private function tryImportStep(callable $step): void
+  {
+    try {
+      $step();
+    } catch (\Throwable) {
+    }
   }
 
   public function discoveryPeople(?string $document = null, ?string  $email = null, ?array $phone = [], ?string $name = null, ?string $peopleType = null): People
