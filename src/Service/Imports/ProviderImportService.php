@@ -9,4 +9,9 @@ class ProviderImportService extends PeopleImportService
     {
         return 'provider';
     }
+
+    protected function getLinkType(): string
+    {
+        return 'provider';
+    }
 }
