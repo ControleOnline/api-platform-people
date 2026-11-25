@@ -9,4 +9,9 @@ class ProspectImportService extends PeopleImportService
     {
         return 'prospect';
     }
+
+    protected function getLinkType(): string
+    {
+        return 'prospect';
+    }
 }
