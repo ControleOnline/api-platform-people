@@ -8,4 +8,9 @@ class ClientImportService extends PeopleImportService
     {
         return 'client';
     }
+
+    protected function getLinkType(): string
+    {
+        return 'client';
+    }
 }
