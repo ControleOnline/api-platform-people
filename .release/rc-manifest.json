@@ -1,14 +1,20 @@
 {
-  "version": "1.0.19",
+  "version": "1.0.20",
   "rc": 1,
-  "branch": "rc/1.0.19-rc.1",
-  "baseMaster": "83864b0e2e7e4262569f6359b0cd9544f9316334",
-  "baseTag": "v1.0.18",
+  "branch": "rc/1.0.20-rc.1",
+  "baseMaster": "5294afbcdf0cf271c7b711ce5c0e34942bb95015",
+  "baseTag": "v1.0.19",
   "tasks": [
-    98
+    1761
   ],
+  "taskRepository": "ControleOnline/app-community",
   "frozen": true,
   "repositories": {
-    "ControleOnline/api-platform-people": "78be78eee20c57bd4044d4747c2b087878f92c95"
+    "ControleOnline/api-platform-people": "48ae844258cb055c17842360a6db2ac4c66dc7c6"
+  },
+  "sources": {
+    "versão de produção v1.0.15": "83828e3dcad08a50f208a20b1f809b7647b28157",
+    "staging": "17308f99bded6a36f1f0a34f2412e9ac69a1ba36",
+    "dev": "e48ae15847056a31f74bae934cc1a3bf67b6b2b1"
   }
 }
